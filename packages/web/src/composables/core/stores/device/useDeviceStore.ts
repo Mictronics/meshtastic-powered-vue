@@ -679,8 +679,7 @@ class Device implements IDevice {
 
 export const useDeviceStore = createSharedComposable(() => {
     const devices = shallowRef<Map<number, Device>>(new Map());
-    const savedConnections = useConnectionStore().connections;
-    const activeConnectionId = shallowRef<number | null>(null);
+    const activeConnectionId = shallowRef<ConnectionId | null>(null);
 
     async function init() {
         devices.value = await getDatabaseDevices();
@@ -691,11 +690,11 @@ export const useDeviceStore = createSharedComposable(() => {
     }
 
     function getConnectionForDevice(deviceId: number) {
-        return [...savedConnections.value.values()].find(c => c.meshDeviceId === deviceId);
+        return [...useConnectionStore().connections.value.values()].find(c => c.meshDeviceId === deviceId);
     };
 
     function getDeviceForConnection(id: number) {
-        const connection = savedConnections.value.get(id);
+        const connection = useConnectionStore().connections.value.get(id);
         if (!connection?.meshDeviceId) {
             return undefined;
         }
@@ -789,11 +788,11 @@ export const useDeviceStore = createSharedComposable(() => {
         return activeConnectionId.value;
     };
 
-    async function getActiveConnection() {
+    function getActiveConnection() {
         if (!activeConnectionId.value) {
             return undefined;
         }
-        return savedConnections.value.get(activeConnectionId.value);
+        return useConnectionStore().connections.value.get(activeConnectionId.value);
     };
 
     function setActiveConnectionId(id: number) {
