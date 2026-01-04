@@ -1,0 +1,23 @@
+@import 'tailwindcss';
+@import 'tailwindcss-primeui';
+@import './base.css';
+@custom-variant dark (&:where(.p-dark, .p-dark *));
+
+#app {
+  padding: 1rem;
+  font-weight: normal;
+  height: 100vh;
+}
+
+.p-dialog-header {
+  padding-bottom: 0.5rem !important;
+}
+
+.p-tabpanels {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.togglebutton-border {
+  border-width: 0 1px 0 1px !important;
+}

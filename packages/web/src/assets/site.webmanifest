@@ -1,0 +1,16 @@
+{
+  "name": "Meshtastic Nexus",
+  "short_name": "Nexus",
+  "start_url": ".",
+  "description": "Meshtastic Nexus Client",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "theme_color": "#67ea94",
+  "background_color": "#67ea94",
+  "display": "standalone"
+}

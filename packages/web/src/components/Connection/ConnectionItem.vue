@@ -1,0 +1,272 @@
+<template>
+  <Card>
+    <template #title>
+      <div class="flex justify-between">
+        {{ connection.name }}
+        <div>
+          <Chip v-if="connection.isDefault" class="connection-item-chip">
+            <IconStar fill="orange" strokeWidth="0" :size="15" />
+            Default
+          </Chip>
+          <Chip
+            v-if="connection.status === ConnectionStatus.Connected"
+            class="connection-item-chip"
+          >
+            <IconLink :size="15" />
+            Connected
+          </Chip>
+          <Chip
+            v-else-if="connection.status === ConnectionStatus.Disconnected"
+            class="connection-item-chip"
+          >
+            <IconUnlink :size="15" />
+            Disconnected
+          </Chip>
+          <Chip v-else class="connection-item-chip">
+            {{ getEnumKey(ConnectionStatus, connection.status) }}
+          </Chip>
+          <Button size="small" severity="secondary" variant="text" @click="toggle">
+            <IconEllipsis :size="15" />
+          </Button>
+          <Popover ref="op" id="popover" @show="setPopoverPosition">
+            <div class="flex flex-col gap-2 text-sm">
+              <Button
+                v-if="connection.isDefault"
+                class="popover-button"
+                variant="text"
+                severity="secondary"
+                size="small"
+                @click="onSetDefault(false)"
+              >
+                <IconStarOff :size="15" />
+                Unset default
+              </Button>
+              <Button
+                v-else
+                class="popover-button"
+                variant="text"
+                severity="secondary"
+                size="small"
+                @click="onSetDefault(true)"
+              >
+                <IconStar :size="15" />
+                Set default
+              </Button>
+              <Button
+                class="popover-button"
+                variant="text"
+                severity="danger"
+                size="small"
+                @click="confirmDelete()"
+              >
+                <IconTrash2 :size="15" />
+                Delete
+              </Button>
+            </div>
+          </Popover>
+        </div>
+      </div>
+    </template>
+    <template #subtitle>
+      <div>
+        <Chip v-if="connection.type === ConnectionType.Http" class="connection-item-chip">
+          <IconGlobe :size="15" />
+          HTTP
+        </Chip>
+        <Chip v-else-if="connection.type === ConnectionType.Serial" class="connection-item-chip">
+          <IconCable :size="15" />
+          Serial
+        </Chip>
+        <Chip v-else-if="connection.type === ConnectionType.Bluetooth" class="connection-item-chip">
+          <IconBluetooth :size="15" />
+          Bluetooth
+        </Chip>
+        {{ formatConnectionSubtext(connection) }}
+      </div>
+    </template>
+    <template #content>
+      <div class="flex justify-between gap-2 items-center">
+        <p class="m-0 text-sm last-connected">
+          {{
+            connection.lastConnectedAt === 0
+              ? 'Never connected'
+              : formatDate(connection.lastConnectedAt)
+          }}
+        </p>
+        <Message v-if="connection.error" severity="error" variant="simple" size="small">
+          {{ connection.error }}
+        </Message>
+      </div>
+    </template>
+    <template #footer>
+      <div class="flex gap-4 mt-1">
+        <Button
+          v-if="connection.status === ConnectionStatus.Disconnected"
+          severity="success"
+          size="small"
+          @click="$emit('eventConnect', connection.id)"
+        >
+          <IconLink :size="15" />
+          Connect
+        </Button>
+        <Button
+          v-else-if="connection.status === ConnectionStatus.Connected"
+          severity="secondary"
+          size="small"
+          @click="$emit('eventDisconnect', connection.id)"
+        >
+          <IconUnlink :size="15" />
+          Disconnect
+        </Button>
+        <Button
+          v-else-if="connection.status === ConnectionStatus.Error"
+          severity="warn"
+          size="small"
+          @click="$emit('eventReconnect', connection.id)"
+        >
+          <IconRotateCcw :size="15" />
+          Retry
+        </Button>
+        <Button v-else severity="info" size="small" disabled="true">
+          <ProgressSpinner style="width: 15px; height: 15px" strokeWidth="5" fill="transparent" />
+        </Button>
+      </div>
+    </template>
+  </Card>
+  <ConfirmDialog group="headless" pt:mask:class="backdrop-blur-sm">
+    <template #container="{ message, acceptCallback, rejectCallback }">
+      <div class="flex flex-col items-center p-8 bg-surface-0 dark:bg-surface-900 rounded">
+        <div
+          class="rounded-full confirm-icon inline-flex justify-center items-center h-24 w-24 -mt-20"
+        >
+          <IconShieldQuestionMark :size="64" />
+        </div>
+        <span class="font-bold text-2xl block mb-2 mt-6">{{ message.header }}</span>
+        <p class="mb-0">{{ message.message }}</p>
+        <div class="flex items-center gap-2 mt-6">
+          <Button label="Delete" severity="danger" @click="acceptCallback"></Button>
+          <Button
+            label="Cancel"
+            severity="secondary"
+            variant="outlined"
+            @click="rejectCallback"
+          ></Button>
+        </div>
+      </div>
+    </template>
+  </ConfirmDialog>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue';
+import {
+  ConnectionStatus,
+  ConnectionType,
+  type IConnection,
+} from '@/composables/core/stores/connection/types';
+import { useConfirm } from 'primevue/useconfirm';
+
+const props = defineProps<{ connection: IConnection }>();
+
+const emit = defineEmits<{
+  (e: 'eventConnect', id: number): void;
+  (e: 'eventDisconnect', id: number): void;
+  (e: 'eventReconnect', id: number): void;
+  (e: 'eventConnectionDefault', id: number, isDefault: boolean): void;
+  (e: 'eventConnectionDelete', id: number): void;
+}>();
+
+const confirm = useConfirm();
+const op = ref<any>(null);
+let clientX = 0;
+let clientY = 0;
+
+function toggle(event: MouseEvent) {
+  clientX = event.clientX;
+  clientY = event.clientY;
+  op.value?.toggle(event);
+}
+
+function getEnumKey(enumObj: any, value: number): string | undefined {
+  return Object.keys(enumObj).find((key) => enumObj[key] === value);
+}
+
+function setPopoverPosition() {
+  /* Workaround for bug in Primevue Popover.
+   * https://github.com/primefaces/primevue/issues/6616
+   */
+  const po = document.getElementById('popover');
+  if (po) {
+    po.style.top = `${clientY}px`;
+    po.style.insetInlineStart = `${clientX - 20}px`;
+  }
+}
+
+function onSetDefault(value: boolean) {
+  emit('eventConnectionDefault', props.connection.id, value);
+  op.value.hide();
+}
+
+function onDelete() {
+  emit('eventConnectionDelete', props.connection.id);
+  op.value.hide();
+}
+
+function formatDate(epoch?: number) {
+  const date = new Date(0);
+  if (epoch === undefined) {
+    date.setUTCSeconds(Math.ceil(Date.now() / 1000));
+  } else {
+    date.setUTCSeconds(epoch);
+  }
+  return new Intl.DateTimeFormat('default', { dateStyle: 'long' }).format(date);
+}
+
+function formatConnectionSubtext(conn: IConnection): string {
+  if (conn.type === ConnectionType.Http) {
+    return conn.url;
+  } else if (conn.type === ConnectionType.Bluetooth) {
+    return conn.deviceName || conn.deviceId || 'No device selected';
+  } else if (conn.type === ConnectionType.Serial) {
+    const v = conn.usbVendorId ? conn.usbVendorId.toString(16) : '?';
+    const p = conn.usbProductId ? conn.usbProductId.toString(16) : '?';
+    return `USB ${v}:${p}`;
+  }
+  return '?';
+}
+
+const confirmDelete = () => {
+  confirm.require({
+    group: 'headless',
+    header: 'Are you sure?',
+    message: 'This will delete all device data linked to this connection.',
+    accept: () => {
+      onDelete();
+    },
+  });
+};
+</script>
+
+<style scoped lang="css">
+.connection-item-chip {
+  padding-block: unset;
+  font-weight: normal;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  margin-right: 0.5em;
+}
+
+.popover-button {
+  padding: 0 var(--p-button-sm-padding-x);
+  justify-content: start;
+}
+
+.confirm-icon {
+  background: var(--p-button-danger-background);
+  color: var(--p-button-danger-color);
+}
+
+.last-connected {
+  min-width: fit-content;
+}
+</style>
