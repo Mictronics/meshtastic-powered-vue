@@ -101,7 +101,7 @@ class Connection implements IConnection {
 }
 
 export const useConnectionStore = createSharedComposable(() => {
-    const connections = ref(new Map());
+    const connections = ref<Map<number, IConnection>>(new Map());
 
     async function init() {
         connections.value = await getDatabaseConnections();
@@ -161,11 +161,11 @@ export const useConnectionStore = createSharedComposable(() => {
                             updates[key as keyof typeof updates];
                     }
                 }
-                await useIndexedDB().updateStore(IDB_CONNECTION_STORE, conn.get());
+                await useIndexedDB().updateStore(IDB_CONNECTION_STORE, (conn as any).get());
                 if (conn.id != null) {
                     const stored = await useIndexedDB().getFromStore(IDB_CONNECTION_STORE, conn.id as any);
                     if (connections.value.has(conn.id))
-                        connections.value.get(conn.id)?.set(stored);
+                        (connections.value.get(conn.id) as any).set(stored);
                 }
             }
         } catch (e: any) {
