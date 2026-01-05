@@ -31,26 +31,30 @@
       v-for="conn in sortedConnections.values()"
       :key="conn.id"
       :connection="conn"
-      @event-connection-delete="deleteConnection"
-      @event-connection-default="setDefaultConnection"
       @event-connect="onConnect"
       @event-disconnect="onDisconnect"
+      @event-connection-delete="onDelete"
+      @event-connection-default="setDefaultConnection"
     />
   </div>
   <AddConnectionDialog ref="addConnectionDialog" />
+  <DeleteConfirmDialog ref="deleteConfirmDialog" @event-on-confirm-delete="deleteConnection" />
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import ConnectionItem from './ConnectionItem.vue';
 import AddConnectionDialog from './AddConnectionDialog.vue';
+import DeleteConfirmDialog from './DeleteConfirmDialog.vue';
 import { useConnectionStore } from '@/composables/core/stores/connection/useConnectionStore';
 import { useConnection } from '@/composables/core/useConnection';
 import { useGlobalToast } from '@/composables/useGlobalToast';
 
 type AddConnectionDialogHandle = { open: () => void; close: () => void };
-
 const addConnectionDialog = ref<AddConnectionDialogHandle | null>(null);
+
+type DeleteConfirmDialogHandle = { open: () => void };
+const deleteConfirmDialog = ref<DeleteConfirmDialogHandle | null>(null);
 
 const connections = useConnectionStore().connections;
 // Sort and show default connection first.
@@ -66,8 +70,15 @@ function showAddConnectionDialog() {
   addConnectionDialog.value?.open();
 }
 
-async function deleteConnection(id: number) {
-  await useConnection().deleteConnection(id);
+let connectionToDelete = 0;
+// Called first when connection shall be deleted. Show confirmation dialog.
+function onDelete(id: number) {
+  connectionToDelete = id;
+  deleteConfirmDialog.value?.open();
+}
+// Called second if confirmation is accepted. Triggers deletes connection.
+async function deleteConnection() {
+  await useConnection().deleteConnection(connectionToDelete);
 }
 
 function setDefaultConnection(id: number, isDefault: boolean) {

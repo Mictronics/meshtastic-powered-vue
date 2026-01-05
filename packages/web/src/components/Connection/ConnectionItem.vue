@@ -55,7 +55,7 @@
                 variant="text"
                 severity="danger"
                 size="small"
-                @click="confirmDelete()"
+                @click="onDelete()"
               >
                 <IconTrash2 :size="15" />
                 Delete
@@ -131,28 +131,6 @@
       </div>
     </template>
   </Card>
-  <ConfirmDialog group="headless" pt:mask:class="backdrop-blur-sm">
-    <template #container="{ message, acceptCallback, rejectCallback }">
-      <div class="flex flex-col items-center p-8 bg-surface-0 dark:bg-surface-900 rounded">
-        <div
-          class="rounded-full confirm-icon inline-flex justify-center items-center h-24 w-24 -mt-20"
-        >
-          <IconShieldQuestionMark :size="64" />
-        </div>
-        <span class="font-bold text-2xl block mb-2 mt-6">{{ message.header }}</span>
-        <p class="mb-0">{{ message.message }}</p>
-        <div class="flex items-center gap-2 mt-6">
-          <Button label="Delete" severity="danger" @click="acceptCallback"></Button>
-          <Button
-            label="Cancel"
-            severity="secondary"
-            variant="outlined"
-            @click="rejectCallback"
-          ></Button>
-        </div>
-      </div>
-    </template>
-  </ConfirmDialog>
 </template>
 
 <script setup lang="ts">
@@ -162,7 +140,6 @@ import {
   ConnectionType,
   type IConnection,
 } from '@/composables/core/stores/connection/types';
-import { useConfirm } from 'primevue/useconfirm';
 import { formatTimeAgoIntl } from '@vueuse/core';
 
 const props = defineProps<{ connection: IConnection }>();
@@ -175,7 +152,6 @@ const emit = defineEmits<{
   (e: 'eventConnectionDelete', id: number): void;
 }>();
 
-const confirm = useConfirm();
 const op = ref<any>(null);
 let clientX = 0;
 let clientY = 0;
@@ -208,12 +184,10 @@ function setPopoverPosition() {
 
 function onSetDefault(value: boolean) {
   emit('eventConnectionDefault', props.connection.id, value);
-  op.value.hide();
 }
 
 function onDelete() {
   emit('eventConnectionDelete', props.connection.id);
-  op.value.hide();
 }
 
 function formatDate(epoch?: number) {
@@ -238,17 +212,6 @@ function formatConnectionSubtext(conn: IConnection): string {
   }
   return '?';
 }
-
-const confirmDelete = () => {
-  confirm.require({
-    group: 'headless',
-    header: 'Are you sure?',
-    message: 'This will delete all device data linked to this connection.',
-    accept: () => {
-      onDelete();
-    },
-  });
-};
 </script>
 
 <style scoped lang="css">
@@ -263,11 +226,6 @@ const confirmDelete = () => {
 .popover-button {
   padding: 0 var(--p-button-sm-padding-x);
   justify-content: start;
-}
-
-.confirm-icon {
-  background: var(--p-button-danger-background);
-  color: var(--p-button-danger-color);
 }
 
 .last-connected {
