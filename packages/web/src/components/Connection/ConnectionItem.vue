@@ -8,10 +8,7 @@
             <IconStar fill="orange" strokeWidth="0" :size="15" />
             Default
           </Chip>
-          <Chip
-            v-if="connection.status === ConnectionStatus.Connected"
-            class="connection-item-chip"
-          >
+          <Chip v-if="isConnected()" class="connection-item-chip">
             <IconLink :size="15" />
             Connected
           </Chip>
@@ -23,6 +20,7 @@
             Disconnected
           </Chip>
           <Chip v-else class="connection-item-chip">
+            <IconHourglass :size="15" />
             {{ getEnumKey(ConnectionStatus, connection.status) }}
           </Chip>
           <Button size="small" severity="secondary" variant="text" @click="toggle">
@@ -110,7 +108,7 @@
           Connect
         </Button>
         <Button
-          v-else-if="connection.status === ConnectionStatus.Connected"
+          v-else-if="isConnected()"
           severity="secondary"
           size="small"
           @click="$emit('eventDisconnect', connection.id)"
@@ -165,6 +163,7 @@ import {
   type IConnection,
 } from '@/composables/core/stores/connection/types';
 import { useConfirm } from 'primevue/useconfirm';
+import { formatTimeAgoIntl } from '@vueuse/core';
 
 const props = defineProps<{ connection: IConnection }>();
 
@@ -189,6 +188,11 @@ function toggle(event: MouseEvent) {
 
 function getEnumKey(enumObj: any, value: number): string | undefined {
   return Object.keys(enumObj).find((key) => enumObj[key] === value);
+}
+
+function isConnected(): boolean {
+  const status = props.connection.status;
+  return status === ConnectionStatus.Connected || status === ConnectionStatus.Configured;
 }
 
 function setPopoverPosition() {
@@ -219,7 +223,7 @@ function formatDate(epoch?: number) {
   } else {
     date.setUTCSeconds(epoch);
   }
-  return new Intl.DateTimeFormat('default', { dateStyle: 'long' }).format(date);
+  return formatTimeAgoIntl(date);
 }
 
 function formatConnectionSubtext(conn: IConnection): string {
