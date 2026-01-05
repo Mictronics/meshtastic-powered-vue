@@ -1,6 +1,6 @@
 import { useDeviceStore, type IDevice } from "@/composables/core/stores/device/useDeviceStore.ts";
 import { type IConnection, type ConnectionId, ConnectionStatus } from "@/composables/core/stores/connection/types";
-import { useConnectionStore } from "../connection/useConnectionStore";
+import { useConnectionStore } from "./connection/useConnectionStore";
 
 /**
  * Hook to get the currently active connection
