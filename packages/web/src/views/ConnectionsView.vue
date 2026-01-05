@@ -1,5 +1,5 @@
 <template>
-  <main>
+  <main class="connection-view">
     <Connections />
   </main>
 </template>

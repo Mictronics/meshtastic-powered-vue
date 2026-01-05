@@ -1,13 +1,14 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import ConnectionsView from '../views/ConnectionsView.vue'
+import ConnectionsView from '@/views/ConnectionsView.vue'
+import Dashboard from '@/views/Dashboard.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: '/',
-      name: 'home',
-      component: ConnectionsView,
+      path: '/dashboard',
+      name: 'dashboard',
+      component: Dashboard,
     },
     {
       path: '/',

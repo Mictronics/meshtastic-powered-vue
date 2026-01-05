@@ -4,9 +4,16 @@
 @custom-variant dark (&:where(.p-dark, .p-dark *));
 
 #app {
-  padding: 1rem;
   font-weight: normal;
   height: 100vh;
+}
+
+.connection-view {
+  padding: 1rem;
+}
+
+.dashboard-view {
+  padding: 0.5rem;
 }
 
 .p-dialog-header {
@@ -20,4 +27,21 @@
 
 .togglebutton-border {
   border-width: 0 1px 0 1px !important;
+}
+
+.dashboard-header {
+  height: 50px;
+  border-color: var(--color-slate-300);
+  border-bottom-width: 1px;
+  border-bottom-style: var(--tw-border-style);
+}
+
+.dashboard-sidebar {
+  border-color: var(--color-slate-300);
+  border-right-width: 1px;
+  border-right-style: var(--tw-border-style);
+}
+
+.dashboard-panelmenu {
+  border-style: none !important;
 }

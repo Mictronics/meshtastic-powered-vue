@@ -31,6 +31,8 @@ import TabPanel from 'primevue/tabpanel';
 import ProgressSpinner from 'primevue/progressspinner';
 import ConfirmDialog from 'primevue/confirmdialog';
 import ConfirmationService from 'primevue/confirmationservice';
+import Badge from 'primevue/badge';
+import PanelMenu from 'primevue/panelmenu';
 // Import icons
 import {
     Cable,
@@ -52,8 +54,20 @@ import {
     Info,
     SquareMousePointer,
     ShieldQuestionMark,
+    Hourglass,
+    Menu,
+    MessageSquareText,
+    Map,
+    Settings,
+    Users
 } from "lucide-vue-next";
 import { useGlobalToast } from '@/composables/useGlobalToast';
+import { tryOnMounted } from '@vueuse/core';
+import { useIndexedDB } from '@/composables/core/stores/indexedDB';
+import { useConnectionStore } from '@/composables/core/stores/connection/useConnectionStore';
+import { useDeviceStore } from '@/composables/core/stores/device/useDeviceStore';
+import { useMessageStore } from '@/composables/core/stores/message/useMessageStore';
+import { useNodeDBStore } from '@/composables/core/stores/nodeDB/useNodeDBStore';
 
 const app = createApp(App)
 
@@ -69,6 +83,19 @@ app.use(PrimeVue, {
         }
     }
 });
+
+/**
+ * Initialize as early as possible to get IndexedDB content into
+ * composables prior first use.It's all async.
+ */
+tryOnMounted(() => {
+    useIndexedDB();
+    useConnectionStore();
+    useDeviceStore();
+    useMessageStore();
+    useNodeDBStore();
+});
+
 app.use(router)
 app.use(ToastService);
 app.use(ConfirmationService);
@@ -102,6 +129,8 @@ app.component('Dialog', Dialog);
 app.component('Divider', Divider);
 app.component('ProgressSpinner', ProgressSpinner);
 app.component('ConfirmDialog', ConfirmDialog);
+app.component('Badge', Badge);
+app.component('PanelMenu', PanelMenu);
 /* Icons */
 app.component('IconCable', Cable);
 app.component('IconGlobe', Globe);
@@ -122,4 +151,10 @@ app.component('IconCircleX', CircleX);
 app.component('IconInfo', Info);
 app.component('IconSquareMousePointer', SquareMousePointer);
 app.component('IconShieldQuestionMark', ShieldQuestionMark);
+app.component('IconHourglass', Hourglass);
+app.component('IconMenu', Menu);
+app.component('IconMessageSquareText', MessageSquareText);
+app.component('IconMap', Map);
+app.component('IconSettings', Settings);
+app.component('IconUsers', Users);
 app.mount('#app')
