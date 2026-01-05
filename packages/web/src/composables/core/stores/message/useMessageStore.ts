@@ -345,11 +345,11 @@ export const useMessageStore = createSharedComposable(() => {
         return new Promise<Map<number, MessageStore>>(() => { return new Map(); });
     }
 
-    async function getMessageStores() {
+    function getMessageStores() {
         return messageStores.value;
     };
 
-    async function getMessageStore(id: number) {
+    function getMessageStore(id: number) {
         return messageStores.value.get(id);
     };
 

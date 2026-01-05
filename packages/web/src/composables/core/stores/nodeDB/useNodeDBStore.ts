@@ -410,11 +410,11 @@ export const useNodeDBStore = createSharedComposable(() => {
         return new Promise<Map<number, NodeDB>>(() => { return new Map(); });
     }
 
-    async function getNodeDBs() {
+    function getNodeDBs() {
         return nodeDBs.value;
     };
 
-    async function getNodeDB(id: number) {
+    function getNodeDB(id: number) {
         return nodeDBs.value.get(id);
     };
 
