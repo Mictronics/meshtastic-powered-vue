@@ -14,7 +14,6 @@ export {
 } from "@/composables/core/hooks/useDeviceContext";
 //export { useAppStore } from "@core/stores/appStore/index.ts";
 export { type IDevice, useDeviceStore } from "@/composables/core/stores/device/useDeviceStore";
-/*
 export {
   useActiveConnection,
   useActiveConnectionId,
@@ -30,8 +29,7 @@ export {
   useRemoveSavedConnection,
   useSavedConnections,
   useUpdateSavedConnection,
-} from "@core/stores/deviceStore/selectors.ts";
-*/
+} from "@/composables/core/stores/selectors";
 export type {
   Page,
   ValidConfigType,
