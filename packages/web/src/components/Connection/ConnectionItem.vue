@@ -184,10 +184,12 @@ function setPopoverPosition() {
 
 function onSetDefault(value: boolean) {
   emit('eventConnectionDefault', props.connection.id, value);
+  op.value.hide();
 }
 
 function onDelete() {
   emit('eventConnectionDelete', props.connection.id);
+  op.value.hide();
 }
 
 function formatDate(epoch?: number) {
