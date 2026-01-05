@@ -28,7 +28,7 @@
   <Divider />
   <div class="grid gap-4 grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
     <ConnectionItem
-      v-for="conn in connections.values()"
+      v-for="conn in sortedConnections.values()"
       :key="conn.id"
       :connection="conn"
       @event-connection-delete="deleteConnection"
@@ -41,7 +41,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import ConnectionItem from './ConnectionItem.vue';
 import AddConnectionDialog from './AddConnectionDialog.vue';
 import { useConnectionStore } from '@/composables/core/stores/connection/useConnectionStore';
@@ -53,6 +53,14 @@ type AddConnectionDialogHandle = { open: () => void; close: () => void };
 const addConnectionDialog = ref<AddConnectionDialogHandle | null>(null);
 
 const connections = useConnectionStore().connections;
+// Sort and show default connection first.
+const sortedConnections = computed(() => {
+  return new Map(
+    Array.from(connections.value.entries()).sort((a, b) => {
+      return (b[1].isDefault === true ? 1 : 0) - (a[1].isDefault === true ? 1 : 0);
+    })
+  );
+});
 
 function showAddConnectionDialog() {
   addConnectionDialog.value?.open();
