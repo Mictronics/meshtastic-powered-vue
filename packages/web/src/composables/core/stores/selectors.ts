@@ -2,27 +2,6 @@ import { useDeviceStore, type IDevice } from "@/composables/core/stores/device/u
 import { type IConnection, type ConnectionId, ConnectionStatus } from "@/composables/core/stores/connection/types";
 import { useConnectionStore } from "./connection/useConnectionStore";
 
-/**
- * Hook to get the currently active connection
- */
-export function useActiveConnection(): IConnection | undefined {
-  return useDeviceStore().getActiveConnection();
-}
-
-/**
- * Hook to get the HTTP connection marked as default
- */
-export function useDefaultConnection(): IConnection | undefined {
-  return [...useConnectionStore().connections.value].find(([key, value]) => value.isDefault)?.[1];
-}
-
-/**
- * Hook to get the first saved connection
- */
-export function useFirstSavedConnection(): IConnection | undefined {
-  return useConnectionStore().connections.value.entries().next().value?.[1];
-}
-
 export function useAddSavedConnection() {
   return useConnectionStore().addConnection;
 }
@@ -39,11 +18,11 @@ export function useRemoveSavedConnection() {
  * Hook to get the active connection ID
  */
 export function useActiveConnectionId(): ConnectionId | null {
-  return useDeviceStore().getActiveConnectionId();
+  return useConnectionStore().getActiveConnectionId();
 }
 
 export function useSetActiveConnectionId(id: ConnectionId) {
-  return useDeviceStore().setActiveConnectionId(id);
+  return useConnectionStore().setActiveConnectionId(id);
 }
 
 /**
