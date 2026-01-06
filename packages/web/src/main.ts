@@ -33,6 +33,8 @@ import ConfirmDialog from 'primevue/confirmdialog';
 import ConfirmationService from 'primevue/confirmationservice';
 import Badge from 'primevue/badge';
 import PanelMenu from 'primevue/panelmenu';
+import Avatar from 'primevue/avatar';
+import Tooltip from 'primevue/tooltip';
 // Import icons
 import {
     Cable,
@@ -59,7 +61,11 @@ import {
     MessageSquareText,
     Map,
     Settings,
-    Users
+    Users,
+    BatteryCharging,
+    BatteryLow,
+    BatteryMedium,
+    BatteryFull,
 } from "lucide-vue-next";
 import { useGlobalToast } from '@/composables/useGlobalToast';
 import { tryOnMounted } from '@vueuse/core';
@@ -68,6 +74,7 @@ import { useConnectionStore } from '@/composables/core/stores/connection/useConn
 import { useDeviceStore } from '@/composables/core/stores/device/useDeviceStore';
 import { useMessageStore } from '@/composables/core/stores/message/useMessageStore';
 import { useNodeDBStore } from '@/composables/core/stores/nodeDB/useNodeDBStore';
+import { useAppStore } from './composables/core/stores/app/useAppStore';
 
 const app = createApp(App)
 
@@ -90,12 +97,14 @@ app.use(PrimeVue, {
  */
 tryOnMounted(() => {
     useIndexedDB();
+    useAppStore();
     useConnectionStore();
     useDeviceStore();
     useMessageStore();
     useNodeDBStore();
 });
 
+app.directive('tooltip', Tooltip);
 app.use(router)
 app.use(ToastService);
 app.use(ConfirmationService);
@@ -131,6 +140,7 @@ app.component('ProgressSpinner', ProgressSpinner);
 app.component('ConfirmDialog', ConfirmDialog);
 app.component('Badge', Badge);
 app.component('PanelMenu', PanelMenu);
+app.component('Avatar', Avatar);
 /* Icons */
 app.component('IconCable', Cable);
 app.component('IconGlobe', Globe);
@@ -157,4 +167,8 @@ app.component('IconMessageSquareText', MessageSquareText);
 app.component('IconMap', Map);
 app.component('IconSettings', Settings);
 app.component('IconUsers', Users);
+app.component('IconBatteryCharging', BatteryCharging);
+app.component('IconBatteryLow', BatteryLow);
+app.component('IconBatteryMedium', BatteryMedium);
+app.component('IconBatteryFull', BatteryFull);
 app.mount('#app')
