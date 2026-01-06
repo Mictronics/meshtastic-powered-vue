@@ -2,123 +2,127 @@ import {
     IDB_APP_STORE,
     useIndexedDB
 } from "@/composables/core/stores/indexedDB";
-import { createGlobalState } from "@vueuse/core";
-import { useGlobalToast, type ToastSeverity } from '@/composables/useGlobalToast';
+import { reactive } from 'vue';
+import { createSharedComposable, watchIgnorable } from "@vueuse/core";
 import type { RasterSource } from "./types.ts";
+
+/* https://stackoverflow.com/a/76247596/3731501 */
 
 export interface IApp {
     selectedDeviceId: number;
     nodeNumToBeRemoved: number;
-    connectDialogOpen: boolean;
     nodeNumDetails: number;
-    commandPaletteOpen: boolean;
     rasterSources: RasterSource[];
-
-    addRasterSource: (source: RasterSource) => void;
-    removeRasterSource: (index: number) => void;
+    isSideBarVisible: boolean;
 }
 
-class App implements IApp {
-    private _selectedDeviceId: number;
-    private _nodeNumToBeRemoved: number;
-    private _connectDialogOpen: boolean;
-    private _nodeNumDetails: number;
-    private _commandPaletteOpen: boolean;
-    private _rasterSources: RasterSource[];
+export const useAppStore = createSharedComposable(() => {
+    const appData = reactive<IApp>({
+        selectedDeviceId: 0,
+        rasterSources: [],
+        nodeNumToBeRemoved: 0,
+        nodeNumDetails: 0,
+        isSideBarVisible: true,
+    });
 
-    constructor() {
-        this._selectedDeviceId = 0;
-        this._rasterSources = [];
-        this._commandPaletteOpen = false;
-        this._connectDialogOpen = false;
-        this._nodeNumToBeRemoved = 0;
-        this._nodeNumDetails = 0;
-        this.initFromDB();
-    };
+    let prop: string = '';
+    let newValue: any = null;
+    const { ignorePrevAsyncUpdates } = watchIgnorable(appData, () => {
+        // Write new value back into IndexedDB with property key.
+        useIndexedDB().put(IDB_APP_STORE, newValue, prop);
+    }, {
+        onTrigger: (e) => {
+            // Trigger is called prior watch callback.
+            // Get property and new value of what has changed.
+            if (e.type === 'set') {
+                prop = e.key;
+                newValue = e.newValue;
+            }
+        },
+        deep: true,
+    })
 
-    private async initFromDB() {
-        this._selectedDeviceId = await useIndexedDB().get(IDB_APP_STORE, 'selectedDeviceId') || 0;
-        this._rasterSources = await useIndexedDB().get(IDB_APP_STORE, 'rasterSources') || [];
-        this._commandPaletteOpen = await useIndexedDB().get(IDB_APP_STORE, 'commandPaletteOpen') || false;
-        this._connectDialogOpen = await useIndexedDB().get(IDB_APP_STORE, 'connectDialogOpen') || false;
-        this._nodeNumToBeRemoved = await useIndexedDB().get(IDB_APP_STORE, 'nodeNumToBeRemoved') || 0;
-        this._nodeNumDetails = await useIndexedDB().get(IDB_APP_STORE, 'nodeNumDetails') || 0;
-    }
+    /*
+    // Create our own deep watching proxy to handle IndexedDB stores of properties on change.
+    type ChangeCallback = (path: string, newVal: any) => void
+    function _reactive<T extends object>(target: T, onChange: ChangeCallback, base = ''): T {
+        const handler: ProxyHandler<any> = {
+            get(obj, prop, receiver) {
+                const val = Reflect.get(obj, prop, receiver)
+                // only proxy plain objects/arrays
+                if (val && typeof val === 'object') {
+                    const nextBase = base ? `${base}.${String(prop)}` : String(prop)
+                    return _reactive(val, onChange, nextBase)
+                }
+                return val
+            },
 
-    private toast(severity: ToastSeverity, detail: string, life?: number) {
-        useGlobalToast().add({ severity, summary: 'App Database Error', detail, life: 5000 });
-    }
-
-    async putDB(prop: keyof IApp, value: any) {
-        try {
-            useIndexedDB().put(IDB_APP_STORE, value, prop);
-        } catch (e: any) {
-            this.toast('error', e.message);
+            set(obj, prop, value, receiver) {
+                const path = base ? `${base}.${String(prop)}` : String(prop)
+                const oldVal = obj[prop]
+                const result = Reflect.set(obj, prop, value, receiver)
+                if (oldVal !== value) onChange(path, value)
+                return result
+            },
         }
+        return new Proxy(target as any, handler)
+    }
+
+    const _appData = {
+        selectedDeviceId: 0,
+        rasterSources: [],
+        commandPaletteOpen: false,
+        connectDialogOpen: false,
+        nodeNumToBeRemoved: 0,
+        nodeNumDetails: 0,
+        isSideBarVisible: true,
     };
 
-    get selectedDeviceId(): number {
-        return this._selectedDeviceId;
-    }
-    set selectedDeviceId(value: number) {
-        this._selectedDeviceId = value;
-        this.putDB('selectedDeviceId', value);
+    const appData = _reactive<IApp>(_appData, (prop, n) => {
+        console.log(`Changed: ${prop}`, 'new=', n)
+        useIndexedDB().put(IDB_APP_STORE, n, prop);
+    })
+*/
+    /**
+     * Init app store from IndexedDB but ignore watching the updates to avoid
+     * writing values immediately back into database.
+     */
+    async function init() {
+        useIndexedDB().get(IDB_APP_STORE, 'selectedDeviceId').then((v) => {
+            appData.selectedDeviceId = v || 0;
+            ignorePrevAsyncUpdates();
+        });
+        useIndexedDB().get(IDB_APP_STORE, 'rasterSources').then((v) => {
+            appData.rasterSources = v || [];
+            ignorePrevAsyncUpdates();
+        });
+        useIndexedDB().get(IDB_APP_STORE, 'nodeNumToBeRemoved').then((v) => {
+            appData.nodeNumToBeRemoved = v || 0;
+            ignorePrevAsyncUpdates();
+        });
+        useIndexedDB().get(IDB_APP_STORE, 'nodeNumDetails').then((v) => {
+            appData.nodeNumDetails = v || 0;
+            ignorePrevAsyncUpdates();
+        });
+        useIndexedDB().get(IDB_APP_STORE, 'isSideBarVisible').then((v) => {
+            appData.isSideBarVisible = v;
+            ignorePrevAsyncUpdates();
+        });
     }
 
-    get nodeNumToBeRemoved(): number {
-        return this._nodeNumToBeRemoved;
-    }
-    set nodeNumToBeRemoved(value: number) {
-        this._nodeNumToBeRemoved = value;
-        this.putDB('nodeNumToBeRemoved', value);
-    }
-
-    get rasterSources(): RasterSource[] {
-        return this._rasterSources;
-    }
-    set rasterSources(value: RasterSource[]) {
-        this._rasterSources = value;
-        this.putDB('rasterSources', value);
-    }
-
-    addRasterSource(source: RasterSource) {
-        this._rasterSources.push(source);
-        this.putDB('rasterSources', this._rasterSources);
+    function addRasterSource(source: RasterSource) {
+        appData.rasterSources.push(source);
     };
 
-    removeRasterSource(index: number) {
-        this._rasterSources.splice(index, 1);
-        this.putDB('rasterSources', this._rasterSources);
+    function removeRasterSource(index: number) {
+        appData.rasterSources.splice(index, 1);
     };
 
-    get commandPaletteOpen(): boolean {
-        return this._commandPaletteOpen;
-    }
-    set commandPaletteOpen(value: boolean) {
-        this._commandPaletteOpen = value;
-        this.putDB('commandPaletteOpen', value);
-    }
+    init();
 
-    get connectDialogOpen(): boolean {
-        return this._connectDialogOpen;
-    }
-    set connectDialogOpen(value: boolean) {
-        this._connectDialogOpen = value;
-        this.putDB('connectDialogOpen', value);
-    }
-
-    get nodeNumDetails(): number {
-        return this._nodeNumDetails;
-    }
-    set nodeNumDetails(value: number) {
-        this._nodeNumDetails = value;
-        this.putDB('nodeNumDetails', value);
-    }
-}
-
-export const useAppStore = createGlobalState(() => {
-    const appData = new App();
     return {
         appData,
+        addRasterSource,
+        removeRasterSource
     }
 });
