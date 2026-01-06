@@ -2,7 +2,9 @@
   <header class="flex items-start justify-between">
     <div class="flex items-stretch gap-3">
       <Button asChild v-slot="slotProps" aria-label="Go Back" variant="text" severity="secondary">
-        <RouterLink to="/" :class="slotProps.class"><IconArrowLeft :size="24" /></RouterLink>
+        <RouterLink to="/dashboard" :class="slotProps.class">
+          <IconArrowLeft :size="24" />
+        </RouterLink>
       </Button>
       <div>
         <h1 class="text-xl text-2xl md:text-3xl font-bold tracking-tight">
@@ -43,12 +45,15 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useRouter } from 'vue-router';
 import ConnectionItem from './ConnectionItem.vue';
 import AddConnectionDialog from './AddConnectionDialog.vue';
 import DeleteConfirmDialog from './DeleteConfirmDialog.vue';
 import { useConnectionStore } from '@/composables/core/stores/connection/useConnectionStore';
 import { useConnection } from '@/composables/core/useConnection';
 import { useGlobalToast } from '@/composables/useGlobalToast';
+
+const router = useRouter();
 
 type AddConnectionDialogHandle = { open: () => void; close: () => void };
 const addConnectionDialog = ref<AddConnectionDialogHandle | null>(null);
@@ -94,6 +99,7 @@ async function onConnect(id: number) {
       detail: 'Device connected.',
       life: 2000,
     });
+    router.push({ name: 'dashboard', params: {}, query: {} });
   } else {
     useGlobalToast().add({
       severity: 'error',
