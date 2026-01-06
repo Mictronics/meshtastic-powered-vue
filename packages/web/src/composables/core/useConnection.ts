@@ -107,7 +107,7 @@ export const useConnection = createGlobalState(() => {
         }
 
         // Set active connection and link device bidirectionally
-        useDeviceStore().setActiveConnectionId(connectionId);
+        useConnectionStore().setActiveConnectionId(connectionId);
         if (device) device.setConnectionId(connectionId);
 
         // Listen for config complete event (with nonce/ID)
@@ -179,7 +179,6 @@ export const useConnection = createGlobalState(() => {
         useConnectionStore().updateConnection(connectionId, { meshDeviceId: deviceId });
         return deviceId;
     }
-
 
     async function connect(connectionId: ConnectionId, opts?: { allowPrompt?: boolean }) {
         const conn = connections.value.get(connectionId);

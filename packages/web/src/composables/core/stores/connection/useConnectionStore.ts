@@ -10,7 +10,7 @@ import {
     IDB_CONNECTION_STORE,
     useIndexedDB
 } from "@/composables/core/stores/indexedDB";
-import { createSharedComposable } from '@vueuse/core'
+import { createSharedComposable, watchDeep } from '@vueuse/core'
 import { ref } from "vue";
 import { useRandomId } from "@/composables/core/useRandomId";
 import { useGlobalToast, type ToastSeverity } from '@/composables/useGlobalToast';
@@ -102,6 +102,16 @@ class Connection implements IConnection {
 
 export const useConnectionStore = createSharedComposable(() => {
     const connections = ref<Map<number, IConnection>>(new Map());
+    const activeConnectionId = ref<ConnectionId | null>(null);
+    const activeConnection = ref();
+
+    watchDeep(connections, () => {
+        // Whenever there is a change in connections get the active connection (connected > default > first)
+        activeConnection.value =
+            getActiveConnection()
+            || [...useConnectionStore().connections.value].find(([key, value]) => value.isDefault)?.[1]
+            || connections.value.entries().next().value?.[1];
+    });
 
     async function init() {
         connections.value = await getDatabaseConnections();
@@ -204,6 +214,21 @@ export const useConnectionStore = createSharedComposable(() => {
         }
     };
 
+    function getActiveConnectionId() {
+        return activeConnectionId.value;
+    };
+
+    function getActiveConnection() {
+        if (!activeConnectionId.value) {
+            return undefined;
+        }
+        return useConnectionStore().connections.value.get(activeConnectionId.value);
+    };
+
+    function setActiveConnectionId(id: number) {
+        activeConnectionId.value = id;
+    };
+
     init();
 
     return {
@@ -212,5 +237,8 @@ export const useConnectionStore = createSharedComposable(() => {
         updateConnection,
         deleteConnection,
         setDefaultConnection,
+        getActiveConnectionId,
+        setActiveConnectionId,
+        getActiveConnection
     }
 });

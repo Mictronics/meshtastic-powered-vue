@@ -679,7 +679,6 @@ class Device implements IDevice {
 
 export const useDeviceStore = createSharedComposable(() => {
     const devices = shallowRef<Map<number, Device>>(new Map());
-    const activeConnectionId = shallowRef<ConnectionId | null>(null);
 
     async function init() {
         devices.value = await getDatabaseDevices();
@@ -784,20 +783,6 @@ export const useDeviceStore = createSharedComposable(() => {
         }
     }
 
-    function getActiveConnectionId() {
-        return activeConnectionId.value;
-    };
-
-    function getActiveConnection() {
-        if (!activeConnectionId.value) {
-            return undefined;
-        }
-        return useConnectionStore().connections.value.get(activeConnectionId.value);
-    };
-
-    function setActiveConnectionId(id: number) {
-        activeConnectionId.value = id;
-    };
 
     init();
 
@@ -809,9 +794,6 @@ export const useDeviceStore = createSharedComposable(() => {
         updateDevice,
         deleteDevice,
         getConnectionForDevice,
-        getDeviceForConnection,
-        getActiveConnectionId,
-        setActiveConnectionId,
-        getActiveConnection
+        getDeviceForConnection
     }
 });
