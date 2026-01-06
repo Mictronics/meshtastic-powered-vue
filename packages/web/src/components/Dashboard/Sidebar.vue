@@ -30,18 +30,29 @@
           </a>
         </template>
       </PanelMenu>
+      <DeviceInfo
+        :connection="activeConnection"
+        :long-name="ownLongName"
+        :short-name="ownShortName"
+        :is-side-bar-visible="isSideBarVisible"
+      />
     </div>
   </aside>
 </template>
 
 <script setup lang="ts">
-import { defineComponent, ref } from 'vue';
+import { ref } from 'vue';
+import { useConnectionStore } from '@/composables/core/stores/connection/useConnectionStore';
+import DeviceInfo from '@/components/Dashboard/DeviceInfo.vue';
 
 const props = defineProps<{
   newMessageCount: number;
   nodeCount: number;
+  isSideBarVisible: boolean;
 }>();
-const isSideBarVisible = ref(true);
+const activeConnection = useConnectionStore().activeConnection;
+const ownLongName = ref('NFN-866#9 Mesh Observer');
+const ownShortName = ref('9F31');
 
 const items = ref([
   {
@@ -81,12 +92,6 @@ const items = ref([
     },
   },
 ]);
-
-function toggleSideBar() {
-  isSideBarVisible.value = !isSideBarVisible.value;
-}
-
-defineExpose({ toggleSideBar });
 </script>
 
 <style lang="css" scoped>

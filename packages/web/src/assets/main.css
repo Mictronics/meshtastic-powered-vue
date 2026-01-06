@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 @import 'tailwindcss-primeui';
 @import './base.css';
-@custom-variant dark (&:where(.p-dark, .p-dark *));
+/*@custom-variant dark (&:where(.p-dark, .p-dark *));*/
 
 #app {
   font-weight: normal;
@@ -33,15 +33,28 @@
   height: 50px;
   border-color: var(--color-slate-300);
   border-bottom-width: 1px;
-  border-bottom-style: var(--tw-border-style);
+  border-bottom-style: solid;
 }
 
 .dashboard-sidebar {
   border-color: var(--color-slate-300);
   border-right-width: 1px;
-  border-right-style: var(--tw-border-style);
+  border-right-style: solid;
+  max-width: 15rem;
 }
 
 .dashboard-panelmenu {
   border-style: none !important;
+}
+
+.own-node-info {
+  border-color: var(--color-slate-300);
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  border-top-width: 1px;
+  border-top-style: solid;
+}
+
+.own-node-info p {
+  max-width: 10rem;
 }
