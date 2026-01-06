@@ -15,15 +15,12 @@ export {
 //export { useAppStore } from "@core/stores/appStore/index.ts";
 export { type IDevice, useDeviceStore } from "@/composables/core/stores/device/useDeviceStore";
 export {
-  useActiveConnection,
   useActiveConnectionId,
   useAddSavedConnection,
   useConnectionError,
   useConnectionForDevice,
   useConnectionStatus,
-  useDefaultConnection,
   useDeviceForConnection,
-  useFirstSavedConnection,
   useIsConnected,
   useIsConnecting,
   useRemoveSavedConnection,
