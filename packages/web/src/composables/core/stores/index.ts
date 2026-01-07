@@ -15,17 +15,13 @@ export {
 //export { useAppStore } from "@core/stores/appStore/index.ts";
 export { type IDevice, useDeviceStore } from "@/composables/core/stores/device/useDeviceStore";
 export {
-  useActiveConnectionId,
-  useAddSavedConnection,
   useConnectionError,
   useConnectionForDevice,
   useConnectionStatus,
   useDeviceForConnection,
   useIsConnected,
   useIsConnecting,
-  useRemoveSavedConnection,
   useSavedConnections,
-  useUpdateSavedConnection,
 } from "@/composables/core/stores/selectors";
 export type {
   Page,
@@ -41,12 +37,7 @@ export {
 } from "@/composables/core/stores/message/useMessageStore";
 export { type INodeDB, useNodeDBStore } from "@/composables/core/stores/nodeDB/useNodeDBStore";
 export type { NodeErrorType } from "@/composables/core/stores/nodeDB/types";
-/*
-export {
-  SidebarProvider,
-  useSidebar, // TODO: Bring hook into this file
-} from "@core/stores/sidebarStore/index.tsx";
-*/
+
 // Define hooks to access the stores
 export const useNodeDB = (): INodeDB => {
   const { deviceId } = useDeviceContext().context;
