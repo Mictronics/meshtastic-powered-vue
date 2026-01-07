@@ -2,29 +2,6 @@ import { useDeviceStore, type IDevice } from "@/composables/core/stores/device/u
 import { type IConnection, type ConnectionId, ConnectionStatus } from "@/composables/core/stores/connection/types";
 import { useConnectionStore } from "./connection/useConnectionStore";
 
-export function useAddSavedConnection() {
-  return useConnectionStore().addConnection;
-}
-
-export function useUpdateSavedConnection() {
-  return useConnectionStore().updateConnection;
-}
-
-export function useRemoveSavedConnection() {
-  return useConnectionStore().deleteConnection;
-}
-
-/**
- * Hook to get the active connection ID
- */
-export function useActiveConnectionId(): ConnectionId | null {
-  return useConnectionStore().getActiveConnectionId();
-}
-
-export function useSetActiveConnectionId(id: ConnectionId) {
-  return useConnectionStore().setActiveConnectionId(id);
-}
-
 /**
  * Hook to get a specific connection's status
  */
@@ -35,8 +12,8 @@ export function useConnectionStatus(id: ConnectionId): ConnectionStatus | undefi
 /**
  * Hook to get a device for a specific connection
  */
-export function useDeviceForConnection(id: ConnectionId): IDevice | undefined {
-  return useDeviceStore().getDeviceForConnection(id);
+export async function useDeviceForConnection(id: ConnectionId) {
+  return await useDeviceStore().getDeviceForConnection(id);
 }
 
 /**
@@ -45,7 +22,7 @@ export function useDeviceForConnection(id: ConnectionId): IDevice | undefined {
 export function useConnectionForDevice(
   deviceId: number,
 ): IConnection | undefined {
-  return useDeviceStore().getConnectionForDevice(deviceId);
+  return useConnectionStore().getConnectionForDevice(deviceId);
 }
 
 /**
