@@ -35,6 +35,7 @@
       :connection="conn"
       @event-connect="onConnect"
       @event-disconnect="onDisconnect"
+      @event-reconnect="onConnect"
       @event-connection-delete="onDelete"
       @event-connection-default="setDefaultConnection"
     />
