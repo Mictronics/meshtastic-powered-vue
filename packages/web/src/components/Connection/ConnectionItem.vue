@@ -178,7 +178,7 @@ function setPopoverPosition() {
   const po = document.getElementById('popover');
   if (po) {
     po.style.top = `${clientY}px`;
-    po.style.insetInlineStart = `${clientX - 20}px`;
+    po.style.insetInlineStart = `${clientX - 130}px`;
   }
 }
 

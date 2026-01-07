@@ -58,3 +58,8 @@
 .own-node-info p {
   max-width: 10rem;
 }
+
+.p-popover::before,
+.p-popover::after {
+  left: calc(130px) !important;
+}
