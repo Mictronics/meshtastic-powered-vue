@@ -386,7 +386,7 @@ export const useNodeDBStore = createSharedComposable(() => {
     const nodeDBs = shallowRef<Map<number, NodeDB>>(new Map());
 
     function toast(severity: ToastSeverity, detail: string, life?: number) {
-        useGlobalToast().add({ severity, summary: 'Nodes Database Error', detail, life });
+        useGlobalToast().add({ severity, summary: 'Nodes Database Error', detail, life: life || 6000 });
     }
 
     async function init() {

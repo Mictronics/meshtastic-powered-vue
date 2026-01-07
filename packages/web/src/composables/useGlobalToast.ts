@@ -37,7 +37,7 @@ export const useGlobalToast = createGlobalState(() => {
     add({ severity: 'warn', summary, detail, life })
   }
 
-  function error(summary?: string, detail?: string, life = 8000) {
+  function error(summary?: string, detail?: string, life = 6000) {
     add({ severity: 'error', summary, detail, life })
   }
 

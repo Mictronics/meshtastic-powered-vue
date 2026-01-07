@@ -321,7 +321,7 @@ export const useMessageStore = createSharedComposable(() => {
     const messageStores = shallowRef<Map<number, MessageStore>>(new Map());
 
     function toast(severity: ToastSeverity, detail: string, life?: number) {
-        useGlobalToast().add({ severity, summary: 'Message Database Error', detail, life });
+        useGlobalToast().add({ severity, summary: 'Message Database Error', detail, life: life || 6000 });
     }
 
     async function init() {
