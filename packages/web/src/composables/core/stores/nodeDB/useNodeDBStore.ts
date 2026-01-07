@@ -393,7 +393,7 @@ export const useNodeDBStore = createSharedComposable(() => {
         nodeDBs.value = await getNodeDBsFromDatabase();
     }
 
-    async function getNodeDBsFromDatabase() {
+    async function getNodeDBsFromDatabase(): Promise<Map<number, NodeDB>> {
         try {
             const all = await useIndexedDB().getAllFromStore(IDB_NODESDB_STORE);
             // IndexedDB stores only Object data.
@@ -407,7 +407,7 @@ export const useNodeDBStore = createSharedComposable(() => {
         } catch (e: any) {
             toast('error', e.message);
         }
-        return new Promise<Map<number, NodeDB>>(() => { return new Map(); });
+        return new Map();
     }
 
     function getNodeDBs() {

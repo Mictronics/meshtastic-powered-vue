@@ -328,7 +328,7 @@ export const useMessageStore = createSharedComposable(() => {
         messageStores.value = await getMessageStoresFromDatabase();
     }
 
-    async function getMessageStoresFromDatabase() {
+    async function getMessageStoresFromDatabase(): Promise<Map<number, MessageStore>> {
         try {
             const all = await useIndexedDB().getAllFromStore(IDB_MESSAGE_STORE);
             // IndexedDB stores only Object data.
@@ -342,7 +342,7 @@ export const useMessageStore = createSharedComposable(() => {
         } catch (e: any) {
             toast('error', e.message);
         }
-        return new Promise<Map<number, MessageStore>>(() => { return new Map(); });
+        return new Map();
     }
 
     function getMessageStores() {
