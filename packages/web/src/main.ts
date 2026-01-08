@@ -63,9 +63,12 @@ import {
     Settings,
     Users,
     BatteryCharging,
+    Battery,
     BatteryLow,
     BatteryMedium,
     BatteryFull,
+    Cpu,
+    BatteryWarning,
 } from "lucide-vue-next";
 import { useGlobalToast } from '@/composables/useGlobalToast';
 import { tryOnMounted } from '@vueuse/core';
@@ -168,7 +171,10 @@ app.component('IconMap', Map);
 app.component('IconSettings', Settings);
 app.component('IconUsers', Users);
 app.component('IconBatteryCharging', BatteryCharging);
+app.component('IconBattery', Battery);
+app.component('IconBatteryWarning', BatteryWarning);
 app.component('IconBatteryLow', BatteryLow);
 app.component('IconBatteryMedium', BatteryMedium);
 app.component('IconBatteryFull', BatteryFull);
+app.component('IconCpu', Cpu);
 app.mount('#app')
