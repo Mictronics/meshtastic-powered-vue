@@ -107,7 +107,7 @@ export const useConnection = createGlobalState(() => {
         }
 
         // Set active connection and link device bidirectionally
-        useConnectionStore().setActiveConnectionId(connectionId);
+        useConnectionStore().activeConnectionId.value = connectionId;
         if (device) device.setConnectionId(connectionId);
 
         // Listen for config complete event (with nonce/ID)
