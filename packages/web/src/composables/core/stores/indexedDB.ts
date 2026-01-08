@@ -1,6 +1,6 @@
 import { createSharedComposable } from '@vueuse/core';
 import { shallowRef } from 'vue';
-import { openDB, type IDBPDatabase, type IDBPTransaction, type StoreNames } from 'idb';
+import { openDB, type IDBPDatabase, type IDBPTransaction, type IDBPObjectStore, type StoreNames } from 'idb';
 
 export const IDB_NAME = import.meta.env.VITE_APP_NAME;
 export const IDB_CONNECTION_STORE = "Connections";
@@ -209,11 +209,12 @@ export const useIndexedDB = createSharedComposable(() => {
     async function insertIntoStore(
         storeName: string,
         value: any,
+        key?: IDBValidKey,
         opts?: { put?: boolean }
     ): Promise<IDBValidKey> {
         const tx = (await db.value).transaction(storeName, 'readwrite');
         const store = tx.objectStore(storeName);
-        const result = opts?.put ? await (store as any).put(value) : await (store as any).add(value);
+        const result = opts?.put ? await (store as IDBPObjectStore<unknown, [string], string, "readwrite">).put(value, key) : await (store as any).add(value);
         await tx.done;
         return result as IDBValidKey;
     }
@@ -221,10 +222,11 @@ export const useIndexedDB = createSharedComposable(() => {
     async function updateStore(
         storeName: string,
         value: any,
+        key?: IDBValidKey,
     ): Promise<IDBValidKey> {
         const tx = (await db.value).transaction(storeName, 'readwrite');
         const store = tx.objectStore(storeName);
-        const result = await (store as any).put(value);
+        const result = await (store as IDBPObjectStore<unknown, [string], string, "readwrite">).put(value, key);
         await tx.done;
         return result as IDBValidKey;
     }
@@ -235,7 +237,7 @@ export const useIndexedDB = createSharedComposable(() => {
     ): Promise<void> {
         const tx = (await db.value).transaction(storeName as string, 'readwrite');
         const store = tx.objectStore(storeName);
-        await (store as any).delete(id);
+        await (store as IDBPObjectStore<unknown, [string], string, "readwrite">).delete(id);
         return tx.done;
     }
 
