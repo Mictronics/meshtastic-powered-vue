@@ -119,7 +119,7 @@ export const useConnectionStore = createSharedComposable(() => {
     }
 
     function toast(severity: ToastSeverity, detail: string, life?: number) {
-        useGlobalToast().add({ severity, summary: 'Connection Database Error', detail, life: 5000 });
+        useGlobalToast().add({ severity, summary: 'Connection Database Error', detail, life: life || 6000 });
     }
 
     async function addConnection(input: INewConnection) {
