@@ -47,27 +47,68 @@
         {{ props.isSideBarVisible ? connectionStatus.name : '' }}
       </RouterLink>
     </Button>
+    <div
+      v-for="item in deviceInfoItems"
+      :key="item.id"
+      class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300"
+    >
+      <component :is="item.dynamicComponent.comp" v-bind="item.dynamicComponent.props" />
+      <p>{{ item.label }}{{ item.value }}</p>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { watchDeep } from '@vueuse/core';
+import { ref, computed, watch } from 'vue';
 import { useColor } from '@/composables/core/utils/useColor';
-import { ConnectionStatus, type IConnection } from '@/composables/core/stores/connection/types';
+import BatterLevel from './BatteryStatus.vue';
+import { ConnectionStatus } from '@/composables/core/stores/connection/types';
 
 const props = defineProps<{
   shortName: string;
   longName: string;
   isSideBarVisible: boolean;
-  connection: IConnection;
+  connectionStatus: ConnectionStatus;
+  firmwareVersion: string | undefined;
+  batteryLevel: number | undefined;
+  voltage: number | undefined;
 }>();
+
+const batteryLevel = ref();
+const voltage = ref();
+watch(
+  () => [props.batteryLevel, props.voltage],
+  ([l, v]) => {
+    batteryLevel.value = l;
+    voltage.value = v !== undefined ? `${v?.toPrecision(2)} V` : 'N/A';
+  }
+);
+
+const deviceInfoItems = [
+  {
+    id: 'battery',
+    label: '',
+    dynamicComponent: { comp: BatterLevel, props: { batteryLevel: batteryLevel } },
+    value: '',
+  },
+  {
+    id: 'voltage',
+    label: 'Voltage: ',
+    dynamicComponent: { comp: 'IconBattery', props: { size: 20 } },
+    value: voltage,
+  },
+  {
+    id: 'firmware',
+    label: 'Firmware: ',
+    dynamicComponent: { comp: 'IconCpu', props: { size: 20 } },
+    value: props.firmwareVersion ?? 'N/A',
+  },
+];
 
 const connectionStatus = ref({
   icon: 'IconUnlink',
-  status: 'Disconnected',
   color: 'bg-gray-400',
-  name: props.connection.name,
+  name: 'Disconnected',
 });
 
 const avatarColor = computed(() => {
@@ -80,13 +121,19 @@ const avatarColor = computed(() => {
   };
 });
 
+watch(
+  () => props.connectionStatus,
+  (n) => {
+    connectionStatus.value = getStatusAttr(n);
+  }
+);
+
 const getStatusAttr = (status?: ConnectionStatus) => {
   if (!status) {
     return {
       icon: 'IconUnlink',
-      status: 'Disconnected',
       color: 'bg-gray-400',
-      name: props.connection.name,
+      name: 'Status unknown',
     };
   }
   switch (status) {
@@ -95,39 +142,31 @@ const getStatusAttr = (status?: ConnectionStatus) => {
     case ConnectionStatus.Online:
       return {
         icon: 'IconLink',
-        status: 'Connected',
         color: 'bg-emerald-500',
-        name: props.connection.name,
+        name: '123',
       };
     case ConnectionStatus.Connecting:
     case ConnectionStatus.Configuring:
     case ConnectionStatus.Disconnecting:
       return {
         icon: 'IconUnlink',
-        status: 'Configuring',
         color: 'bg-amber-500',
-        name: props.connection.name,
+        name: 'Configuring',
       };
     case ConnectionStatus.Error:
       return {
         icon: 'IconUnlink',
-        status: 'Error',
         color: 'bg-red-500',
-        name: props.connection.name,
+        name: 'Error',
       };
     default:
       return {
         icon: 'IconUnlink',
-        status: 'Disconnected',
         color: 'bg-gray-400',
-        name: props.connection.name,
+        name: 'Disconnected',
       };
   }
 };
-// Track changes in active connection
-watchDeep(props.connection, (conn) => {
-  connectionStatus.value = getStatusAttr(conn.status);
-});
 </script>
 
 <style lang="css" scoped>
