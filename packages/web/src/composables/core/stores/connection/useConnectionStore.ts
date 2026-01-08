@@ -103,16 +103,6 @@ class Connection implements IConnection {
 export const useConnectionStore = createSharedComposable(() => {
     const connections = ref<Map<number, IConnection>>(new Map());
     const activeConnectionId = ref<ConnectionId | null>(null);
-    const activeConnection = ref<IConnection>(new Connection());
-
-    watchDeep(connections, () => {
-        // Whenever there is a change in connections get the active connection (priority: connected > default > first > new)
-        const test = ref(
-            getActiveConnection()
-            || [...useConnectionStore().connections.value].find(([key, value]) => value.isDefault)?.[1]
-            || connections.value.entries().next().value?.[1] || new Connection());
-        syncRef(test, activeConnection, { direction: 'ltr', deep: true });
-    });
 
     async function init() {
         connections.value = await getDatabaseConnections();
@@ -159,7 +149,7 @@ export const useConnectionStore = createSharedComposable(() => {
         } catch (e: any) {
             toast('error', e.message);
         }
-        return new Promise<Map<number, IConnection>>(() => { return new Map(); });
+        return new Map();
     }
 
     async function updateConnection(id: number, updates: Partial<IConnection>) {
@@ -215,19 +205,8 @@ export const useConnectionStore = createSharedComposable(() => {
         }
     };
 
-    function getActiveConnectionId() {
-        return activeConnectionId.value;
-    };
-
-    function getActiveConnection() {
-        if (!activeConnectionId.value) {
-            return undefined;
-        }
-        return useConnectionStore().connections.value.get(activeConnectionId.value);
-    };
-
-    function setActiveConnectionId(id: number) {
-        activeConnectionId.value = id;
+    function getConnectionForDevice(deviceId: number) {
+        return [...connections.value.values()].find(c => c.meshDeviceId === deviceId);
     };
 
     init();
@@ -238,9 +217,7 @@ export const useConnectionStore = createSharedComposable(() => {
         updateConnection,
         deleteConnection,
         setDefaultConnection,
-        getActiveConnectionId,
-        setActiveConnectionId,
-        getActiveConnection,
-        activeConnection
+        getConnectionForDevice,
+        activeConnectionId
     }
 });
