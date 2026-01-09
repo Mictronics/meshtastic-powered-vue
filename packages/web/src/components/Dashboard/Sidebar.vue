@@ -7,7 +7,7 @@
         class="size-10 flex-shrink-0 rounded-l mx-1"
       />
       <div
-        class="text-xl text-center flex flex-col items-start h-full p-1"
+        class="text-xl text-center flex flex-col items-start h-full p-1 logo-text"
         v-show="isSideBarVisible"
       >
         <div>Meshtastic</div>

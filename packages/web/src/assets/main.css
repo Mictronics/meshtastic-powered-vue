@@ -63,3 +63,7 @@
 .p-popover::after {
   left: calc(130px) !important;
 }
+
+.logo-text {
+  color: var(--p-text-color);
+}
