@@ -4,7 +4,6 @@ import {
     IDB_DEVICE_STORE,
     useIndexedDB
 } from "../indexedDB.ts";
-import { useConnectionStore } from "@/composables/core/stores/connection/useConnectionStore.ts";
 import {
     ConnectionPhase,
     type ConnectionId,
@@ -15,8 +14,8 @@ import {
     type DialogVariant,
 } from "@/composables/core/stores/device/types.ts";
 import { type MeshDevice, Protobuf, Types } from "@meshtastic/core";
-import { createSharedComposable } from '@vueuse/core'
-import { shallowRef } from 'vue'
+import { createSharedComposable, watchIgnorable, syncRef } from '@vueuse/core'
+import { shallowRef, toRaw, isReactive, ref, type DebuggerEvent } from 'vue'
 import { useGlobalToast, type ToastSeverity } from '@/composables/useGlobalToast';
 import { useEvictOldestEntries } from "@/composables/core/stores/utils/useEvictOldestEntries.ts";
 import {
@@ -45,15 +44,12 @@ const TRACEROUTE_TARGET_RETENTION_NUM = 100; // Number of traceroutes targets to
 const TRACEROUTE_ROUTE_RETENTION_NUM = 100; // Number of traceroutes to keep per target
 const WAYPOINT_RETENTION_NUM = 100;
 
-type IDeviceData = {
+export interface IDevice {
     id: number;
     myNodeNum: number | undefined;
     traceroutes: Map<number, Types.PacketMetadata<Protobuf.Mesh.RouteDiscovery>[]>;
     waypoints: WaypointWithMetadata[];
     neighborInfo: Map<number, Protobuf.Mesh.NeighborInfo>;
-};
-
-export interface IDevice extends IDeviceData {
     status: Types.DeviceStatusEnum;
     connectionPhase: ConnectionPhase;
     connectionId: ConnectionId | null;
@@ -71,6 +67,8 @@ export interface IDevice extends IDeviceData {
     dialog: Dialogs;
     clientNotifications: Protobuf.Mesh.ClientNotification[];
 
+    set: (obj: Partial<IDevice>) => void; // Set class properties from object
+    toObject: () => any; // Return object from class properties
     setStatus: (status: Types.DeviceStatusEnum) => void;
     setConnectionPhase: (phase: ConnectionPhase) => void;
     setConnectionId: (id: ConnectionId | null) => void;
@@ -176,7 +174,7 @@ class Device implements IDevice {
     dialog: Dialogs;
     clientNotifications: Protobuf.Mesh.ClientNotification[];
 
-    constructor(id: number, data?: Partial<IDeviceData>) {
+    constructor(id: number, data?: Partial<IDevice>) {
         this.id = id;
         this.myNodeNum = data?.myNodeNum;
         this.traceroutes = data?.traceroutes ??
@@ -219,8 +217,54 @@ class Device implements IDevice {
         this.clientNotifications = [];
     }
 
+    private convertDeep(value: any): any {
+        if (value instanceof Map) {
+            const obj: Record<string, any> = {}
+            for (const [k, v] of value.entries()) {
+                // convert map keys to strings (Map can have non-string keys)
+                const key = typeof k === 'string' ? k : JSON.stringify(k)
+                obj[key] = this.convertDeep(v)
+            }
+            return obj
+        }
+
+        if (value instanceof Uint8Array) {
+            // convert to plain array of numbers (or use base64: btoa(String.fromCharCode(...value)))
+            return Array.from(value)
+        }
+
+        if (Array.isArray(value)) {
+            return value.map(v => this.convertDeep(v))
+        }
+
+        if (value && typeof value === 'object') {
+            const res: Record<string, any> = {}
+            // include own enumerable + non-enumerable instance props if desired:
+            for (const key of Object.getOwnPropertyNames(value)) {
+                const val = (value as any)[key]
+                if (typeof val === 'function') continue
+                res[key] = this.convertDeep(val)
+            }
+            return res
+        }
+
+        return value
+    }
+
+    // Set class properties from [IndexedDB] object
     set(obj: Partial<Device>) {
         Object.assign(this, obj);
+    }
+
+    // Convert class properties to object for IndexedDB
+    toObject() {
+        const result: Record<string, any> = {}
+        for (const key of Object.getOwnPropertyNames(this)) {
+            const val = (this as any)[key]
+            if (typeof val === 'function') continue
+            result[key] = this.convertDeep(val)
+        }
+        return result
     }
 
     setStatus(status: Types.DeviceStatusEnum) {
@@ -355,6 +399,7 @@ class Device implements IDevice {
     setHardware(hardware: Protobuf.Mesh.MyNodeInfo) {
         this.myNodeNum = hardware.myNodeNum;
         this.hardware = hardware; // Always replace hardware with latest
+        /* TODO needed or remove?
         for (const [otherId, oldStore] of useDeviceStore().devices.value) {
             if (otherId === this.id || oldStore.myNodeNum !== hardware.myNodeNum) {
                 continue;
@@ -370,6 +415,7 @@ class Device implements IDevice {
             // Drop old device
             useDeviceStore().deleteDevice(otherId);
         }
+        */
     };
 
     setPendingSettingsChanges(state: boolean) {
@@ -678,64 +724,79 @@ class Device implements IDevice {
 };
 
 export const useDeviceStore = createSharedComposable(() => {
-    const devices = shallowRef<Map<number, Device>>(new Map());
+    const device = ref<IDevice>();
 
-    async function init() {
-        devices.value = await getDatabaseDevices();
-    }
+    let deviceId: number = 0;
+    const { ignorePrevAsyncUpdates } = watchIgnorable(device, (updated) => {
+        // Write new value back into IndexedDB with property key.
+        if (isReactive(updated)) {
+            console.log(toRaw(updated));
+        }
+    }, {
+        onTrigger: (e: DebuggerEvent) => {
+            // Trigger is called prior watch callback.
+            // Get property and new value of what has changed.
+            if (e.type === 'set' && (e.target instanceof Device)) {
+                deviceId = (toRaw(e.target) as IDevice).id;
+            }
+            console.log(e);
+        },
+        deep: true,
+    })
 
     function toast(severity: ToastSeverity, detail: string, life?: number) {
-        useGlobalToast().add({ severity, summary: 'Device Database Error', detail, life });
+        useGlobalToast().add({ severity, summary: 'Device Database Error', detail, life: life || 6000 });
     }
 
-    function getConnectionForDevice(deviceId: number) {
-        return [...useConnectionStore().connections.value.values()].find(c => c.meshDeviceId === deviceId);
-    };
-
-    function getDeviceForConnection(id: number) {
-        const connection = useConnectionStore().connections.value.get(id);
-        if (!connection?.meshDeviceId) {
-            return undefined;
+    async function getDeviceForConnection(connectionId: ConnectionId) {
+        if (device.value?.connectionId === connectionId) {
+            return device.value;
         }
-        return devices.value.get(connection.meshDeviceId);
-    };
+        const all = await useIndexedDB().getAllFromStore(IDB_DEVICE_STORE);
+        const devObj = ([...all] as IDevice[]).find(c => c.connectionId === connectionId);
+        const dev = new Device(0);
+        if (devObj) {
+            dev.set(devObj);
+            return dev;
+        }
+        return undefined;
+    }
 
-    function getDevices() {
-        return devices.value;
-    };
-
-    function getDevice(id: number) {
-        return devices.value.get(id);
-    };
-
-    async function getDatabaseDevices() {
+    async function getDevice(deviceId: number) {
+        if (device.value?.id === deviceId) {
+            // device with id is already loaded.
+            return device.value;
+        }
         try {
-            const all = await useIndexedDB().getAllFromStore(IDB_DEVICE_STORE);
+            // Try to load device with id from database
+            const devObj = await useIndexedDB().getFromStore(IDB_DEVICE_STORE, deviceId);
             // IndexedDB stores only Object data.
             // Ensure that we return a map of Device class instances.
-            const deviceMap = new Map();
-            all.forEach((value: any, key: any) => {
-                const device = new Device(key, value);
-                deviceMap.set(key, device);
-            });
-            return deviceMap;
+            if (devObj) {
+                device.value = new Device(deviceId, devObj);
+                return device.value;
+            }
         } catch (e: any) {
             toast('error', e.message);
         }
-        return new Promise<Map<number, Device>>(() => { return new Map(); });
+        // Not in database, create new one.
+        return undefined;
     }
 
     async function addDevice(id: number): Promise<IDevice | undefined> {
-        const existing = await getDevice(id);
-        if (existing) {
-            return existing;
+        if (device.value?.id === id) {
+            // Device with id already loaded
+            return device.value;
         }
-
-        const dev = new Device(id);
-        const draft = new Map(devices.value);
-        draft.set(id, dev);
-        useEvictOldestEntries(draft, DEVICESTORE_RETENTION_NUM);
-        devices.value = draft;
+        // Try to load from database
+        let dev = await getDevice(id);
+        if (dev) {
+            // found
+            return device.value;
+        }
+        // Not in database, create new one
+        dev = new Device(id);
+        // TODO make this work: useEvictOldestEntries(draft, DEVICESTORE_RETENTION_NUM);
 
         try {
             const key = await useIndexedDB().insertIntoStore(IDB_DEVICE_STORE, dev);
@@ -752,48 +813,49 @@ export const useDeviceStore = createSharedComposable(() => {
                     dev.id = key;
                 }
             }
-            devices.value.set(id, dev);
         } catch (e: any) {
             toast('error', e.message);
         }
-        return devices.value.get(id);
+        device.value = dev;
+        return dev;
     }
 
-    async function updateDevice(dev: Device) {
+    async function updateDevice(dev: IDevice | undefined) {
+        if (!dev) return;
         try {
-            await useIndexedDB().updateStore(IDB_DEVICE_STORE, dev);
+            const o = dev.toObject();
+            await useIndexedDB().updateStore(IDB_DEVICE_STORE, o);
             // reload revived value from the DB
+            /*
             if (dev.id != null) {
                 const stored = await useIndexedDB().getFromStore(IDB_DEVICE_STORE, dev.id as any);
-                if (devices.value.has(dev.id))
-                    devices.value.get(dev.id)?.set(stored);
-            }
+                if (!device.value) {
+                    device.value = new Device(dev.id);
+                }
+                device.value.set(stored);
+            */
         } catch (e: any) {
             toast('error', e.message);
         }
+        device.value = dev;
         return dev;
     }
 
     async function deleteDevice(id: number) {
         try {
             await useIndexedDB().deleteFromStore(IDB_DEVICE_STORE, id);
-            devices.value.delete(id);
+            device.value = undefined;
         } catch (e: any) {
             toast('error', e.message);
         }
     }
 
-
-    init();
-
     return {
-        devices,
+        device,
         addDevice,
-        getDevices,
         getDevice,
         updateDevice,
         deleteDevice,
-        getConnectionForDevice,
         getDeviceForConnection
     }
 });
