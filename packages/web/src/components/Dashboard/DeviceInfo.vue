@@ -75,8 +75,8 @@ const props = defineProps<{
 }>();
 
 const batteryLevel = ref();
-const voltage = ref();
-const batteryPercent = ref();
+const voltage = ref('N/A');
+const batteryPercent = ref('N/A');
 watch(
   () => [props.batteryLevel, props.voltage],
   ([l, v, s]) => {
