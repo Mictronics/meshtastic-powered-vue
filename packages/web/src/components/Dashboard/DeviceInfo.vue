@@ -53,7 +53,7 @@
       class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400"
     >
       <component :is="item.dynamicComponent.comp" v-bind="item.dynamicComponent.props" />
-      <p v-if="isSideBarVisible">{{ item.label }}{{ item.value }}</p>
+      <p class="truncate" v-if="isSideBarVisible">{{ item.label }}{{ item.value }}</p>
     </div>
   </div>
 </template>
