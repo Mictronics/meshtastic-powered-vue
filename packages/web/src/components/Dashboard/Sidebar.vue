@@ -15,7 +15,11 @@
       </div>
     </div>
     <div class="sidebar-entries h-[calc(100vh-3rem)] whitespace-nowrap">
-      <PanelMenu :model="items" class="w-full gap-2!" pt:panel:class="dashboard-panelmenu">
+      <PanelMenu
+        :model="devicePanelItems"
+        class="w-full gap-2!"
+        pt:panel:class="dashboard-panelmenu"
+      >
         <template #item="{ item }">
           <a class="flex items-center py-1 cursor-pointer group">
             <component :is="item.icon" />
@@ -31,34 +35,70 @@
         </template>
       </PanelMenu>
       <DeviceInfo
-        :connection="activeConnection"
+        :connection-status="connectionStatus"
         :long-name="ownLongName"
         :short-name="ownShortName"
         :is-side-bar-visible="isSideBarVisible"
+        :firmware-version="firmwareVersion"
+        :battery-level="batteryLevel"
+        :voltage="voltage"
       />
+      <PanelMenu :model="appPanelItems" class="w-full gap-2!" pt:panel:class="dashboard-panelmenu">
+        <template #item="{ item }">
+          <a class="flex items-center py-1 cursor-pointer group">
+            <component :is="item.icon" />
+            <span v-if="isSideBarVisible" :class="['ml-2']">{{ item.label }}</span>
+          </a>
+        </template>
+      </PanelMenu>
     </div>
   </aside>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, shallowRef, computed } from 'vue';
 import { useConnectionStore } from '@/composables/core/stores/connection/useConnectionStore';
+import { ConnectionStatus } from '@/composables/core/stores/connection/types';
+import { useDeviceStore } from '@/composables/core/stores';
+import { useColorMode, useCycleList } from '@vueuse/core';
+import { watchEffect } from 'vue';
 import DeviceInfo from '@/components/Dashboard/DeviceInfo.vue';
 
 const props = defineProps<{
-  newMessageCount: number;
-  nodeCount: number;
   isSideBarVisible: boolean;
 }>();
-const activeConnection = useConnectionStore().activeConnection;
+const connections = useConnectionStore().connections;
+const activeConnectionId = useConnectionStore().activeConnectionId.value;
+const connectionStatus = computed(() => {
+  if (activeConnectionId) {
+    const conn = connections.value.get(activeConnectionId);
+    return conn?.status || ConnectionStatus.Disconnected;
+  }
+  return ConnectionStatus.Disconnected;
+});
+
+const firmwareVersion = computed(() => {
+  return useDeviceStore().device.value?.metadata.get(0)?.firmwareVersion || undefined;
+});
+
 const ownLongName = ref('NFN-866#9 Mesh Observer');
 const ownShortName = ref('9F31');
 
-const items = ref([
+const batteryLevel = shallowRef(0);
+const voltage = shallowRef(0.0);
+
+import { useIntervalFn } from '@vueuse/core';
+
+const { pause, resume, isActive } = useIntervalFn(() => {
+  batteryLevel.value += 1;
+  voltage.value += 0.01;
+}, 1000);
+
+const devicePanelItems = ref([
   {
     label: 'Messages',
     icon: 'IconMessageSquareText',
-    badge: props.newMessageCount,
+    badge: 2,
     severity: 'info',
     command: () => {
       // You can define action here if needed
@@ -84,7 +124,7 @@ const items = ref([
   {
     label: 'Nodes',
     icon: 'IconUsers',
-    badge: props.nodeCount,
+    badge: 999,
     severity: 'secondary',
     command: () => {
       // Define action here if needed
@@ -92,6 +132,38 @@ const items = ref([
     },
   },
 ]);
+
+const modeIcon = computed(() => {
+  switch (state.value) {
+    case 'light':
+      return 'IconSun';
+    case 'dark':
+      return 'IconMoon';
+    case 'auto':
+    default:
+      return 'IconSunMoon';
+  }
+});
+
+const appPanelItems = ref([
+  {
+    label: 'Color Scheme',
+    get icon() {
+      return modeIcon.value;
+    },
+    command: () => {
+      next();
+    },
+  },
+]);
+
+const mode = useColorMode({
+  emitAuto: true,
+});
+
+const { state, next } = useCycleList(['auto', 'light', 'dark'] as const, { initialValue: mode });
+
+watchEffect(() => (mode.value = state.value));
 </script>
 
 <style lang="css" scoped>
