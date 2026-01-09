@@ -78,6 +78,7 @@ const connectionStatus = computed(() => {
 });
 
 const firmwareVersion = computed(() => {
+  // FIXME This needs a reactive device. Not working with ref.
   return useDeviceStore().device.value?.metadata.get(0)?.firmwareVersion || undefined;
 });
 
@@ -86,13 +87,6 @@ const ownShortName = ref('9F31');
 
 const batteryLevel = shallowRef(0);
 const voltage = shallowRef(0.0);
-
-import { useIntervalFn } from '@vueuse/core';
-
-const { pause, resume, isActive } = useIntervalFn(() => {
-  batteryLevel.value += 1;
-  voltage.value += 0.01;
-}, 1000);
 
 const devicePanelItems = ref([
   {
@@ -160,9 +154,7 @@ const appPanelItems = ref([
 const mode = useColorMode({
   emitAuto: true,
 });
-
 const { state, next } = useCycleList(['auto', 'light', 'dark'] as const, { initialValue: mode });
-
 watchEffect(() => (mode.value = state.value));
 </script>
 
