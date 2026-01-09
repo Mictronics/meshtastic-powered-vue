@@ -15,7 +15,7 @@
       </Avatar>
       <p
         v-if="isSideBarVisible"
-        class="text-sm font-medium text-gray-800 dark:text-gray-200 truncate"
+        class="text-sm font-medium text-slate-700 dark:text-slate-400 truncate"
         v-tooltip.right="{
           value: props.longName,
           pt: {
@@ -50,10 +50,10 @@
     <div
       v-for="item in deviceInfoItems"
       :key="item.id"
-      class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300"
+      class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400"
     >
       <component :is="item.dynamicComponent.comp" v-bind="item.dynamicComponent.props" />
-      <p>{{ item.label }}{{ item.value }}</p>
+      <p v-if="isSideBarVisible">{{ item.label }}{{ item.value }}</p>
     </div>
   </div>
 </template>
@@ -76,20 +76,33 @@ const props = defineProps<{
 
 const batteryLevel = ref();
 const voltage = ref();
+const batteryPercent = ref();
 watch(
   () => [props.batteryLevel, props.voltage],
-  ([l, v]) => {
+  ([l, v, s]) => {
     batteryLevel.value = l;
     voltage.value = v !== undefined ? `${v?.toPrecision(2)} V` : 'N/A';
+    if (l !== undefined) {
+      if (l > 100) {
+        batteryPercent.value = 'Plugged in';
+      } else {
+        batteryPercent.value = `Battery: ${l} %`;
+      }
+    } else {
+      batteryPercent.value = 'N/A';
+    }
   }
 );
 
 const deviceInfoItems = [
   {
     id: 'battery',
-    label: '',
-    dynamicComponent: { comp: BatterLevel, props: { batteryLevel: batteryLevel } },
-    value: '',
+    label: batteryPercent,
+    dynamicComponent: {
+      comp: BatterLevel,
+      props: { batteryLevel: batteryLevel },
+    },
+    value: undefined,
   },
   {
     id: 'voltage',
@@ -173,5 +186,6 @@ const getStatusAttr = (status?: ConnectionStatus) => {
 .connection-info {
   display: flex;
   justify-content: flex-start;
+  padding-left: unset;
 }
 </style>
