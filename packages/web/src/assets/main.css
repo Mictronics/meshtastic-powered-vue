@@ -31,13 +31,13 @@
 
 .dashboard-header {
   height: 50px;
-  border-color: var(--color-slate-300);
+  border-color: var(--dashboard-border-color);
   border-bottom-width: 1px;
   border-bottom-style: solid;
 }
 
 .dashboard-sidebar {
-  border-color: var(--color-slate-300);
+  border-color: var(--dashboard-border-color);
   border-right-width: 1px;
   border-right-style: solid;
   max-width: 15rem;
@@ -48,7 +48,7 @@
 }
 
 .own-node-info {
-  border-color: var(--color-slate-300);
+  border-color: var(--dashboard-border-color);
   border-bottom-width: 1px;
   border-bottom-style: solid;
   border-top-width: 1px;
