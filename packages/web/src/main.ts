@@ -69,6 +69,9 @@ import {
     BatteryFull,
     Cpu,
     BatteryWarning,
+    Sun,
+    Moon,
+    SunMoon
 } from "lucide-vue-next";
 import { useGlobalToast } from '@/composables/useGlobalToast';
 import { tryOnMounted } from '@vueuse/core';
@@ -85,7 +88,7 @@ app.use(PrimeVue, {
     theme: {
         preset: Lara,
         options: {
-            darkModeSelector: '.p-dark',
+            darkModeSelector: '.dark',
             cssLayer: {
                 name: 'primevue',
                 order: 'theme, base, primevue, utilities'
@@ -177,4 +180,7 @@ app.component('IconBatteryLow', BatteryLow);
 app.component('IconBatteryMedium', BatteryMedium);
 app.component('IconBatteryFull', BatteryFull);
 app.component('IconCpu', Cpu);
+app.component('IconSun', Sun);
+app.component('IconMoon', Moon);
+app.component('IconSunMoon', SunMoon);
 app.mount('#app')
