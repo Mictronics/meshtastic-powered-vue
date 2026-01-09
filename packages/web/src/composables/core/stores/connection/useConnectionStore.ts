@@ -10,7 +10,7 @@ import {
     IDB_CONNECTION_STORE,
     useIndexedDB
 } from "@/composables/core/stores/indexedDB";
-import { createSharedComposable, watchDeep, syncRef } from '@vueuse/core'
+import { createSharedComposable } from '@vueuse/core'
 import { ref } from "vue";
 import { useRandomId } from "@/composables/core/useRandomId";
 import { useGlobalToast, type ToastSeverity } from '@/composables/useGlobalToast';
