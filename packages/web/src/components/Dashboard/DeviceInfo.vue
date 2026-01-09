@@ -59,7 +59,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, watchEffect } from 'vue';
 import { useColor } from '@/composables/core/utils/useColor';
 import BatterLevel from './BatteryStatus.vue';
 import { ConnectionStatus } from '@/composables/core/stores/connection/types';
@@ -94,6 +94,9 @@ watch(
   }
 );
 
+const firmware = ref();
+watchEffect(() => (firmware.value = props.firmwareVersion ?? 'N/A'));
+
 const deviceInfoItems = [
   {
     id: 'battery',
@@ -114,7 +117,7 @@ const deviceInfoItems = [
     id: 'firmware',
     label: 'Firmware: ',
     dynamicComponent: { comp: 'IconCpu', props: { size: 20 } },
-    value: props.firmwareVersion ?? 'N/A',
+    value: firmware,
   },
 ];
 

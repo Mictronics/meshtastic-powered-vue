@@ -78,7 +78,6 @@ const connectionStatus = computed(() => {
 });
 
 const firmwareVersion = computed(() => {
-  // FIXME This needs a reactive device. Not working with ref.
   return useDeviceStore().device.value?.metadata.get(0)?.firmwareVersion || undefined;
 });
 
