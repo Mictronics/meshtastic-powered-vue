@@ -81,6 +81,7 @@ import { useDeviceStore } from '@/composables/core/stores/device/useDeviceStore'
 import { useMessageStore } from '@/composables/core/stores/message/useMessageStore';
 import { useNodeDBStore } from '@/composables/core/stores/nodeDB/useNodeDBStore';
 import { useAppStore } from './composables/core/stores/app/useAppStore';
+import { useDeviceContext } from './composables/core/stores';
 
 const app = createApp(App)
 
@@ -104,6 +105,7 @@ app.use(PrimeVue, {
 tryOnMounted(() => {
     useIndexedDB();
     useAppStore();
+    useDeviceContext();
     useConnectionStore();
     useDeviceStore();
     useMessageStore();
