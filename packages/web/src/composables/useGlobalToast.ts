@@ -61,5 +61,3 @@ export const useGlobalToast = createGlobalState(() => {
     remove,
   }
 })
-
-export default useGlobalToast
