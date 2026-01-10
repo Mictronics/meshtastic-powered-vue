@@ -173,7 +173,7 @@ class MessageStore implements IMessageStore {
 
         if (log) {
             // Enforce retention limit
-            useEvictOldestEntries(log, MESSAGELOG_RETENTION_NUM);
+            //FIXME useEvictOldestEntries(log, MESSAGELOG_RETENTION_NUM);
         }
     };
 
@@ -362,7 +362,7 @@ export const useMessageStore = createSharedComposable(() => {
         const messageStore = new MessageStore(id);
         const draft = new Map(messageStores.value);
         draft.set(id, messageStore);
-        useEvictOldestEntries(draft, MESSAGESTORE_RETENTION_NUM);
+        //FIXME useEvictOldestEntries(draft, MESSAGESTORE_RETENTION_NUM);
         messageStores.value = draft;
 
         try {
