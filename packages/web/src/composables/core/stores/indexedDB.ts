@@ -35,117 +35,6 @@ export type DBScheme<T> = {
     upgrade: DBUpgradeFn<T>;
 };
 
-/**
- * Safely create an object store if it does not already exist.
- */
-
-/*
-export async function openIndexedDB<T>(
-    name: string,
-    schemes: DBScheme<T>[] = [],
-): Promise<IDBPDatabase<T>> {
-    const versions = schemes.map(s => s.version);
-    const maxVersion = versions.length ? Math.max(...versions) : 1;
-
-    // sort schemes ascending by version to apply them in order
-    const sorted = schemes.slice().sort((a, b) => a.version - b.version);
-
-    const instance = await openDB<T>(name, maxVersion, {
-        upgrade: async (dbInstance, oldVersion, newVersion, transaction) => {
-            for (const scheme of sorted) {
-                if (scheme.version > oldVersion && scheme.version <= (newVersion ?? maxVersion)) {
-                    await scheme.upgrade(dbInstance, oldVersion, newVersion, transaction);
-                }
-            }
-        },
-        blocked() {
-            // no-op; consumer may want to listen on window "versionchange" instead
-        },
-        blocking() {
-            // no-op
-        }
-    });
-
-    return instance;
-}
-
-export async function getIndexedDatabases(): Promise<IDBDatabaseInfo[]> {
-    let indexedDBs = [];
-    try {
-        indexedDBs = await indexedDB.databases();
-    } catch (err: any) {
-        throw new Error(`Error retrieving databases: ${err.message}`);
-    }
-    return indexedDBs;
-}
-
-export async function insertIntoStore(
-    db: IDBPDatabase<any>,
-    storeName: string,
-    value: any,
-    opts?: { put?: boolean }
-): Promise<IDBValidKey> {
-    if (!db) {
-        throw new Error('IndexedDB is not opened');
-    }
-    const tx = db.transaction(storeName, 'readwrite');
-    const store = tx.objectStore(storeName);
-    const result = opts?.put ? await (store as any).put(value) : await (store as any).add(value);
-    await tx.done;
-    return result as IDBValidKey;
-}
-
-export async function updateStore(
-    db: IDBPDatabase<any>,
-    storeName: string,
-    value: any,
-): Promise<IDBValidKey> {
-    if (!db) {
-        throw new Error('IndexedDB is not opened');
-    }
-
-    const tx = db.transaction(storeName, 'readwrite');
-    const store = tx.objectStore(storeName);
-    const result = await (store as any).put(value);
-    await tx.done;
-    return result as IDBValidKey;
-}
-
-export async function deleteFromStore(
-    db: IDBPDatabase<any>,
-    storeName: string,
-    id: number
-): Promise<void> {
-    if (!db) {
-        throw new Error('IndexedDB is not opened');
-    }
-
-    const tx = db.transaction(storeName as string, 'readwrite');
-    const store = tx.objectStore(storeName);
-    await (store as any).delete(id);
-    return tx.done;
-}
-
-export async function getAllFromStore(db: IDBPDatabase<any>, storeName: string): Promise<any> {
-    if (!db) {
-        throw new Error('IndexedDB is not opened');
-    }
-    const tx = db.transaction(storeName, "readonly");
-    const all = await tx.objectStore(storeName).getAll();
-    await tx.done;
-    return new Map(all.map((o: any) => [o.id, o]));
-}
-
-export async function getFromStore(db: IDBPDatabase<any>, storeName: string, key: IDBValidKey): Promise<any> {
-    if (!db) {
-        throw new Error('IndexedDB is not opened');
-    }
-    const tx = db.transaction(storeName, 'readonly');
-    const raw = await tx.objectStore(storeName).get(key as any);
-    await tx.done;
-    return raw;
-}
-*/
 export const useIndexedDB = createSharedComposable(() => {
     const db = shallowRef(openIndexedDB(IDB_NAME, [
         { version: CURRENT_STORE_VERSION, upgrade: (db) => createObjectStoresIfNotExists(db) },
@@ -158,7 +47,7 @@ export const useIndexedDB = createSharedComposable(() => {
         const versions = schemes.map(s => s.version);
         const maxVersion = versions.length ? Math.max(...versions) : 1;
 
-        // sort schemes ascending by version to apply them in order
+        // Sort schemes ascending by version to apply them in order
         const sorted = schemes.slice().sort((a, b) => a.version - b.version);
 
         const instance = await openDB<T>(name, maxVersion, {
