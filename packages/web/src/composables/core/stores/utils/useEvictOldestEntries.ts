@@ -12,8 +12,8 @@ export function useEvictOldestEntries<T, K, V>(
         }
     } else if (typeof collection === 'object') {
         // Trim map by insertion order
-        while (Object(collection).keys().length > maxSize) {
-            const firstKey = Object(collection).keys().next().value;
+        while (Object().keys(collection).length > maxSize) {
+            const firstKey = Object().keys(collection).next().value;
             if (firstKey !== undefined) {
                 delete collection.firstKey;
             } else {
