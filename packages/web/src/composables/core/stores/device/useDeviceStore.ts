@@ -556,7 +556,7 @@ class Device implements IDevice {
     };
 
     hasChange(key: ConfigChangeKey) {
-        return Object(this.changeRegistry.changes).has(serializeKey(key)) ?? false;
+        return this.changeRegistry.changes.hasOwnProperty(serializeKey(key)) ?? false;
     };
 
     getChange(key: ConfigChangeKey) {
