@@ -15,7 +15,7 @@
       </Avatar>
       <p
         v-if="isSideBarVisible"
-        class="text-sm font-medium text-slate-700 dark:text-slate-400 truncate"
+        class="text-sm font-medium logo-text truncate"
         v-tooltip.right="{
           value: props.longName,
           pt: {
@@ -24,7 +24,7 @@
                 borderBottomColor: 'var(--p-secondary-color)',
               },
             },
-            text: '!bg-secondary !text-secondary-contrast !font-light !text-xs',
+            text: '!bg-secondary !logo-text !font-light !text-xs',
           },
         }"
       >
@@ -44,7 +44,10 @@
           :class="'h-2.5 w-2.5 ml-2 rounded-full flex-shrink-0 ' + connectionStatus.color"
           aria-hidden="true"
         />
-        {{ props.isSideBarVisible ? connectionStatus.name : '' }}
+        <div class="text-xs logo-text">
+          <p v-if="isSideBarVisible">{{ connectionName }}</p>
+          <p v-if="isSideBarVisible">{{ connectionStatus.label }}</p>
+        </div>
       </RouterLink>
     </Button>
     <div
@@ -65,9 +68,11 @@ import BatterLevel from './BatteryStatus.vue';
 import { ConnectionStatus } from '@/composables/core/stores/connection/types';
 
 const props = defineProps<{
-  shortName: string;
-  longName: string;
+  shortName: string | undefined;
+  longName: string | undefined;
+  nodeId: number | undefined;
   isSideBarVisible: boolean;
+  connectionName: string | undefined;
   connectionStatus: ConnectionStatus;
   firmwareVersion: string | undefined;
   batteryLevel: number | undefined;
@@ -95,7 +100,9 @@ watch(
 );
 
 const firmware = ref();
+const connectionName = ref();
 watchEffect(() => (firmware.value = props.firmwareVersion ?? 'N/A'));
+watchEffect(() => (connectionName.value = props.connectionName ?? ''));
 
 const deviceInfoItems = [
   {
@@ -124,11 +131,11 @@ const deviceInfoItems = [
 const connectionStatus = ref({
   icon: 'IconUnlink',
   color: 'bg-gray-400',
-  name: 'Disconnected',
+  label: 'Disconnected',
 });
 
 const avatarColor = computed(() => {
-  const bgColor = useColor().getColorFromNodeNum(546839975);
+  const bgColor = useColor().getColorFromNodeNum(props.nodeId || 0);
   const isLight = useColor().isLightColor(bgColor);
   const textColor = isLight ? '#000000' : '#FFFFFF';
   return {
@@ -149,7 +156,7 @@ const getStatusAttr = (status?: ConnectionStatus) => {
     return {
       icon: 'IconUnlink',
       color: 'bg-gray-400',
-      name: 'Status unknown',
+      label: 'Status unknown',
     };
   }
   switch (status) {
@@ -159,7 +166,7 @@ const getStatusAttr = (status?: ConnectionStatus) => {
       return {
         icon: 'IconLink',
         color: 'bg-emerald-500',
-        name: '123',
+        label: 'Connected',
       };
     case ConnectionStatus.Connecting:
     case ConnectionStatus.Configuring:
@@ -167,19 +174,19 @@ const getStatusAttr = (status?: ConnectionStatus) => {
       return {
         icon: 'IconUnlink',
         color: 'bg-amber-500',
-        name: 'Configuring',
+        label: 'Configuring',
       };
     case ConnectionStatus.Error:
       return {
         icon: 'IconUnlink',
         color: 'bg-red-500',
-        name: 'Error',
+        label: 'Error',
       };
     default:
       return {
         icon: 'IconUnlink',
         color: 'bg-gray-400',
-        name: 'Disconnected',
+        label: 'Disconnected',
       };
   }
 };

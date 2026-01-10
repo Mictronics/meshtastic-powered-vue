@@ -36,8 +36,10 @@
       </PanelMenu>
       <DeviceInfo
         :connection-status="connectionStatus"
+        :connection-name="connectionName"
         :long-name="ownLongName"
         :short-name="ownShortName"
+        :node-id="ownNodeId"
         :is-side-bar-visible="isSideBarVisible"
         :firmware-version="firmwareVersion"
         :battery-level="batteryLevel"
@@ -67,22 +69,35 @@ import DeviceInfo from '@/components/Dashboard/DeviceInfo.vue';
 const props = defineProps<{
   isSideBarVisible: boolean;
 }>();
-const connections = useConnectionStore().connections;
-const activeConnectionId = useConnectionStore().activeConnectionId.value;
-const connectionStatus = computed(() => {
+
+const connection = computed(() => {
+  const activeConnectionId = useConnectionStore().activeConnectionId.value;
   if (activeConnectionId) {
-    const conn = connections.value.get(activeConnectionId);
-    return conn?.status || ConnectionStatus.Disconnected;
+    return useConnectionStore().connections.value.get(activeConnectionId);
   }
-  return ConnectionStatus.Disconnected;
+});
+const connectionName = computed(() => {
+  return connection.value?.name;
+});
+const connectionStatus = computed(() => {
+  return connection.value?.status || ConnectionStatus.Disconnected;
 });
 
+const device = computed(() => {
+  return useDeviceStore().device.value;
+});
 const firmwareVersion = computed(() => {
-  return useDeviceStore().device.value?.metadata.get(0)?.firmwareVersion || undefined;
+  return device.value?.metadata.firmwareVersion || undefined;
 });
-
-const ownLongName = ref('NFN-866#9 Mesh Observer');
-const ownShortName = ref('9F31');
+const ownLongName = computed(() => {
+  return 'NFN-866#9 Mesh Observer';
+});
+const ownShortName = computed(() => {
+  return '9F31';
+});
+const ownNodeId = computed(() => {
+  return device.value?.myNodeNum;
+});
 
 const batteryLevel = shallowRef(0);
 const voltage = shallowRef(0.0);
