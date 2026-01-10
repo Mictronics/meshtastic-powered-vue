@@ -7,8 +7,13 @@ import {
     useIndexedDB
 } from "@/composables/core/stores/indexedDB";
 import type { NodeError, NodeErrorType, ProcessPacketParams } from "@/composables/core/stores/nodeDB/types";
-import { createSharedComposable } from '@vueuse/core'
-import { shallowRef } from 'vue'
+import {
+    createSharedComposable,
+    useArrayUnique,
+    useArrayFind,
+    watchThrottled,
+} from '@vueuse/core'
+import { ref, isReactive, toRaw, type DebuggerEvent } from 'vue'
 import { useGlobalToast, type ToastSeverity } from '@/composables/useGlobalToast';
 
 const NODE_RETENTION_DAYS = 14; // Remove nodes not heard from in 14 days
@@ -147,12 +152,12 @@ class NodeDB implements INodeDB {
         const cutoffSec = nowSec - NODE_RETENTION_DAYS * 24 * 60 * 60;
         let prunedCount = 0;
         const newNodeMap: NodeMap = {};
-        for (const [nodeNum, node] of Object(this.nodeMap).entries()) {
+        for (const [nodeNum, node] of Object.entries(this.nodeMap)) {
             // Keep myNode regardless of lastHeard
             // Keep nodes that have been heard recently
             // Keep nodes without lastHeard (just in case)
             if (
-                nodeNum === this.myNodeNum ||
+                nodeNum === String(this.myNodeNum) ||
                 !node.lastHeard ||
                 node.lastHeard >= cutoffSec
             ) {
@@ -243,14 +248,14 @@ class NodeDB implements INodeDB {
     };
 
     setNodeNum(nodeNum: number) {
-        const newDB = useNodeDBStore().nodeDBs.value.get(this.id);
+        const newDB = useNodeDBStore().getNodeDB(this.id).value;
         if (!newDB) {
             throw new Error(`No nodeDB found for id: ${this.id}`);
         }
         newDB.myNodeNum = nodeNum;
 
-        for (const [key, oldDB] of useNodeDBStore().nodeDBs.value) {
-            if (key === this.id) continue;
+        for (const oldDB of useNodeDBStore().nodeDBs.value) {
+            if (oldDB.id === this.id) continue;
             if (oldDB.myNodeNum === nodeNum) {
                 // Start with shallow clones of plain-object maps
                 const mergedNodes: NodeMap = { ...(oldDB.nodeMap || {}) };
@@ -268,7 +273,7 @@ class NodeDB implements INodeDB {
                 // iterate newDB.nodeMap (plain object)
                 for (const [numStr, newNode] of Object.entries(newDB.nodeMap || {})) {
                     const num = Number(numStr);
-                    const next = validateIncomingNode(newNode, setErrorProxy, getNodesProxy);
+                    const next = validateIncomingNode(newNode as Protobuf.Mesh.NodeInfo, setErrorProxy, getNodesProxy);
                     if (next) {
                         mergedNodes[String(num)] = next;
                     }
@@ -282,7 +287,7 @@ class NodeDB implements INodeDB {
                 // finalize: assign plain objects into this (was Maps)
                 this.nodeMap = mergedNodes;
                 this.nodeErrors = mergedErrors;
-                useNodeDBStore().nodeDBs.value.delete(oldDB.id);
+                useNodeDBStore().deleteNodeDB(oldDB.id);
             }
         }
     }
@@ -295,7 +300,7 @@ class NodeDB implements INodeDB {
     };
 
     updateIgnore(nodeNum: number, isIgnored: boolean) {
-        const nodeDB = useNodeDBStore().nodeDBs.value.get(this.id);
+        const nodeDB = useNodeDBStore().getNodeDB(this.id).value;
         if (!nodeDB) {
             throw new Error(`No nodeDB found (id: ${this.id})`);
         }
@@ -307,15 +312,15 @@ class NodeDB implements INodeDB {
     };
 
     getNodesLength() {
-        const nodeDB = useNodeDBStore().nodeDBs.value.get(this.id);
+        const nodeDB = useNodeDBStore().getNodeDB(this.id).value;
         if (!nodeDB) {
             throw new Error(`No nodeDB found (id: ${this.id})`);
         }
-        return Object(nodeDB.nodeMap).size;
+        return Object.entries(nodeDB.nodeMap).length;
     };
 
     getNode(nodeNum: number) {
-        const nodeDB = useNodeDBStore().nodeDBs.value.get(this.id);
+        const nodeDB = useNodeDBStore().getNodeDB(this.id).value;
         if (!nodeDB) {
             throw new Error(`No nodeDB found (id: ${this.id})`);
         }
@@ -323,7 +328,7 @@ class NodeDB implements INodeDB {
     };
 
     getNodes(filter?: ((node: Protobuf.Mesh.NodeInfo) => boolean), includeSelf?: boolean) {
-        const nodeDB = useNodeDBStore().nodeDBs.value.get(this.id);
+        const nodeDB = useNodeDBStore().getNodeDB(this.id).value;
         if (!nodeDB) throw new Error(`No nodeDB found (id: ${this.id})`);
 
         const all = Object.values(nodeDB.nodeMap || {}).filter(n =>
@@ -334,7 +339,7 @@ class NodeDB implements INodeDB {
     }
 
     getMyNode() {
-        const nodeDB = useNodeDBStore().nodeDBs.value.get(this.id);
+        const nodeDB = useNodeDBStore().getNodeDB(this.id).value;
         if (!nodeDB) {
             throw new Error(`No nodeDB found (id: ${this.id})`);
         }
@@ -347,60 +352,73 @@ class NodeDB implements INodeDB {
     };
 
     getNodeError(nodeNum: number) {
-        const nodeDB = useNodeDBStore().nodeDBs.value.get(this.id);
+        const nodeDB = useNodeDBStore().getNodeDB(this.id);
         if (!nodeDB) {
             throw new Error(`No nodeDB found (id: ${this.id})`);
         }
-        return nodeDB.nodeErrors[nodeNum];
+        return nodeDB.value?.nodeErrors[nodeNum];
     };
 
     hasNodeError(nodeNum: number) {
-        const nodeDB = useNodeDBStore().nodeDBs.value.get(this.id);
+        const nodeDB = useNodeDBStore().getNodeDB(this.id);
         if (!nodeDB) {
             throw new Error(`No nodeDB found (id: ${this.id})`);
         }
-        return Object(nodeDB.nodeErrors).has(nodeNum);
+        return nodeDB.value?.nodeErrors.hasOwnProperty(nodeNum) || false;
     }
 }
 
 export const useNodeDBStore = createSharedComposable(() => {
-    const nodeDBs = shallowRef<Map<number, NodeDB>>(new Map());
+    const _nodeDatabases = ref<NodeDB[]>([]);
+    const nodeDatabases = useArrayUnique(_nodeDatabases, (a, b) => a.id === b.id)
 
     function toast(severity: ToastSeverity, detail: string, life?: number) {
         useGlobalToast().add({ severity, summary: 'Nodes Database Error', detail, life: life || 6000 });
     }
 
+    watchThrottled(_nodeDatabases, (updated) => {
+        // Write new value back into IndexedDB. Throttled to avoid writes on any change.
+        if (isReactive(updated)) {
+            console.log('###', toRaw(updated));
+        }
+    }, {
+        onTrigger: (e: DebuggerEvent) => {
+            // Trigger is called prior watch callback.
+            // Get property and new value of what has changed.
+            console.log('### 2', e);
+        },
+        deep: true,
+        throttle: 3000
+    })
+
+
     async function init() {
-        nodeDBs.value = await getNodeDBsFromDatabase();
+        await getNodeDBsFromDatabase();
     }
 
-    async function getNodeDBsFromDatabase(): Promise<Map<number, NodeDB>> {
+    async function getNodeDBsFromDatabase(): Promise<void> {
         try {
             const all = await useIndexedDB().getAllFromStore(IDB_NODESDB_STORE);
             // IndexedDB stores only Object data.
-            // Ensure that we return a map of Device class instances.
-            const ndbMap = new Map();
+            _nodeDatabases.value.splice(0);
             all.forEach((value: any, key: any) => {
-                const ndb = new NodeDB(key, value);
-                ndbMap.set(key, ndb);
+                _nodeDatabases.value.push(new NodeDB(key, value));
             });
-            return ndbMap;
         } catch (e: any) {
             toast('error', e.message);
         }
-        return new Map();
     }
 
     function getNodeDBs() {
-        return nodeDBs.value;
+        return nodeDatabases;
     };
 
     function getNodeDB(id: number) {
-        return nodeDBs.value.get(id);
+        return useArrayFind(_nodeDatabases, db => db.id === id);
     };
 
     async function addNodeDB(id: number) {
-        const existing = await getNodeDB(id);
+        const existing = getNodeDB(id).value;
         if (existing) {
             // Prune stale nodes when accessing existing nodeDB
             existing.pruneStaleNodes();
@@ -408,30 +426,13 @@ export const useNodeDBStore = createSharedComposable(() => {
         }
 
         const nodeDB = new NodeDB(id);
-        const draft = new Map(nodeDBs.value);
-        draft.set(id, nodeDB);
-        nodeDBs.value = draft;
-
         try {
-            const key = await useIndexedDB().insertIntoStore(IDB_NODESDB_STORE, nodeDB);
-            if (typeof key === 'number') {
-                const stored = await useIndexedDB().getFromStore(IDB_NODESDB_STORE, key);
-                if (stored) {
-                    // IndexedDB stores only Object data.
-                    // Keep class instance and just copy object data into.
-                    nodeDB.set(stored);
-                    if (!(nodeDB instanceof NodeDB)) {
-                        throw new Error(`Added nodeDB is not an instance of NodeDB class.`);
-                    }
-                } else if (nodeDB.id == null) {
-                    nodeDB.id = key;
-                }
-            }
+            await useIndexedDB().insertIntoStore(IDB_NODESDB_STORE, nodeDB);
         } catch (e: any) {
             toast('error', e.message);
         }
-        nodeDBs.value.set(id, nodeDB);
-        // Prune stale nodes on creation (useful when rehydrating from storage)
+        _nodeDatabases.value.push(nodeDB);
+        // Prune stale nodes on creation
         nodeDB.pruneStaleNodes();
         return nodeDB;
     }
@@ -442,8 +443,10 @@ export const useNodeDBStore = createSharedComposable(() => {
             // reload revived value from the DB
             if (db.id != null) {
                 const stored = await useIndexedDB().getFromStore(IDB_NODESDB_STORE, db.id as any);
-                if (nodeDBs.value.has(db.id))
-                    nodeDBs.value.get(db.id)?.set(stored);
+                const i = _nodeDatabases.value.findIndex((a) => a.id === db.id)
+                if (i > 0) {
+                    nodeDatabases.value[i] = stored;
+                }
             }
         } catch (e: any) {
             toast('error', e.message);
@@ -454,7 +457,10 @@ export const useNodeDBStore = createSharedComposable(() => {
     async function deleteNodeDB(id: number) {
         try {
             await useIndexedDB().deleteFromStore(IDB_NODESDB_STORE, id);
-            nodeDBs.value.delete(id);
+            const i = _nodeDatabases.value.findIndex((db) => db.id === id)
+            if (i > 0) {
+                nodeDatabases.value.splice(i, 1);
+            }
         } catch (e: any) {
             toast('error', e.message);
         }
@@ -463,7 +469,7 @@ export const useNodeDBStore = createSharedComposable(() => {
     init();
 
     return {
-        nodeDBs,
+        nodeDBs: nodeDatabases,
         addNodeDB,
         getNodeDB,
         getNodeDBs,
