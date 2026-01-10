@@ -6,6 +6,6 @@ export async function useNewNodeNum(
   nodeInfo: Protobuf.Mesh.MyNodeInfo,
 ) {
   (await useDeviceStore().getDevice(id))?.setHardware(nodeInfo);
-  useNodeDBStore().getNodeDB(id)?.setNodeNum(nodeInfo.myNodeNum);
+  useNodeDBStore().getNodeDB(id).value?.setNodeNum(nodeInfo.myNodeNum);
   useMessageStore().getMessageStore(id)?.setNodeNum(nodeInfo.myNodeNum);
 }
