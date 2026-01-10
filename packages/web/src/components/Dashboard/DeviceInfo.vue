@@ -79,7 +79,7 @@ const voltage = ref('N/A');
 const batteryPercent = ref('N/A');
 watch(
   () => [props.batteryLevel, props.voltage],
-  ([l, v, s]) => {
+  ([l, v]) => {
     batteryLevel.value = l;
     voltage.value = v !== undefined ? `${v?.toPrecision(2)} V` : 'N/A';
     if (l !== undefined) {
