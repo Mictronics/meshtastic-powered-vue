@@ -154,7 +154,7 @@ export function hasUserChange(registry: ChangeRegistry): boolean {
  */
 export function getConfigChangeCount(registry: ChangeRegistry): number {
     let count = 0;
-    for (const keyStr of Object().keys(registry.changes)) {
+    for (const keyStr of Object.keys(registry.changes)) {
         const key = deserializeKey(keyStr);
         if (key.type === "config") {
             count++;
@@ -168,7 +168,7 @@ export function getConfigChangeCount(registry: ChangeRegistry): number {
  */
 export function getModuleConfigChangeCount(registry: ChangeRegistry): number {
     let count = 0;
-    for (const keyStr of Object().keys(registry.changes)) {
+    for (const keyStr of Object.keys(registry.changes)) {
         const key = deserializeKey(keyStr);
         if (key.type === "moduleConfig") {
             count++;
@@ -182,7 +182,7 @@ export function getModuleConfigChangeCount(registry: ChangeRegistry): number {
  */
 export function getChannelChangeCount(registry: ChangeRegistry): number {
     let count = 0;
-    for (const keyStr of Object().keys(registry.changes)) {
+    for (const keyStr of Object.keys(registry.changes)) {
         const key = deserializeKey(keyStr);
         if (key.type === "channel") {
             count++;
@@ -196,7 +196,7 @@ export function getChannelChangeCount(registry: ChangeRegistry): number {
  */
 export function getAllConfigChanges(registry: ChangeRegistry): ChangeEntry[] {
     const changes: ChangeEntry[] = [];
-    for (const entry of Object().values(registry.changes)) {
+    for (const entry of Object.values(registry.changes)) {
         if (entry.key.type === "config") {
             changes.push(entry);
         }
@@ -211,7 +211,7 @@ export function getAllModuleConfigChanges(
     registry: ChangeRegistry,
 ): ChangeEntry[] {
     const changes: ChangeEntry[] = [];
-    for (const entry of Object().values(registry.changes)) {
+    for (const entry of Object.values(registry.changes)) {
         if (entry.key.type === "moduleConfig") {
             changes.push(entry);
         }
@@ -224,7 +224,7 @@ export function getAllModuleConfigChanges(
  */
 export function getAllChannelChanges(registry: ChangeRegistry): ChangeEntry[] {
     const changes: ChangeEntry[] = [];
-    for (const entry of Object().values(registry.changes)) {
+    for (const entry of Object.values(registry.changes)) {
         if (entry.key.type === "channel") {
             changes.push(entry);
         }
@@ -237,7 +237,7 @@ export function getAllChannelChanges(registry: ChangeRegistry): ChangeEntry[] {
  */
 export function getAllAdminMessages(registry: ChangeRegistry): ChangeEntry[] {
     const changes: ChangeEntry[] = [];
-    for (const entry of Object().values(registry.changes)) {
+    for (const entry of Object.values(registry.changes)) {
         if (entry.key.type === "adminMessage") {
             changes.push(entry);
         }
@@ -250,7 +250,7 @@ export function getAllAdminMessages(registry: ChangeRegistry): ChangeEntry[] {
  */
 export function getAdminMessageChangeCount(registry: ChangeRegistry): number {
     let count = 0;
-    for (const keyStr of Object().keys(registry.changes)) {
+    for (const keyStr of Object.keys(registry.changes)) {
         const key = deserializeKey(keyStr);
         if (key.type === "adminMessage") {
             count++;
