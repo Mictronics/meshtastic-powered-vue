@@ -368,23 +368,7 @@ class Device implements IDevice {
     setHardware(hardware: Protobuf.Mesh.MyNodeInfo) {
         this.myNodeNum = hardware.myNodeNum;
         this.hardware = hardware; // Always replace hardware with latest
-        /* TODO needed or remove?
-        for (const [otherId, oldStore] of useDeviceStore().devices.value) {
-            if (otherId === this.id || oldStore.myNodeNum !== hardware.myNodeNum) {
-                continue;
-            }
-            this.traceroutes = oldStore.traceroutes;
-            this.neighborInfo = oldStore.neighborInfo;
-
-            // Take this opportunity to remove stale waypoints
-            this.waypoints = oldStore.waypoints.filter(
-                (waypoint) => !waypoint?.expire || waypoint.expire > Date.now(),
-            );
-
-            // Drop old device
-            useDeviceStore().deleteDevice(otherId);
-        }
-        */
+        useDeviceStore().cleanDeviceStore(this.myNodeNum);
     };
 
     setPendingSettingsChanges(state: boolean) {
@@ -759,7 +743,6 @@ export const useDeviceStore = createSharedComposable(() => {
         }
         // Not in database, create new one
         dev = new Device(id);
-        // TODO make this work: useEvictOldestEntries(draft, DEVICESTORE_RETENTION_NUM);
 
         try {
             const key = await useIndexedDB().insertIntoStore(IDB_DEVICE_STORE, dev);
@@ -798,7 +781,37 @@ export const useDeviceStore = createSharedComposable(() => {
     async function deleteDevice(id: number) {
         try {
             await useIndexedDB().deleteFromStore(IDB_DEVICE_STORE, id);
-            device.value = undefined;
+            if (device.value?.id === id) {
+                device.value = undefined;
+            }
+        } catch (e: any) {
+            toast('error', e.message);
+        }
+    }
+
+    async function cleanDeviceStore(myNodeNum: number) {
+        try {
+            const devs = await useIndexedDB().getAllFromStore(IDB_DEVICE_STORE);
+            if (device.value) {
+                for (const [otherId, otherDev] of devs) {
+                    if (otherId === device.value.id || otherDev.myNodeNum !== myNodeNum) {
+                        continue;
+                    }
+                    device.value.traceroutes = otherDev.traceroutes;
+                    device.value.neighborInfo = otherDev.neighborInfo;
+                    // Take this opportunity to remove stale waypoints
+                    device.value.waypoints = otherDev.waypoints.filter(
+                        (waypoint: WaypointWithMetadata) => !waypoint?.expire || waypoint.expire > Date.now(),
+                    );
+                    // Drop old device
+                    await deleteDevice(otherId);
+                }
+            }
+            // Trim device store from the front (assuming oldest entries are at the start)
+            while (devs.length > DEVICESTORE_RETENTION_NUM) {
+                const first: IDevice = devs.shift();
+                deleteDevice(first.id);
+            }
         } catch (e: any) {
             toast('error', e.message);
         }
@@ -810,6 +823,7 @@ export const useDeviceStore = createSharedComposable(() => {
         getDevice,
         updateDevice,
         deleteDevice,
-        getDeviceForConnection
+        getDeviceForConnection,
+        cleanDeviceStore
     }
 });
