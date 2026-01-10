@@ -13,14 +13,15 @@ import { useGlobalToast, type ToastSeverity } from '@/composables/useGlobalToast
 
 const NODE_RETENTION_DAYS = 14; // Remove nodes not heard from in 14 days
 
-type INodeDBData = {
+type NodeMap = { [key: string]: Protobuf.Mesh.NodeInfo };
+type NodeErrors = { [key: string]: NodeError };
+
+export interface INodeDB {
     id: number;
     myNodeNum: number | undefined;
-    nodeMap: Map<number, Protobuf.Mesh.NodeInfo>;
-    nodeErrors: Map<number, NodeError>;
-};
+    nodeMap: NodeMap;
+    nodeErrors: NodeErrors;
 
-export interface INodeDB extends INodeDBData {
     addNode: (nodeInfo: Protobuf.Mesh.NodeInfo) => void;
     removeNode: (nodeNum: number) => void;
     removeAllNodes: (keepMyNode?: boolean) => void;
@@ -46,14 +47,14 @@ export interface INodeDB extends INodeDBData {
     getNodeError: (nodeNum: number) => NodeError | undefined;
     hasNodeError: (nodeNum: number) => boolean;
 }
-
+/*
 export interface nodeDBState {
     addNodeDB: (id: number) => NodeDB;
     removeNodeDB: (id: number) => void;
     getNodeDBs: () => NodeDB[];
     getNodeDB: (id: number) => NodeDB | undefined;
 }
-
+*/
 export interface NodeDatabase extends DBSchema {
     devices: {
         value: INodeDB;
@@ -65,13 +66,13 @@ export interface NodeDatabase extends DBSchema {
 class NodeDB implements INodeDB {
     id: number;
     myNodeNum: number | undefined;
-    nodeMap: Map<number, Protobuf.Mesh.NodeInfo>;
-    nodeErrors: Map<number, NodeError>;
+    nodeMap: NodeMap;
+    nodeErrors: NodeErrors;
 
-    constructor(id: number, data?: Partial<INodeDBData>) {
+    constructor(id: number, data?: Partial<INodeDB>) {
         this.id = id;
-        this.nodeMap = data?.nodeMap ?? new Map<number, Protobuf.Mesh.NodeInfo>();
-        this.nodeErrors = data?.nodeErrors ?? new Map<number, NodeError>();
+        this.nodeMap = data?.nodeMap ?? {};
+        this.nodeErrors = data?.nodeErrors ?? {};
         this.myNodeNum = data?.myNodeNum;
     }
 
@@ -81,7 +82,7 @@ class NodeDB implements INodeDB {
 
     addNode(node: Protobuf.Mesh.NodeInfo) {
         // Check if node already exists
-        const existing = this.nodeMap.get(node.num);
+        const existing = this.nodeMap[node.num];
         const isNew = !existing;
 
         // Use validation to check the new node before adding
@@ -112,7 +113,7 @@ class NodeDB implements INodeDB {
             : next;
 
         // Use the validated node's num to ensure consistency
-        this.nodeMap = new Map(this.nodeMap).set(merged.num, merged);
+        this.nodeMap = { ...(this.nodeMap || {}), [String(merged.num)]: merged };
 
         if (isNew) {
             console.log(
@@ -126,21 +127,17 @@ class NodeDB implements INodeDB {
     };
 
     removeNode(nodeNum: number) {
-        this.nodeMap.delete(nodeNum);
+        delete this.nodeMap[nodeNum];
     };
 
     removeAllNodes(keepMyNode?: boolean) {
-        const newNodeMap = new Map<number, Protobuf.Mesh.NodeInfo>();
+        const newNodeMap: NodeMap = {};
         if (
             keepMyNode &&
             this.myNodeNum !== undefined &&
-            this.nodeMap.has(this.myNodeNum)
+            Object(this.nodeMap).has(this.myNodeNum)
         ) {
-            newNodeMap.set(
-                this.myNodeNum,
-                this.nodeMap.get(this.myNodeNum) ??
-                create(Protobuf.Mesh.NodeInfoSchema),
-            );
+            newNodeMap[this.myNodeNum] = this.nodeMap[this.myNodeNum] ?? create(Protobuf.Mesh.NodeInfoSchema);
         }
         this.nodeMap = newNodeMap;
     };
@@ -149,8 +146,8 @@ class NodeDB implements INodeDB {
         const nowSec = Math.floor(Date.now() / 1000);
         const cutoffSec = nowSec - NODE_RETENTION_DAYS * 24 * 60 * 60;
         let prunedCount = 0;
-        const newNodeMap = new Map<number, Protobuf.Mesh.NodeInfo>();
-        for (const [nodeNum, node] of this.nodeMap) {
+        const newNodeMap: NodeMap = {};
+        for (const [nodeNum, node] of Object(this.nodeMap).entries()) {
             // Keep myNode regardless of lastHeard
             // Keep nodes that have been heard recently
             // Keep nodes without lastHeard (just in case)
@@ -159,7 +156,7 @@ class NodeDB implements INodeDB {
                 !node.lastHeard ||
                 node.lastHeard >= cutoffSec
             ) {
-                newNodeMap.set(nodeNum, node);
+                newNodeMap[nodeNum] = node;
             } else {
                 prunedCount++;
                 console.log(
@@ -177,22 +174,23 @@ class NodeDB implements INodeDB {
     };
 
     setNodeError(nodeNum: number, error: NodeErrorType) {
-        this.nodeErrors = new Map(this.nodeErrors).set(nodeNum, {
+        this.nodeErrors = {};
+        this.nodeErrors[nodeNum] = {
             node: nodeNum,
             error,
-        });
+        };
     };
 
     clearNodeError(nodeNum: number) {
-        this.nodeErrors.delete(nodeNum);
+        delete this.nodeErrors[nodeNum];
     };
 
     removeAllNodeErrors() {
-        this.nodeErrors = new Map<number, NodeError>();
+        this.nodeErrors = {};
     };
 
     processPacket(data: ProcessPacketParams) {
-        const node = this.nodeMap.get(data.from);
+        const node = this.nodeMap[data.from];
         const nowSec = Math.floor(Date.now() / 1000); // lastHeard is in seconds(!)
         if (node) {
             const updated = {
@@ -200,28 +198,27 @@ class NodeDB implements INodeDB {
                 lastHeard: data.time > 0 ? data.time : nowSec,
                 snr: data.snr,
             };
-            this.nodeMap = new Map(this.nodeMap).set(data.from, updated);
+            this.nodeMap = { ...(this.nodeMap || {}), [String(data.from)]: updated };
         } else {
-            this.nodeMap = new Map(this.nodeMap).set(
-                data.from,
-                create(Protobuf.Mesh.NodeInfoSchema, {
+            this.nodeMap = {
+                ...(this.nodeMap || {}), [String(data.from)]: create(Protobuf.Mesh.NodeInfoSchema, {
                     num: data.from,
                     lastHeard: data.time > 0 ? data.time : nowSec, // fallback to now if time is 0 or negative,
                     snr: data.snr,
-                }),
-            );
+                })
+            };
         }
     };
 
     addUser(user: Types.PacketMetadata<Protobuf.Mesh.User>) {
-        const current = this.nodeMap.get(user.from);
+        const current = this.nodeMap[user.from];
         const isNew = !current;
         const updated = {
             ...(current ?? create(Protobuf.Mesh.NodeInfoSchema)),
             user: user.data,
             num: user.from,
         };
-        this.nodeMap = new Map(this.nodeMap).set(user.from, updated);
+        this.nodeMap = { ...(this.nodeMap || {}), [String(user.from)]: updated };
         if (isNew) {
             console.log(
                 `[NodeDB] Adding new node from user packet: ${user.from} (${user.data.longName || "unknown"})`,
@@ -230,14 +227,14 @@ class NodeDB implements INodeDB {
     };
 
     addPosition(position: Types.PacketMetadata<Protobuf.Mesh.Position>) {
-        const current = this.nodeMap.get(position.from);
+        const current = this.nodeMap[position.from];
         const isNew = !current;
         const updated = {
             ...(current ?? create(Protobuf.Mesh.NodeInfoSchema)),
             position: position.data,
             num: position.from,
         };
-        this.nodeMap = new Map(this.nodeMap).set(position.from, updated);
+        this.nodeMap = { ...(this.nodeMap || {}), [String(position.from)]: updated };
         if (isNew) {
             console.log(
                 `[NodeDB] Adding new node from position packet: ${position.from}`,
@@ -251,62 +248,49 @@ class NodeDB implements INodeDB {
             throw new Error(`No nodeDB found for id: ${this.id}`);
         }
         newDB.myNodeNum = nodeNum;
+
         for (const [key, oldDB] of useNodeDBStore().nodeDBs.value) {
-            if (key === this.id) {
-                // short-circuit self
-                continue;
-            }
+            if (key === this.id) continue;
             if (oldDB.myNodeNum === nodeNum) {
-                // We found the oldDB (same myNodeNum). Merge node-by-node as if the new nodes are added with addNode
+                // Start with shallow clones of plain-object maps
+                const mergedNodes: NodeMap = { ...(oldDB.nodeMap || {}) };
+                const mergedErrors: NodeErrors = { ...(oldDB.nodeErrors || {}) };
 
-                const mergedNodes = new Map(oldDB.nodeMap);
-                const mergedErrors = new Map(oldDB.nodeErrors);
-
-                const getNodesProxy = (
-                    filter?: (node: Protobuf.Mesh.NodeInfo) => boolean,
-                ): Protobuf.Mesh.NodeInfo[] => {
-                    const arr = Array.from(mergedNodes.values());
+                const getNodesProxy = (filter?: (node: Protobuf.Mesh.NodeInfo) => boolean): Protobuf.Mesh.NodeInfo[] => {
+                    const arr = Object.values(mergedNodes);
                     return filter ? arr.filter(filter) : arr;
                 };
 
-                const setErrorProxy = (nodeNum: number, err: NodeErrorType) => {
-                    mergedErrors.set(nodeNum, {
-                        node: nodeNum,
-                        error: err,
-                    });
+                const setErrorProxy = (n: number, err: NodeErrorType) => {
+                    mergedErrors[String(n)] = { node: n, error: err };
                 };
 
-                for (const [num, newNode] of newDB.nodeMap) {
-                    const next = validateIncomingNode(
-                        newNode,
-                        setErrorProxy,
-                        getNodesProxy,
-                    );
+                // iterate newDB.nodeMap (plain object)
+                for (const [numStr, newNode] of Object.entries(newDB.nodeMap || {})) {
+                    const num = Number(numStr);
+                    const next = validateIncomingNode(newNode, setErrorProxy, getNodesProxy);
                     if (next) {
-                        mergedNodes.set(num, next);
+                        mergedNodes[String(num)] = next;
                     }
 
                     const err = newDB.getNodeError(num);
                     if (err && !oldDB.hasNodeError(num)) {
-                        mergedErrors.set(num, err);
+                        mergedErrors[String(num)] = err;
                     }
                 }
 
-                // finalize: move maps into newDB and drop oldDB entry
+                // finalize: assign plain objects into this (was Maps)
                 this.nodeMap = mergedNodes;
                 this.nodeErrors = mergedErrors;
                 useNodeDBStore().nodeDBs.value.delete(oldDB.id);
             }
         }
-    };
+    }
 
     updateFavorite(nodeNum: number, isFavorite: boolean) {
-        const node = this.nodeMap.get(nodeNum);
+        const node = this.nodeMap[nodeNum];
         if (node) {
-            this.nodeMap = new Map(this.nodeMap).set(nodeNum, {
-                ...node,
-                isFavorite: isFavorite,
-            });
+            this.nodeMap = { ...(this.nodeMap || {}), [String(nodeNum)]: { ...node, isFavorite } };
         }
     };
 
@@ -316,12 +300,9 @@ class NodeDB implements INodeDB {
             throw new Error(`No nodeDB found (id: ${this.id})`);
         }
 
-        const node = nodeDB.nodeMap.get(nodeNum);
+        const node = nodeDB.nodeMap[nodeNum];
         if (node) {
-            nodeDB.nodeMap = new Map(nodeDB.nodeMap).set(nodeNum, {
-                ...node,
-                isIgnored: isIgnored,
-            });
+            this.nodeMap = { ...(this.nodeMap || {}), [String(nodeNum)]: { ...node, isIgnored } };
         }
     };
 
@@ -330,7 +311,7 @@ class NodeDB implements INodeDB {
         if (!nodeDB) {
             throw new Error(`No nodeDB found (id: ${this.id})`);
         }
-        return nodeDB.nodeMap.size;
+        return Object(nodeDB.nodeMap).size;
     };
 
     getNode(nodeNum: number) {
@@ -338,19 +319,19 @@ class NodeDB implements INodeDB {
         if (!nodeDB) {
             throw new Error(`No nodeDB found (id: ${this.id})`);
         }
-        return nodeDB.nodeMap.get(nodeNum);
+        return nodeDB.nodeMap[nodeNum];
     };
 
     getNodes(filter?: ((node: Protobuf.Mesh.NodeInfo) => boolean), includeSelf?: boolean) {
         const nodeDB = useNodeDBStore().nodeDBs.value.get(this.id);
-        if (!nodeDB) {
-            throw new Error(`No nodeDB found (id: ${this.id})`);
-        }
-        const all = Array.from(nodeDB.nodeMap.values()).filter((n) =>
-            includeSelf ? true : n.num !== nodeDB.myNodeNum,
+        if (!nodeDB) throw new Error(`No nodeDB found (id: ${this.id})`);
+
+        const all = Object.values(nodeDB.nodeMap || {}).filter(n =>
+            includeSelf ? true : n.num !== nodeDB.myNodeNum
         );
+
         return filter ? all.filter(filter) : all;
-    };
+    }
 
     getMyNode() {
         const nodeDB = useNodeDBStore().nodeDBs.value.get(this.id);
@@ -359,7 +340,7 @@ class NodeDB implements INodeDB {
         }
         if (nodeDB.myNodeNum) {
             return (
-                nodeDB.nodeMap.get(nodeDB.myNodeNum) ??
+                nodeDB.nodeMap[nodeDB.myNodeNum] ??
                 create(Protobuf.Mesh.NodeInfoSchema)
             );
         }
@@ -370,7 +351,7 @@ class NodeDB implements INodeDB {
         if (!nodeDB) {
             throw new Error(`No nodeDB found (id: ${this.id})`);
         }
-        return nodeDB.nodeErrors.get(nodeNum);
+        return nodeDB.nodeErrors[nodeNum];
     };
 
     hasNodeError(nodeNum: number) {
@@ -378,7 +359,7 @@ class NodeDB implements INodeDB {
         if (!nodeDB) {
             throw new Error(`No nodeDB found (id: ${this.id})`);
         }
-        return nodeDB.nodeErrors.has(nodeNum);
+        return Object(nodeDB.nodeErrors).has(nodeNum);
     }
 }
 
