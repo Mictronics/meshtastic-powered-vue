@@ -8,7 +8,6 @@ import { type INodeDB, useNodeDBStore } from "@/composables/core/stores/nodeDB/u
 //import { bindStoreToDevice } from "@core/stores/utils/bindStoreToDevice.ts";
 
 export {
-  CurrentDeviceContext,
   type DeviceContext,
   useDeviceContext,
 } from "@/composables/core/hooks/useDeviceContext";
