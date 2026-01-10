@@ -14,8 +14,8 @@ import {
     type DialogVariant,
 } from "@/composables/core/stores/device/types.ts";
 import { type MeshDevice, Protobuf, Types } from "@meshtastic/core";
-import { createSharedComposable, watchIgnorable, syncRef } from '@vueuse/core'
-import { shallowRef, toRaw, isReactive, ref, type DebuggerEvent } from 'vue'
+import { createSharedComposable, watchThrottled } from '@vueuse/core'
+import { toRaw, isReactive, ref } from 'vue'
 import { useGlobalToast, type ToastSeverity } from '@/composables/useGlobalToast';
 import { useEvictOldestEntries } from "@/composables/core/stores/utils/useEvictOldestEntries.ts";
 import {
@@ -47,28 +47,28 @@ const WAYPOINT_RETENTION_NUM = 100;
 export interface IDevice {
     id: number;
     myNodeNum: number | undefined;
-    traceroutes: Map<number, Types.PacketMetadata<Protobuf.Mesh.RouteDiscovery>[]>;
+    traceroutes: { [key: string]: Types.PacketMetadata<Protobuf.Mesh.RouteDiscovery>[] };
     waypoints: WaypointWithMetadata[];
-    neighborInfo: Map<number, Protobuf.Mesh.NeighborInfo>;
+    neighborInfo: { [key: string]: Protobuf.Mesh.NeighborInfo };
     status: Types.DeviceStatusEnum;
     connectionPhase: ConnectionPhase;
     connectionId: ConnectionId | null;
-    channels: Map<Types.ChannelNumber, Protobuf.Channel.Channel>;
+    channels: { [K in Types.ChannelNumber & (string | number)]: Protobuf.Channel.Channel };
     config: Protobuf.LocalOnly.LocalConfig;
     moduleConfig: Protobuf.LocalOnly.LocalModuleConfig;
     changeRegistry: ChangeRegistry; // Unified change tracking
     hardware: Protobuf.Mesh.MyNodeInfo;
-    metadata: Map<number, Protobuf.Mesh.DeviceMetadata>;
+    metadata: Protobuf.Mesh.DeviceMetadata;
     connection?: MeshDevice;
     activeNode: number;
     pendingSettingsChanges: boolean;
     messageDraft: string;
-    unreadCounts: Map<number, number>;
+    unreadCounts: { [key: string]: number };
     dialog: Dialogs;
     clientNotifications: Protobuf.Mesh.ClientNotification[];
 
     set: (obj: Partial<IDevice>) => void; // Set class properties from object
-    toObject: () => any; // Return object from class properties
+    get: () => any;
     setStatus: (status: Types.DeviceStatusEnum) => void;
     setConnectionPhase: (phase: ConnectionPhase) => void;
     setConnectionId: (id: ConnectionId | null) => void;
@@ -96,7 +96,7 @@ export interface IDevice {
     addTraceRoute: (
         traceroute: Types.PacketMetadata<Protobuf.Mesh.RouteDiscovery>,
     ) => void;
-    addMetadata: (from: number, metadata: Protobuf.Mesh.DeviceMetadata) => void;
+    addMetadata: (metadata: Protobuf.Mesh.DeviceMetadata) => void;
     setDialogOpen: (dialog: DialogVariant, open: boolean) => void;
     getDialogOpen: (dialog: DialogVariant) => boolean;
     setMessageDraft: (message: string) => void;
@@ -154,47 +154,55 @@ export interface DevicesDatabase extends DBSchema {
 class Device implements IDevice {
     id: number;
     myNodeNum: number | undefined;
-    traceroutes: Map<number, Types.PacketMetadata<Protobuf.Mesh.RouteDiscovery>[]>;
+    traceroutes: { [key: string]: Types.PacketMetadata<Protobuf.Mesh.RouteDiscovery>[] };
     waypoints: WaypointWithMetadata[];
-    neighborInfo: Map<number, Protobuf.Mesh.NeighborInfo>;
+    neighborInfo: { [key: string]: Protobuf.Mesh.NeighborInfo };
     status: Types.DeviceStatusEnum;
     connectionPhase: ConnectionPhase;
     connectionId: ConnectionId | null;
-    channels: Map<Types.ChannelNumber, Protobuf.Channel.Channel>;
+    channels: { [K in Types.ChannelNumber & (string | number)]: Protobuf.Channel.Channel };
     config: Protobuf.LocalOnly.LocalConfig;
     moduleConfig: Protobuf.LocalOnly.LocalModuleConfig;
     changeRegistry: ChangeRegistry;
     hardware: Protobuf.Mesh.MyNodeInfo;
-    metadata: Map<number, Protobuf.Mesh.DeviceMetadata>;
+    metadata: Protobuf.Mesh.DeviceMetadata;
     connection?: MeshDevice;
     activeNode: number;
     pendingSettingsChanges: boolean;
     messageDraft: string;
-    unreadCounts: Map<number, number>;
+    unreadCounts: { [key: string]: number };
     dialog: Dialogs;
     clientNotifications: Protobuf.Mesh.ClientNotification[];
 
     constructor(id: number, data?: Partial<IDevice>) {
         this.id = id;
         this.myNodeNum = data?.myNodeNum;
-        this.traceroutes = data?.traceroutes ??
-            new Map<number, Types.PacketMetadata<Protobuf.Mesh.RouteDiscovery>[]>();
+        this.traceroutes = data?.traceroutes ?? {};
         this.waypoints = data?.waypoints ?? [];
-        this.neighborInfo = data?.neighborInfo ?? new Map<number, Protobuf.Mesh.NeighborInfo>();
+        this.neighborInfo = data?.neighborInfo ?? {};
         this.status = Types.DeviceStatusEnum.DeviceDisconnected;
         this.connectionPhase = ConnectionPhase.Disconnected;
         this.connectionId = null;
-        this.channels = new Map();
+        this.channels = {
+            0: create(Protobuf.Channel.ChannelSchema),
+            1: create(Protobuf.Channel.ChannelSchema),
+            2: create(Protobuf.Channel.ChannelSchema),
+            3: create(Protobuf.Channel.ChannelSchema),
+            4: create(Protobuf.Channel.ChannelSchema),
+            5: create(Protobuf.Channel.ChannelSchema),
+            6: create(Protobuf.Channel.ChannelSchema),
+            7: create(Protobuf.Channel.ChannelSchema),
+        };
         this.config = create(Protobuf.LocalOnly.LocalConfigSchema);
         this.moduleConfig = create(Protobuf.LocalOnly.LocalModuleConfigSchema);
         this.changeRegistry = createChangeRegistry();
         this.hardware = create(Protobuf.Mesh.MyNodeInfoSchema);
-        this.metadata = new Map();
+        this.metadata = create(Protobuf.Mesh.DeviceMetadataSchema);
         this.connection = undefined;
         this.activeNode = 0;
         this.pendingSettingsChanges = false;
         this.messageDraft = '';
-        this.unreadCounts = new Map();
+        this.unreadCounts = {};
         this.dialog = {
             import: false,
             QR: false,
@@ -217,55 +225,16 @@ class Device implements IDevice {
         this.clientNotifications = [];
     }
 
-    private convertDeep(value: any): any {
-        if (value instanceof Map) {
-            const obj: Record<string, any> = {}
-            for (const [k, v] of value.entries()) {
-                // convert map keys to strings (Map can have non-string keys)
-                const key = typeof k === 'string' ? k : JSON.stringify(k)
-                obj[key] = this.convertDeep(v)
-            }
-            return obj
-        }
-
-        if (value instanceof Uint8Array) {
-            // convert to plain array of numbers (or use base64: btoa(String.fromCharCode(...value)))
-            return Array.from(value)
-        }
-
-        if (Array.isArray(value)) {
-            return value.map(v => this.convertDeep(v))
-        }
-
-        if (value && typeof value === 'object') {
-            const res: Record<string, any> = {}
-            // include own enumerable + non-enumerable instance props if desired:
-            for (const key of Object.getOwnPropertyNames(value)) {
-                const val = (value as any)[key]
-                if (typeof val === 'function') continue
-                res[key] = this.convertDeep(val)
-            }
-            return res
-        }
-
-        return value
-    }
-
     // Set class properties from [IndexedDB] object
-    set(obj: Partial<Device>) {
+    set(obj: Partial<IDevice>) {
         Object.assign(this, obj);
-    }
+    };
 
-    // Convert class properties to object for IndexedDB
-    toObject() {
-        const result: Record<string, any> = {}
-        for (const key of Object.getOwnPropertyNames(this)) {
-            const val = (this as any)[key]
-            if (typeof val === 'function') continue
-            result[key] = this.convertDeep(val)
-        }
-        return result
-    }
+    get() {
+        // Remove connection from this object. No need to stored in IndexedDB.
+        const { ['connection']: _, ...rest } = Object.fromEntries(Object.entries(this)) as IDevice;
+        return rest;
+    };
 
     setStatus(status: Types.DeviceStatusEnum) {
         this.status = status;
@@ -375,9 +344,9 @@ class Device implements IDevice {
         if (!payloadVariant) {
             return;
         }
-        const workingValue = this.changeRegistry.changes.get(
-            serializeKey({ type: "config", variant: payloadVariant }),
-        )?.value as Protobuf.LocalOnly.LocalConfig[K] | undefined;
+        const workingValue = this.changeRegistry.changes[
+            serializeKey({ type: "config", variant: payloadVariant }
+            )]?.value as Protobuf.LocalOnly.LocalConfig[K] | undefined;
 
         return {
             ...this.config[payloadVariant],
@@ -386,9 +355,9 @@ class Device implements IDevice {
     };
 
     getEffectiveModuleConfig<K extends ValidModuleConfigType>(payloadVariant: K,): Protobuf.LocalOnly.LocalModuleConfig[K] | undefined {
-        const workingValue = this.changeRegistry.changes.get(
-            serializeKey({ type: "moduleConfig", variant: payloadVariant }),
-        )?.value as Protobuf.LocalOnly.LocalModuleConfig[K] | undefined;
+        const workingValue = this.changeRegistry.changes[
+            serializeKey({ type: "moduleConfig", variant: payloadVariant })
+        ]?.value as Protobuf.LocalOnly.LocalModuleConfig[K] | undefined;
 
         return {
             ...this.moduleConfig[payloadVariant],
@@ -423,7 +392,7 @@ class Device implements IDevice {
     };
 
     addChannel(channel: Protobuf.Channel.Channel) {
-        this.channels.set(channel.index, channel);
+        this.channels[channel.index as Types.ChannelNumber] = channel;
     };
 
     addWaypoint(waypoint: any, channel: any, from: any, rxTime: any) {
@@ -506,14 +475,14 @@ class Device implements IDevice {
         this.connection = connection;
     };
 
-    addMetadata(from: number, metadata: Protobuf.Mesh.DeviceMetadata) {
-        this.metadata.set(from, metadata);
+    addMetadata(metadata: Protobuf.Mesh.DeviceMetadata) {
+        this.metadata = metadata;
     };
 
     addTraceRoute(traceroute: Types.PacketMetadata<Protobuf.Mesh.RouteDiscovery>) {
-        const routes = this.traceroutes.get(traceroute.from) ?? [];
+        const routes = this.traceroutes[traceroute.from] ?? [];
         routes.push(traceroute);
-        this.traceroutes.set(traceroute.from, routes);
+        this.traceroutes[traceroute.from] = routes;
         // Enforce retention limit, both in terms of targets (this.traceroutes) and routes per target (routes)
         useEvictOldestEntries(routes, TRACEROUTE_ROUTE_RETENTION_NUM);
         useEvictOldestEntries(this.traceroutes, TRACEROUTE_TARGET_RETENTION_NUM,);
@@ -532,26 +501,26 @@ class Device implements IDevice {
     };
 
     incrementUnread(nodeNum: number) {
-        const currentCount = this.unreadCounts.get(nodeNum) ?? 0;
-        this.unreadCounts.set(nodeNum, currentCount + 1);
+        const currentCount = this.unreadCounts[nodeNum] ?? 0;
+        this.unreadCounts[nodeNum] = currentCount + 1;
     };
 
     getUnreadCount(nodeNum: number): number {
-        return this.unreadCounts.get(nodeNum) ?? 0;
+        return this.unreadCounts[nodeNum] ?? 0;
     };
 
     getAllUnreadCount(): number {
         let totalUnread = 0;
-        this.unreadCounts.forEach((count) => {
+        Object.values(this.unreadCounts).forEach((count) => {
             totalUnread += count;
         });
         return totalUnread;
     };
 
     resetUnread(nodeNum: number) {
-        this.unreadCounts.set(nodeNum, 0);
-        if (this.unreadCounts.get(nodeNum) === 0) {
-            this.unreadCounts.delete(nodeNum);
+        this.unreadCounts[nodeNum] = 0;
+        if (this.unreadCounts[nodeNum] === 0) {
+            delete this.unreadCounts.nodeNum;
         }
 
     };
@@ -580,38 +549,38 @@ class Device implements IDevice {
 
     addNeighborInfo(nodeId: number, neighborInfo: Protobuf.Mesh.NeighborInfo) {
         // Replace any existing neighbor info for this nodeId
-        this.neighborInfo.set(nodeId, neighborInfo);
+        this.neighborInfo[nodeId] = neighborInfo;
     };
 
     getNeighborInfo(nodeNum: number) {
-        return this.neighborInfo.get(nodeNum);
+        return this.neighborInfo[nodeNum];
     };
 
     // New unified change tracking methods
     setChange(key: ConfigChangeKey, value: unknown, originalValue?: unknown) {
         const keyStr = serializeKey(key);
-        this.changeRegistry.changes.set(keyStr, {
+        this.changeRegistry.changes[keyStr] = {
             key,
             value,
             originalValue,
             timestamp: Date.now(),
-        });
+        };
     };
 
     removeChange(key: ConfigChangeKey) {
-        this.changeRegistry.changes.delete(serializeKey(key));
+        delete this.changeRegistry.changes[serializeKey(key)];
     };
 
     hasChange(key: ConfigChangeKey) {
-        return this.changeRegistry.changes.has(serializeKey(key)) ?? false;
+        return Object(this.changeRegistry.changes).has(serializeKey(key)) ?? false;
     };
 
     getChange(key: ConfigChangeKey) {
-        return this.changeRegistry.changes.get(serializeKey(key))?.value;
+        return this.changeRegistry.changes[serializeKey(key)]?.value;
     };
 
     clearAllChanges() {
-        this.changeRegistry.changes.clear();
+        this.changeRegistry.changes = {};
     };
 
     hasConfigChange(variant: ValidConfigType) {
@@ -704,11 +673,11 @@ class Device implements IDevice {
             id: messageId,
         });
 
-        this.changeRegistry.changes.set(keyStr, {
+        this.changeRegistry.changes[keyStr] = {
             key: { type: "adminMessage", variant, id: messageId },
             value: message,
             timestamp: Date.now(),
-        });
+        };
     };
 
     getAllQueuedAdminMessages() {
@@ -726,22 +695,14 @@ class Device implements IDevice {
 export const useDeviceStore = createSharedComposable(() => {
     const device = ref<IDevice>();
 
-    let deviceId: number = 0;
-    const { ignorePrevAsyncUpdates } = watchIgnorable(device, (updated) => {
-        // Write new value back into IndexedDB with property key.
+    watchThrottled(device, (updated) => {
+        // Write new value back into IndexedDB. Throttled to avoid writes on any change.
         if (isReactive(updated)) {
-            console.log(toRaw(updated));
+            updateDevice(toRaw(updated));
         }
     }, {
-        onTrigger: (e: DebuggerEvent) => {
-            // Trigger is called prior watch callback.
-            // Get property and new value of what has changed.
-            if (e.type === 'set' && (e.target instanceof Device)) {
-                deviceId = (toRaw(e.target) as IDevice).id;
-            }
-            console.log(e);
-        },
         deep: true,
+        throttle: 3000
     })
 
     function toast(severity: ToastSeverity, detail: string, life?: number) {
@@ -823,17 +784,8 @@ export const useDeviceStore = createSharedComposable(() => {
     async function updateDevice(dev: IDevice | undefined) {
         if (!dev) return;
         try {
-            const o = dev.toObject();
+            const o = dev.get();
             await useIndexedDB().updateStore(IDB_DEVICE_STORE, o);
-            // reload revived value from the DB
-            /*
-            if (dev.id != null) {
-                const stored = await useIndexedDB().getFromStore(IDB_DEVICE_STORE, dev.id as any);
-                if (!device.value) {
-                    device.value = new Device(dev.id);
-                }
-                device.value.set(stored);
-            */
         } catch (e: any) {
             toast('error', e.message);
         }
