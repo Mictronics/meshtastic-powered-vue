@@ -1,8 +1,8 @@
 export function useEvictOldestEntries<T>(arr: T[], maxSize: number): void;
-export function useEvictOldestEntries<K, V>(map: Map<K, V>, maxSize: number): void;
+export function useEvictOldestEntries<K, V>(obj: { [K: string]: V }, maxSize: number): void;
 
 export function useEvictOldestEntries<T, K, V>(
-    collection: T[] | Map<K, V>,
+    collection: T[] | { [K: string]: V },
     maxSize: number,
 ): void {
     if (Array.isArray(collection)) {
@@ -10,12 +10,12 @@ export function useEvictOldestEntries<T, K, V>(
         while (collection.length > maxSize) {
             collection.shift();
         }
-    } else if (collection instanceof Map) {
+    } else if (typeof collection === 'object') {
         // Trim map by insertion order
-        while (collection.size > maxSize) {
-            const firstKey = collection.keys().next().value;
+        while (Object(collection).keys().length > maxSize) {
+            const firstKey = Object(collection).keys().next().value;
             if (firstKey !== undefined) {
-                collection.delete(firstKey);
+                delete collection.firstKey;
             } else {
                 break;
             }
