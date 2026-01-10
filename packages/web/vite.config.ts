@@ -4,6 +4,7 @@ import { defineConfig } from 'vite'
 import tailwindcss from '@tailwindcss/vite'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
+import unusedCode from 'vite-plugin-unused-code'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -11,6 +12,9 @@ export default defineConfig({
     vue(),
     tailwindcss(),
     vueDevTools(),
+    unusedCode({
+      patterns: ['src/**/*.*'],
+    }),
   ],
   define: {
     'import.meta.env.VITE_APP_NAME': JSON.stringify('meshtastic-nexus'),
