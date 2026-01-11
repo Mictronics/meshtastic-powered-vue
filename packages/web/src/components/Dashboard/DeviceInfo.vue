@@ -66,6 +66,7 @@ import { ref, computed, watch, watchEffect } from 'vue';
 import { useColor } from '@/composables/core/utils/useColor';
 import BatterLevel from './BatteryStatus.vue';
 import { ConnectionStatus } from '@/composables/core/stores/connection/types';
+import { watchImmediate } from '@vueuse/core';
 
 const props = defineProps<{
   shortName: string | undefined;
@@ -144,13 +145,6 @@ const avatarColor = computed(() => {
   };
 });
 
-watch(
-  () => props.connectionStatus,
-  (n) => {
-    connectionStatus.value = getStatusAttr(n);
-  }
-);
-
 const getStatusAttr = (status?: ConnectionStatus) => {
   if (!status) {
     return {
@@ -190,6 +184,13 @@ const getStatusAttr = (status?: ConnectionStatus) => {
       };
   }
 };
+
+watchImmediate(
+  () => props.connectionStatus,
+  (n) => {
+    connectionStatus.value = getStatusAttr(n);
+  }
+);
 </script>
 
 <style lang="css" scoped>
