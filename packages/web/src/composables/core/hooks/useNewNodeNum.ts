@@ -9,5 +9,5 @@ export async function useNewNodeNum(
 ) {
   (await useDeviceStore().getDevice(id))?.setHardware(nodeInfo);
   (await useNodeDBStore().getNodeDB(id))?.setNodeNum(nodeInfo.myNodeNum);
-  useMessageStore().getMessageStore(id)?.setNodeNum(nodeInfo.myNodeNum);
+  (await useMessageStore().getMessageStore(id))?.setNodeNum(nodeInfo.myNodeNum);
 }
