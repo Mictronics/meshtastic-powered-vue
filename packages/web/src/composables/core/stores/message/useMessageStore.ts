@@ -4,8 +4,8 @@ import {
     IDB_MESSAGE_STORE,
     useIndexedDB
 } from "@/composables/core/stores/indexedDB";
-import { createSharedComposable } from '@vueuse/core'
-import { shallowRef } from 'vue'
+import { createSharedComposable, watchThrottled } from '@vueuse/core'
+import { toRaw, isReactive, ref, type DebuggerEvent } from 'vue'
 import { useGlobalToast, type ToastSeverity } from '@/composables/useGlobalToast';
 import { useEvictOldestEntries } from "@/composables/core/stores/utils/useEvictOldestEntries";
 import type {
@@ -42,19 +42,18 @@ export function getConversationId(
 }
 
 export interface MessageBuckets {
-    direct: Map<ConversationId, MessageLogMap>;
-    broadcast: Map<ChannelId, MessageLogMap>;
+    direct: { [key: ConversationId]: MessageLogMap };
+    broadcast: { [K in ChannelId & (string | number)]: MessageLogMap }
 }
 
-type IMessageStoreData = {
-    // Persisted data
+export interface IMessageStore {
     id: number;
     myNodeNum: number | undefined;
     messages: MessageBuckets;
-    drafts: Map<Types.Destination, string>;
-};
+    drafts: { [K in Types.Destination & (string | number)]: string };
 
-export interface IMessageStore extends IMessageStoreData {
+    set: (obj: Partial<IMessageStore>) => void;
+    get: () => any;
     activeChat: number;
     chatType: MessageType;
     setNodeNum: (nodeNum: number) => void;
@@ -71,13 +70,6 @@ export interface IMessageStore extends IMessageStoreData {
     clearMessageByMessageId: (params: ClearMessageParams) => void;
 }
 
-export interface MessageStoreState {
-    addMessageStore: (id: number) => MessageStore;
-    removeMessageStore: (id: number) => void;
-    getMessageStore: (id: number) => MessageStore | undefined;
-    getMessageStores: () => MessageStore[];
-}
-
 export interface MessageDatabase extends DBSchema {
     devices: {
         value: IMessageStore;
@@ -90,99 +82,76 @@ class MessageStore implements IMessageStore {
     id: number;
     myNodeNum: number | undefined;
     messages: MessageBuckets;
-    drafts: Map<Types.Destination, string>;
+    drafts: { [K in Types.Destination & (string | number)]: string };;
 
     activeChat: number;
     chatType: MessageType;
 
-    constructor(id: number, data?: Partial<IMessageStoreData>) {
+    constructor(id: number, data?: Partial<IMessageStore>) {
         this.id = id;
         this.myNodeNum = data?.myNodeNum;
         this.messages = data?.messages ?? {
-            direct: new Map<ConversationId, MessageLogMap>(),
-            broadcast: new Map<ChannelId, MessageLogMap>(),
+            direct: {},
+            broadcast: {
+                0: {},
+                1: {},
+                2: {},
+                3: {},
+                4: {},
+                5: {},
+                6: {},
+                7: {},
+            },
         };
-        this.drafts = data?.drafts ?? new Map<Types.Destination, string>();
+        this.drafts = data?.drafts ?? {} as {
+            [x: number]: string;
+            self: string;
+            broadcast: string;
+        };
         this.activeChat = 0;
         this.chatType = MessageType.Broadcast;
     }
 
-    set(obj: Partial<MessageStore>) {
+    set(obj: Partial<IMessageStore>) {
         Object.assign(this, obj);
     }
 
-    setNodeNum(nodeNum: number | undefined) {
-        const newStore = useMessageStore().messageStores.value.get(this.id);
-        if (!newStore) {
-            throw new Error(`No MessageStore found for id: ${this.id}`);
-        }
+    get() {
+        return Object.fromEntries(Object.entries(this));
+    }
 
-        newStore.myNodeNum = nodeNum;
-
-        for (const [otherId, oldStore] of useMessageStore().messageStores.value) {
-            if (otherId === this.id || oldStore.myNodeNum !== nodeNum) {
-                continue;
-            }
-            // Adopt broadcast conversations (reuses inner Map references)
-            for (const [channelId, logMap] of oldStore.messages.broadcast) {
-                newStore.messages.broadcast.set(channelId, logMap);
-            }
-            // Adopt direct conversations
-            for (const [conversationId, logMap] of oldStore.messages.direct) {
-                newStore.messages.direct.set(conversationId, logMap);
-            }
-            // Adopt drafts
-            for (const [destination, draftText] of oldStore.drafts) {
-                newStore.drafts.set(destination, draftText);
-            }
-            // Drop old store
-            useMessageStore().messageStores.value.delete(otherId);
-        }
+    setNodeNum(nodeNum: number) {
+        this.myNodeNum = nodeNum;
+        useMessageStore().cleanMessageStore(this.id, nodeNum);
     };
 
     saveMessage(message: Message) {
-        const state = useMessageStore().messageStores.value.get(this.id);
-        if (!state) {
-            throw new Error(`No MessageStore found for id: ${this.id}`);
-        }
-
         let log: MessageLogMap | undefined;
         if (message.type === MessageType.Direct) {
             const conversationId = getConversationId(message.from, message.to);
-            if (!state.messages.direct.has(conversationId)) {
-                state.messages.direct.set(
-                    conversationId,
-                    new Map<MessageId, Message>(),
-                );
+            if (!this.messages.direct.hasOwnProperty(conversationId)) {
+                this.messages.direct[conversationId] = {};
             }
 
-            log = state.messages.direct.get(conversationId);
-            log?.set(message.messageId, message);
+            log = this.messages.direct[conversationId] || {};
+            log[message.messageId] = message;
         } else if (message.type === MessageType.Broadcast) {
             const channelId = message.channel as ChannelId;
-            if (!state.messages.broadcast.has(channelId)) {
-                state.messages.broadcast.set(
-                    channelId,
-                    new Map<MessageId, Message>(),
-                );
+            if (!this.messages.broadcast.hasOwnProperty(channelId)) {
+                this.messages.broadcast[channelId] = {};
             }
 
-            log = state.messages.broadcast.get(channelId);
-            log?.set(message.messageId, message);
+            log = this.messages.broadcast[channelId];
+            log[message.messageId] = message;
         }
 
         if (log) {
             // Enforce retention limit
-            //FIXME useEvictOldestEntries(log, MESSAGELOG_RETENTION_NUM);
+            useEvictOldestEntries(log, MESSAGELOG_RETENTION_NUM);
         }
     };
 
     setMessageState(params: SetMessageStateParams) {
-        const state = useMessageStore().messageStores.value.get(this.id);
-        if (!state) {
-            throw new Error(`No MessageStore found for id: ${this.id}`);
-        }
-
         let messageLog: MessageLogMap | undefined;
         let targetMessage: Message | undefined;
 
@@ -191,15 +160,15 @@ class MessageStore implements IMessageStore {
                 params.nodeA,
                 params.nodeB,
             );
-            messageLog = state.messages.direct.get(conversationId);
+            messageLog = this.messages.direct[conversationId];
             if (messageLog) {
-                targetMessage = messageLog.get(params.messageId);
+                targetMessage = messageLog[params.messageId];
             }
         } else {
             // Broadcast
-            messageLog = state.messages.broadcast.get(params.channelId);
+            messageLog = this.messages.broadcast[params.channelId];
             if (messageLog) {
-                targetMessage = messageLog.get(params.messageId);
+                targetMessage = messageLog[params.messageId];
             }
         }
 
@@ -215,93 +184,75 @@ class MessageStore implements IMessageStore {
     };
 
     getMessages(params: GetMessagesParams): Message[] {
-        const state = useMessageStore().messageStores.value.get(this.id);
-        if (!state) {
-            throw new Error(`No MessageStore found for id: ${this.id}`);
-        }
-
         let messageMap: MessageLogMap | undefined;
 
         if (params.type === MessageType.Direct) {
             const conversationId = getConversationId(params.nodeA, params.nodeB);
-            messageMap = state.messages.direct.get(conversationId);
+            messageMap = this.messages.direct[conversationId];
         } else {
-            messageMap = state.messages.broadcast.get(params.channelId);
+            messageMap = this.messages.broadcast[params.channelId];
         }
 
         if (messageMap === undefined) {
             return [];
         }
 
-        const messagesArray = Array.from(messageMap.values());
+        const messagesArray = Array.from(Object.values(messageMap));
         messagesArray.sort((a, b) => a.date - b.date);
         return messagesArray;
     };
 
     getDraft(key: Types.Destination) {
-        const state = useMessageStore().messageStores.value.get(this.id);
-        if (!state) {
-            throw new Error(`No MessageStore found for id: ${this.id}`);
-        }
-
-        return state.drafts.get(key) ?? "";
+        return this.drafts[key] ?? "";
     };
 
     setDraft(key: Types.Destination, message: string) {
-        const state = useMessageStore().messageStores.value.get(this.id);
-        if (!state) {
-            throw new Error(`No MessageStore found for id: ${this.id}`);
-        }
-        state.drafts.set(key, message);
+        this.drafts[key] = message;
     };
 
     clearDraft(key: Types.Destination) {
-        const state = useMessageStore().messageStores.value.get(this.id);
-        if (!state) {
-            throw new Error(`No MessageStore found for id: ${this.id}`);
-        }
-        state.drafts.delete(key);
+        delete this.drafts[key];
     };
 
     deleteAllMessages() {
-        const state = useMessageStore().messageStores.value.get(this.id);
-        if (!state) {
-            throw new Error(`No MessageStore found for id: ${this.id}`);
-        }
-        state.messages.direct = new Map<ConversationId, MessageLogMap>();
-        state.messages.broadcast = new Map<ChannelId, MessageLogMap>();
+        this.messages.direct = {};
+        this.messages.broadcast = {
+            0: {},
+            1: {},
+            2: {},
+            3: {},
+            4: {},
+            5: {},
+            6: {},
+            7: {},
+        };
     };
 
     clearMessageByMessageId(params: ClearMessageParams) {
-        const state = useMessageStore().messageStores.value.get(this.id);
-        if (!state) {
-            throw new Error(`No MessageStore found for id: ${this.id}`);
-        }
-
         let messageLog: MessageLogMap | undefined;
-        let parentMap: Map<ConversationId | ChannelId, MessageLogMap>;
+        let parentMap: { [K in ConversationId & (string | number)]: MessageLogMap };
         let parentKey: ConversationId | ChannelId;
 
         if (params.type === MessageType.Direct) {
             parentKey = getConversationId(params.nodeA, params.nodeB);
-            parentMap = state.messages.direct;
-            messageLog = parentMap.get(parentKey);
+            parentMap = this.messages.direct;
+            messageLog = parentMap[parentKey];
         } else {
             // Broadcast
             parentKey = params.channelId;
-            parentMap = state.messages.broadcast;
-            messageLog = parentMap.get(parentKey);
+            parentMap = this.messages.broadcast;
+            messageLog = parentMap[parentKey];
         }
 
         if (messageLog) {
-            const deleted = messageLog.delete(params.messageId);
+            const deleted = delete messageLog[params.messageId];
             if (deleted) {
                 console.log(
                     `Deleted message ${params.messageId} from ${params.type} message ${parentKey}`,
                 );
                 // Clean up empty MessageLogMap and its entry in the parent map
-                if (messageLog.size === 0) {
-                    parentMap.delete(parentKey);
+                if (Object.entries(messageLog).length === 0) {
+                    delete parentMap[parentKey];
                     console.log(`Cleaned up empty message entry for ${parentKey}`);
                 }
             } else {
@@ -318,107 +269,147 @@ class MessageStore implements IMessageStore {
 }
 
 export const useMessageStore = createSharedComposable(() => {
-    const messageStores = shallowRef<Map<number, MessageStore>>(new Map());
+    const messageStore = ref<MessageStore>();
+
+    watchThrottled(messageStore, (updated) => {
+        // Write new value back into IndexedDB. Throttled to avoid writes on any change.
+        if (isReactive(updated)) {
+            console.log('### 4', toRaw(updated));
+            updateMessageStore(toRaw(updated));
+        }
+    }, {
+        onTrigger: (e: DebuggerEvent) => {
+            // Trigger is called prior watch callback.
+            // Get property and new value of what has changed.
+            console.log('### 3', e);
+        },
+        deep: true,
+        throttle: 3000
+    })
 
     function toast(severity: ToastSeverity, detail: string, life?: number) {
         useGlobalToast().add({ severity, summary: 'Message Database Error', detail, life: life || 6000 });
     }
 
-    async function init() {
-        messageStores.value = await getMessageStoresFromDatabase();
-    }
-
-    async function getMessageStoresFromDatabase(): Promise<Map<number, MessageStore>> {
+    async function getMessageStore(id: number) {
+        if (messageStore.value?.id === id) {
+            // Message store with id is already loaded.
+            return messageStore.value;
+        }
         try {
-            const all = await useIndexedDB().getAllFromStore(IDB_MESSAGE_STORE);
+            // Try to load message store with id from database
+            const msObj = await useIndexedDB().getFromStore(IDB_MESSAGE_STORE, id);
             // IndexedDB stores only Object data.
-            // Ensure that we return a map of MessageStore class instances.
-            const msMap = new Map();
-            all.forEach((value: any, key: any) => {
-                const ms = new MessageStore(key, value);
-                msMap.set(key, ms);
-            });
-            return msMap;
+            if (msObj) {
+                messageStore.value = new MessageStore(id, msObj);
+                return messageStore.value;
+            }
         } catch (e: any) {
             toast('error', e.message);
         }
-        return new Map();
+        // Not in database, create new one.
+        return undefined;
     }
 
-    function getMessageStores() {
-        return messageStores.value;
-    };
-
-    function getMessageStore(id: number) {
-        return messageStores.value.get(id);
-    };
-
-    async function addMessageStore(id: number) {
-        const existing = await getMessageStore(id);
-        if (existing) {
-            return existing;
+    async function addMessageStore(id: number): Promise<IMessageStore | undefined> {
+        if (messageStore.value?.id === id) {
+            // Message store with id already loaded
+            return messageStore.value;
         }
-
-        const messageStore = new MessageStore(id);
-        const draft = new Map(messageStores.value);
-        draft.set(id, messageStore);
-        //FIXME useEvictOldestEntries(draft, MESSAGESTORE_RETENTION_NUM);
-        messageStores.value = draft;
+        // Try to load from database
+        let ms = await getMessageStore(id);
+        if (ms) {
+            // found
+            return messageStore.value;
+        }
+        // Not in database, create new one
+        ms = new MessageStore(id);
 
         try {
-            const key = await useIndexedDB().insertIntoStore(IDB_MESSAGE_STORE, messageStore);
+            const key = await useIndexedDB().insertIntoStore(IDB_MESSAGE_STORE, ms);
             if (typeof key === 'number') {
                 const stored = await useIndexedDB().getFromStore(IDB_MESSAGE_STORE, key);
                 if (stored) {
                     // IndexedDB stores only Object data.
                     // Keep class instance and just copy object data into.
-                    messageStore.set(stored);
-                    if (!(messageStore instanceof MessageStore)) {
-                        throw new Error(`Added messageStore is not an instance of MessageStore class.`);
+                    ms.set(stored);
+                    if (!(ms instanceof MessageStore)) {
+                        throw new Error(`Added device is not an instance of MessageStore class.`);
                     }
-                } else if (messageStore.id == null) {
-                    messageStore.id = key;
+                } else if (ms.id == null) {
+                    ms.id = key;
                 }
             }
         } catch (e: any) {
             toast('error', e.message);
         }
-        messageStores.value.set(id, messageStore);
-        return messageStore;
+        messageStore.value = ms;
+        return ms;
     }
 
-    async function updateMessageStore(store: IMessageStore) {
+    async function updateMessageStore(ms: IMessageStore | undefined) {
+        if (!ms) return;
         try {
-            await useIndexedDB().updateStore(IDB_MESSAGE_STORE, store);
-            // reload revived value from the DB
-            if (store.id != null) {
-                const stored = await useIndexedDB().getFromStore(IDB_MESSAGE_STORE, store.id as any);
-                if (messageStores.value.has(store.id))
-                    messageStores.value.get(store.id)?.set(stored);
-            }
+            const o = ms.get();
+            await useIndexedDB().updateStore(IDB_MESSAGE_STORE, o);
         } catch (e: any) {
             toast('error', e.message);
         }
-        return store;
+        messageStore.value = ms;
+        return ms;
     }
 
     async function deleteMessageStore(id: number) {
         try {
             await useIndexedDB().deleteFromStore(IDB_MESSAGE_STORE, id);
-            messageStores.value.delete(id);
+            if (messageStore.value?.id === id) {
+                messageStore.value = undefined;
+            }
         } catch (e: any) {
             toast('error', e.message);
         }
     }
 
-    init();
+    async function cleanMessageStore(id: number, myNodeNum: number) {
+        try {
+            const ms = await useIndexedDB().getAllFromStore(IDB_MESSAGE_STORE);
+            if (messageStore.value) {
+                for (const [otherId, oldStore] of ms) {
+                    if (otherId === id || oldStore.myNodeNum !== myNodeNum) {
+                        continue;
+                    }
+                    // Adopt broadcast conversations (reuses inner Map references)
+                    for (const [channelId, logMap] of oldStore.messages.broadcast) {
+                        messageStore.value.messages.broadcast[(channelId as ChannelId)] = logMap;
+                    }
+                    // Adopt direct conversations
+                    for (const [conversationId, logMap] of oldStore.messages.direct) {
+                        messageStore.value.messages.direct[conversationId] = logMap;
+                    }
+                    // Adopt drafts
+                    for (const [destination, draftText] of oldStore.drafts) {
+                        messageStore.value.drafts[destination] = draftText;
+                    }
+                    // Drop old store
+                    deleteMessageStore(otherId);
+                }
+            }
+            // Trim device store from the front (assuming oldest entries are at the start)
+            while (ms.length > MESSAGESTORE_RETENTION_NUM) {
+                const first: IMessageStore = ms.shift();
+                deleteMessageStore(first.id);
+            }
+        } catch (e: any) {
+            toast('error', e.message);
+        }
+    }
 
     return {
-        messageStores,
+        messageStores: messageStore,
         addMessageStore,
         getMessageStore,
-        getMessageStores,
         updateMessageStore,
         deleteMessageStore,
+        cleanMessageStore
     }
 });

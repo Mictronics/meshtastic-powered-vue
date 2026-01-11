@@ -5,7 +5,7 @@ type NodeNum = number;
 type MessageId = number;
 type ChannelId = Types.ChannelNumber;
 type ConversationId = string;
-type MessageLogMap = Map<MessageId, Message>;
+type MessageLogMap = { [key: MessageId]: Message };
 
 interface MessageBase {
   channel: Types.ChannelNumber;
