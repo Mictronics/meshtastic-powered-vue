@@ -72,7 +72,7 @@ class NodeDB implements INodeDB {
         this.myNodeNum = data?.myNodeNum;
     }
 
-    set(obj: Partial<NodeDB>) {
+    set(obj: Partial<INodeDB>) {
         Object.assign(this, obj);
     }
 
@@ -317,14 +317,13 @@ export const useNodeDBStore = createSharedComposable(() => {
 
     async function getNodeDB(nodeId: number) {
         if (nodeDatabase.value?.id === nodeId) {
-            // nodeDB with id is already loaded.
+            // Node database with id is already loaded.
             return nodeDatabase.value;
         }
         try {
-            // Try to load device with id from database
+            // Try to load node database with id from database
             const ndbObj = await useIndexedDB().getFromStore(IDB_NODESDB_STORE, nodeId);
             // IndexedDB stores only Object data.
-            // Ensure that we return a map of Device class instances.
             if (ndbObj) {
                 nodeDatabase.value = new NodeDB(nodeId, ndbObj);
                 return nodeDatabase.value;

@@ -67,7 +67,7 @@ export interface IDevice {
     dialog: Dialogs;
     clientNotifications: Protobuf.Mesh.ClientNotification[];
 
-    set: (obj: Partial<IDevice>) => void; // Set class properties from object
+    set: (obj: Partial<IDevice>) => void;
     get: () => any;
     setStatus: (status: Types.DeviceStatusEnum) => void;
     setConnectionPhase: (phase: ConnectionPhase) => void;
@@ -684,6 +684,7 @@ export const useDeviceStore = createSharedComposable(() => {
     watchThrottled(device, (updated) => {
         // Write new value back into IndexedDB. Throttled to avoid writes on any change.
         if (isReactive(updated)) {
+            console.log('###', toRaw(updated));
             updateDevice(toRaw(updated));
         }
     }, {
@@ -718,7 +719,6 @@ export const useDeviceStore = createSharedComposable(() => {
             // Try to load device with id from database
             const devObj = await useIndexedDB().getFromStore(IDB_DEVICE_STORE, deviceId);
             // IndexedDB stores only Object data.
-            // Ensure that we return a map of Device class instances.
             if (devObj) {
                 device.value = new Device(deviceId, devObj);
                 return device.value;
