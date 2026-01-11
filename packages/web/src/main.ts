@@ -11,9 +11,6 @@ import Chip from 'primevue/chip';
 import Popover from 'primevue/popover';
 import { Message } from 'primevue';
 import SelectButton from 'primevue/selectbutton';
-//import Select from 'primevue/select';
-//import IconField from 'primevue/iconfield';
-//import InputIcon from 'primevue/inputicon';
 import Checkbox from 'primevue/checkbox';
 import InputText from 'primevue/inputtext';
 import InputGroup from 'primevue/inputgroup';
@@ -35,6 +32,10 @@ import Badge from 'primevue/badge';
 import PanelMenu from 'primevue/panelmenu';
 import Avatar from 'primevue/avatar';
 import Tooltip from 'primevue/tooltip';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import IconField from 'primevue/iconfield';
+import InputIcon from 'primevue/inputicon';
 // Import icons
 import {
     Cable,
@@ -71,7 +72,10 @@ import {
     BatteryWarning,
     Sun,
     Moon,
-    SunMoon
+    SunMoon,
+    Search,
+    Lock,
+    LockOpen
 } from "lucide-vue-next";
 import { useGlobalToast } from '@/composables/useGlobalToast';
 import { tryOnMounted } from '@vueuse/core';
@@ -133,9 +137,6 @@ app.component('TabPanels', TabPanels);
 app.component('TabPanel', TabPanel);
 app.component('Checkbox', Checkbox);
 app.component('SelectButton', SelectButton);
-//app.component('Select', Select);
-//app.component('IconField', IconField);
-//app.component('InputIcon', InputIcon);
 app.component('InputText', InputText);
 app.component('InputGroup', InputGroup);
 app.component('InputGroupAddon', InputGroupAddon);
@@ -147,6 +148,10 @@ app.component('ConfirmDialog', ConfirmDialog);
 app.component('Badge', Badge);
 app.component('PanelMenu', PanelMenu);
 app.component('Avatar', Avatar);
+app.component('DataTable', DataTable);
+app.component('Column', Column);
+app.component('IconField', IconField);
+app.component('InputIcon', InputIcon);
 /* Icons */
 app.component('IconCable', Cable);
 app.component('IconGlobe', Globe);
@@ -183,4 +188,7 @@ app.component('IconCpu', Cpu);
 app.component('IconSun', Sun);
 app.component('IconMoon', Moon);
 app.component('IconSunMoon', SunMoon);
+app.component('IconSearch', Search);
+app.component('IconLock', Lock);
+app.component('IconLockOpen', LockOpen);
 app.mount('#app')
