@@ -9,8 +9,6 @@ import {
 import type { NodeError, NodeErrorType, ProcessPacketParams } from "@/composables/core/stores/nodeDB/types";
 import {
     createSharedComposable,
-    useArrayUnique,
-    useArrayFind,
     watchThrottled,
 } from '@vueuse/core'
 import { ref, isReactive, toRaw, type DebuggerEvent } from 'vue'
@@ -52,14 +50,7 @@ export interface INodeDB {
     getNodeError: (nodeNum: number) => NodeError | undefined;
     hasNodeError: (nodeNum: number) => boolean;
 }
-/*
-export interface nodeDBState {
-    addNodeDB: (id: number) => NodeDB;
-    removeNodeDB: (id: number) => void;
-    getNodeDBs: () => NodeDB[];
-    getNodeDB: (id: number) => NodeDB | undefined;
-}
-*/
+
 export interface NodeDatabase extends DBSchema {
     devices: {
         value: INodeDB;
@@ -85,9 +76,13 @@ class NodeDB implements INodeDB {
         Object.assign(this, obj);
     }
 
+    get() {
+        return Object.fromEntries(Object.entries(this));
+    }
+
     addNode(node: Protobuf.Mesh.NodeInfo) {
         // Check if node already exists
-        const existing = this.nodeMap[node.num];
+        const existing = toRaw(this.nodeMap[node.num]);
         const isNew = !existing;
 
         // Use validation to check the new node before adding
@@ -106,19 +101,19 @@ class NodeDB implements INodeDB {
         }
 
         // Merge with existing node data if it exists
-        const merged = existing
-            ? {
-                ...existing,
-                ...next,
-                // Preserve existing fields if new node doesn't have them
-                user: next.user ?? existing.user,
-                position: next.position ?? existing.position,
-                deviceMetrics: next.deviceMetrics ?? existing.deviceMetrics,
-            }
-            : next;
-
+        let merged;
+        if (existing) {
+            // shallow clone into a new plain object without using spread
+            merged = Object.assign({}, existing, next);
+            // apply the nullish-coalescing fallbacks explicitly
+            merged.user = next.user ?? existing.user;
+            merged.position = next.position ?? existing.position;
+            merged.deviceMetrics = next.deviceMetrics ?? existing.deviceMetrics;
+        } else {
+            merged = next;
+        }
         // Use the validated node's num to ensure consistency
-        this.nodeMap = { ...(this.nodeMap || {}), [String(merged.num)]: merged };
+        this.nodeMap[String(merged.num)] = merged;
 
         if (isNew) {
             console.log(
@@ -195,35 +190,32 @@ class NodeDB implements INodeDB {
     };
 
     processPacket(data: ProcessPacketParams) {
-        const node = this.nodeMap[data.from];
+        const node = toRaw(this.nodeMap[data.from]);
         const nowSec = Math.floor(Date.now() / 1000); // lastHeard is in seconds(!)
         if (node) {
-            const updated = {
-                ...node,
+            const updated = Object.assign({}, node, {
                 lastHeard: data.time > 0 ? data.time : nowSec,
                 snr: data.snr,
-            };
-            this.nodeMap = { ...(this.nodeMap || {}), [String(data.from)]: updated };
+            });
+            this.nodeMap[String(data.from)] = updated;
         } else {
-            this.nodeMap = {
-                ...(this.nodeMap || {}), [String(data.from)]: create(Protobuf.Mesh.NodeInfoSchema, {
-                    num: data.from,
-                    lastHeard: data.time > 0 ? data.time : nowSec, // fallback to now if time is 0 or negative,
-                    snr: data.snr,
-                })
-            };
+            this.nodeMap[String(data.from)] = create(Protobuf.Mesh.NodeInfoSchema, {
+                num: data.from,
+                lastHeard: data.time > 0 ? data.time : nowSec, // fallback to now if time is 0 or negative,
+                snr: data.snr,
+            });
         }
     };
 
     addUser(user: Types.PacketMetadata<Protobuf.Mesh.User>) {
-        const current = this.nodeMap[user.from];
+        const current = toRaw(this.nodeMap[user.from]);
         const isNew = !current;
-        const updated = {
-            ...(current ?? create(Protobuf.Mesh.NodeInfoSchema)),
+        const base = current ?? create(Protobuf.Mesh.NodeInfoSchema);
+        const updated = Object.assign({}, base, {
             user: user.data,
             num: user.from,
-        };
-        this.nodeMap = { ...(this.nodeMap || {}), [String(user.from)]: updated };
+        });
+        this.nodeMap[String(user.from)] = updated;
         if (isNew) {
             console.log(
                 `[NodeDB] Adding new node from user packet: ${user.from} (${user.data.longName || "unknown"})`,
@@ -232,14 +224,14 @@ class NodeDB implements INodeDB {
     };
 
     addPosition(position: Types.PacketMetadata<Protobuf.Mesh.Position>) {
-        const current = this.nodeMap[position.from];
+        const current = toRaw(this.nodeMap[position.from]);
         const isNew = !current;
-        const updated = {
-            ...(current ?? create(Protobuf.Mesh.NodeInfoSchema)),
+        const base = current ?? create(Protobuf.Mesh.NodeInfoSchema);
+        const updated = Object.assign({}, base, {
             position: position.data,
             num: position.from,
-        };
-        this.nodeMap = { ...(this.nodeMap || {}), [String(position.from)]: updated };
+        });
+        this.nodeMap[String(position.from)] = updated;
         if (isNew) {
             console.log(
                 `[NodeDB] Adding new node from position packet: ${position.from}`,
@@ -248,138 +240,70 @@ class NodeDB implements INodeDB {
     };
 
     setNodeNum(nodeNum: number) {
-        const newDB = useNodeDBStore().getNodeDB(this.id).value;
-        if (!newDB) {
-            throw new Error(`No nodeDB found for id: ${this.id}`);
-        }
-        newDB.myNodeNum = nodeNum;
-
-        for (const oldDB of useNodeDBStore().nodeDBs.value) {
-            if (oldDB.id === this.id) continue;
-            if (oldDB.myNodeNum === nodeNum) {
-                // Start with shallow clones of plain-object maps
-                const mergedNodes: NodeMap = { ...(oldDB.nodeMap || {}) };
-                const mergedErrors: NodeErrors = { ...(oldDB.nodeErrors || {}) };
-
-                const getNodesProxy = (filter?: (node: Protobuf.Mesh.NodeInfo) => boolean): Protobuf.Mesh.NodeInfo[] => {
-                    const arr = Object.values(mergedNodes);
-                    return filter ? arr.filter(filter) : arr;
-                };
-
-                const setErrorProxy = (n: number, err: NodeErrorType) => {
-                    mergedErrors[String(n)] = { node: n, error: err };
-                };
-
-                // iterate newDB.nodeMap (plain object)
-                for (const [numStr, newNode] of Object.entries(newDB.nodeMap || {})) {
-                    const num = Number(numStr);
-                    const next = validateIncomingNode(newNode as Protobuf.Mesh.NodeInfo, setErrorProxy, getNodesProxy);
-                    if (next) {
-                        mergedNodes[String(num)] = next;
-                    }
-
-                    const err = newDB.getNodeError(num);
-                    if (err && !oldDB.hasNodeError(num)) {
-                        mergedErrors[String(num)] = err;
-                    }
-                }
-
-                // finalize: assign plain objects into this (was Maps)
-                this.nodeMap = mergedNodes;
-                this.nodeErrors = mergedErrors;
-                useNodeDBStore().deleteNodeDB(oldDB.id);
-            }
-        }
+        this.myNodeNum = nodeNum;
+        useNodeDBStore().cleanNodeDBStore(this.id, this.myNodeNum);
     }
 
     updateFavorite(nodeNum: number, isFavorite: boolean) {
-        const node = this.nodeMap[nodeNum];
+        const node = toRaw(this.nodeMap[nodeNum]);
         if (node) {
-            this.nodeMap = { ...(this.nodeMap || {}), [String(nodeNum)]: { ...node, isFavorite } };
+            this.nodeMap[String(nodeNum)] = Object.assign({}, node, { isFavorite });
         }
     };
 
     updateIgnore(nodeNum: number, isIgnored: boolean) {
-        const nodeDB = useNodeDBStore().getNodeDB(this.id).value;
-        if (!nodeDB) {
-            throw new Error(`No nodeDB found (id: ${this.id})`);
-        }
-
-        const node = nodeDB.nodeMap[nodeNum];
+        const node = toRaw(this.nodeMap[nodeNum]);
         if (node) {
-            this.nodeMap = { ...(this.nodeMap || {}), [String(nodeNum)]: { ...node, isIgnored } };
+            this.nodeMap[String(nodeNum)] = Object.assign({}, node, { isIgnored });
         }
     };
 
     getNodesLength() {
-        const nodeDB = useNodeDBStore().getNodeDB(this.id).value;
-        if (!nodeDB) {
-            throw new Error(`No nodeDB found (id: ${this.id})`);
-        }
-        return Object.entries(nodeDB.nodeMap).length;
+        return Object.entries(this.nodeMap).length;
     };
 
     getNode(nodeNum: number) {
-        const nodeDB = useNodeDBStore().getNodeDB(this.id).value;
-        if (!nodeDB) {
-            throw new Error(`No nodeDB found (id: ${this.id})`);
-        }
-        return nodeDB.nodeMap[nodeNum];
+        return this.nodeMap[nodeNum];
     };
 
     getNodes(filter?: ((node: Protobuf.Mesh.NodeInfo) => boolean), includeSelf?: boolean) {
-        const nodeDB = useNodeDBStore().getNodeDB(this.id).value;
-        if (!nodeDB) throw new Error(`No nodeDB found (id: ${this.id})`);
-
-        const all = Object.values(nodeDB.nodeMap || {}).filter(n =>
-            includeSelf ? true : n.num !== nodeDB.myNodeNum
+        const all = Object.values(this.nodeMap || {}).filter(n =>
+            includeSelf ? true : n.num !== this.myNodeNum
         );
 
         return filter ? all.filter(filter) : all;
     }
 
     getMyNode() {
-        const nodeDB = useNodeDBStore().getNodeDB(this.id).value;
-        if (!nodeDB) {
-            throw new Error(`No nodeDB found (id: ${this.id})`);
-        }
-        if (nodeDB.myNodeNum) {
+        if (this.myNodeNum) {
             return (
-                nodeDB.nodeMap[nodeDB.myNodeNum] ??
+                this.nodeMap[this.myNodeNum] ??
                 create(Protobuf.Mesh.NodeInfoSchema)
             );
         }
     };
 
     getNodeError(nodeNum: number) {
-        const nodeDB = useNodeDBStore().getNodeDB(this.id);
-        if (!nodeDB) {
-            throw new Error(`No nodeDB found (id: ${this.id})`);
-        }
-        return nodeDB.value?.nodeErrors[nodeNum];
+        return this.nodeErrors[nodeNum];
     };
 
     hasNodeError(nodeNum: number) {
-        const nodeDB = useNodeDBStore().getNodeDB(this.id);
-        if (!nodeDB) {
-            throw new Error(`No nodeDB found (id: ${this.id})`);
-        }
-        return nodeDB.value?.nodeErrors.hasOwnProperty(nodeNum) || false;
+        return this.nodeErrors.hasOwnProperty(nodeNum) || false;
     }
 }
 
 export const useNodeDBStore = createSharedComposable(() => {
-    const _nodeDatabases = ref<NodeDB[]>([]);
-    const nodeDatabases = useArrayUnique(_nodeDatabases, (a, b) => a.id === b.id)
+    const nodeDatabase = ref<NodeDB>();
 
     function toast(severity: ToastSeverity, detail: string, life?: number) {
         useGlobalToast().add({ severity, summary: 'Nodes Database Error', detail, life: life || 6000 });
     }
 
-    watchThrottled(_nodeDatabases, (updated) => {
+    watchThrottled(nodeDatabase, (updated) => {
         // Write new value back into IndexedDB. Throttled to avoid writes on any change.
         if (isReactive(updated)) {
-            console.log('###', toRaw(updated));
+            console.log('### 1', toRaw(updated));
+            updateNodeDB(toRaw(updated));
         }
     }, {
         onTrigger: (e: DebuggerEvent) => {
@@ -391,63 +315,70 @@ export const useNodeDBStore = createSharedComposable(() => {
         throttle: 3000
     })
 
-
-    async function init() {
-        await getNodeDBsFromDatabase();
-    }
-
-    async function getNodeDBsFromDatabase(): Promise<void> {
+    async function getNodeDB(nodeId: number) {
+        if (nodeDatabase.value?.id === nodeId) {
+            // nodeDB with id is already loaded.
+            return nodeDatabase.value;
+        }
         try {
-            const all = await useIndexedDB().getAllFromStore(IDB_NODESDB_STORE);
+            // Try to load device with id from database
+            const ndbObj = await useIndexedDB().getFromStore(IDB_NODESDB_STORE, nodeId);
             // IndexedDB stores only Object data.
-            _nodeDatabases.value.splice(0);
-            all.forEach((value: any, key: any) => {
-                _nodeDatabases.value.push(new NodeDB(key, value));
-            });
+            // Ensure that we return a map of Device class instances.
+            if (ndbObj) {
+                nodeDatabase.value = new NodeDB(nodeId, ndbObj);
+                return nodeDatabase.value;
+            }
         } catch (e: any) {
             toast('error', e.message);
         }
-    }
-
-    function getNodeDBs() {
-        return nodeDatabases;
-    };
-
-    function getNodeDB(id: number) {
-        return useArrayFind(_nodeDatabases, db => db.id === id);
+        // Not in database, create new one.
+        return undefined;
     };
 
     async function addNodeDB(id: number) {
-        const existing = getNodeDB(id).value;
-        if (existing) {
-            // Prune stale nodes when accessing existing nodeDB
-            existing.pruneStaleNodes();
-            return existing;
+        if (nodeDatabase.value?.id === id) {
+            // Node database with id already loaded
+            return nodeDatabase.value;
         }
+        // Try to load from database
+        let db = await getNodeDB(id);
+        if (db) {
+            // found
+            return nodeDatabase.value;
+        }
+        // Not in database, create new one
+        db = new NodeDB(id);
 
-        const nodeDB = new NodeDB(id);
         try {
-            await useIndexedDB().insertIntoStore(IDB_NODESDB_STORE, nodeDB);
+            const key = await useIndexedDB().insertIntoStore(IDB_NODESDB_STORE, db);
+            if (typeof key === 'number') {
+                const stored = await useIndexedDB().getFromStore(IDB_NODESDB_STORE, key);
+                if (stored) {
+                    // IndexedDB stores only Object data.
+                    // Keep class instance and just copy object data into.
+                    db.set(stored);
+                    if (!(db instanceof NodeDB)) {
+                        throw new Error(`Added device is not an instance of NodeDB class.`);
+                    }
+                } else if (db.id == null) {
+                    db.id = key;
+                }
+            }
         } catch (e: any) {
             toast('error', e.message);
         }
-        _nodeDatabases.value.push(nodeDB);
         // Prune stale nodes on creation
-        nodeDB.pruneStaleNodes();
-        return nodeDB;
+        db.pruneStaleNodes();
+        nodeDatabase.value = db;
+        return db;
     }
 
-    async function updateNodeDB(db: NodeDB) {
+    async function updateNodeDB(db: NodeDB | undefined) {
+        if (!db) return;
         try {
-            await useIndexedDB().updateStore(IDB_NODESDB_STORE, db);
-            // reload revived value from the DB
-            if (db.id != null) {
-                const stored = await useIndexedDB().getFromStore(IDB_NODESDB_STORE, db.id as any);
-                const i = _nodeDatabases.value.findIndex((a) => a.id === db.id)
-                if (i > 0) {
-                    nodeDatabases.value[i] = stored;
-                }
-            }
+            const o = db.get();
+            await useIndexedDB().updateStore(IDB_NODESDB_STORE, o);
         } catch (e: any) {
             toast('error', e.message);
         }
@@ -457,23 +388,68 @@ export const useNodeDBStore = createSharedComposable(() => {
     async function deleteNodeDB(id: number) {
         try {
             await useIndexedDB().deleteFromStore(IDB_NODESDB_STORE, id);
-            const i = _nodeDatabases.value.findIndex((db) => db.id === id)
-            if (i > 0) {
-                nodeDatabases.value.splice(i, 1);
+            if (nodeDatabase.value?.id === id) {
+                nodeDatabase.value = undefined;
             }
         } catch (e: any) {
             toast('error', e.message);
         }
     }
 
-    init();
+    async function cleanNodeDBStore(id: number, myNodeNum: number) {
+        try {
+            const nodeDBs = await useIndexedDB().getAllFromStore(IDB_NODESDB_STORE);
+            if (nodeDBs) {
+                for (const oldDB of nodeDBs) {
+                    if (oldDB.id === id) continue;
+                    if (oldDB.myNodeNum === myNodeNum) {
+                        // Start with shallow clones of plain-object maps
+                        const mergedNodes: NodeMap = Object.assign({}, oldDB.nodeMap || {});
+                        const mergedErrors: NodeErrors = Object.assign({}, oldDB.nodeErrors || {});
+
+                        const getNodesProxy = (filter?: (node: Protobuf.Mesh.NodeInfo) => boolean): Protobuf.Mesh.NodeInfo[] => {
+                            const arr = Object.values(mergedNodes);
+                            return filter ? arr.filter(filter) : arr;
+                        };
+
+                        const setErrorProxy = (n: number, err: NodeErrorType) => {
+                            mergedErrors[String(n)] = { node: n, error: err };
+                        };
+
+                        // iterate newDB.nodeMap (plain object)
+                        for (const [numStr, newNode] of Object.entries(nodeDatabase.value?.nodeMap || {})) {
+                            const num = Number(numStr);
+                            const next = validateIncomingNode(newNode as Protobuf.Mesh.NodeInfo, setErrorProxy, getNodesProxy);
+                            if (next) {
+                                mergedNodes[String(num)] = next;
+                            }
+
+                            const err = nodeDatabase.value?.getNodeError(num);
+                            if (err && !oldDB.hasNodeError(num)) {
+                                mergedErrors[String(num)] = err;
+                            }
+                        }
+
+                        // finalize: assign plain objects into this (was Maps)
+                        if (nodeDatabase.value) {
+                            nodeDatabase.value.nodeMap = mergedNodes;
+                            nodeDatabase.value.nodeErrors = mergedErrors;
+                        }
+                        useNodeDBStore().deleteNodeDB(oldDB.id);
+                    }
+                }
+            }
+        } catch (e: any) {
+            toast('error', e.message);
+        }
+    }
 
     return {
-        nodeDBs: nodeDatabases,
+        nodeDatabase,
         addNodeDB,
         getNodeDB,
-        getNodeDBs,
         updateNodeDB,
         deleteNodeDB,
+        cleanNodeDBStore,
     }
 });
