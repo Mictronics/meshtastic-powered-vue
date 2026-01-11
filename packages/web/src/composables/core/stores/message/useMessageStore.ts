@@ -278,11 +278,6 @@ export const useMessageStore = createSharedComposable(() => {
             updateMessageStore(toRaw(updated));
         }
     }, {
-        onTrigger: (e: DebuggerEvent) => {
-            // Trigger is called prior watch callback.
-            // Get property and new value of what has changed.
-            console.log('### 3', e);
-        },
         deep: true,
         throttle: 3000
     })

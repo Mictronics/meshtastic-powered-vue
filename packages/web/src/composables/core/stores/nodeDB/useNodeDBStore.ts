@@ -306,11 +306,6 @@ export const useNodeDBStore = createSharedComposable(() => {
             updateNodeDB(toRaw(updated));
         }
     }, {
-        onTrigger: (e: DebuggerEvent) => {
-            // Trigger is called prior watch callback.
-            // Get property and new value of what has changed.
-            console.log('### 2', e);
-        },
         deep: true,
         throttle: 3000
     })
