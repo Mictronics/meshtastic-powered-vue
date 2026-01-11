@@ -62,6 +62,7 @@ import { ref, shallowRef, computed, watchEffect } from 'vue';
 import { useConnectionStore } from '@/composables/core/stores/connection/useConnectionStore';
 import { ConnectionStatus } from '@/composables/core/stores/connection/types';
 import { useDeviceStore } from '@/composables/core/stores/device/useDeviceStore';
+import { useNodeDBStore } from '@/composables/core/stores/nodeDB/useNodeDBStore';
 import { useColorMode, useCycleList } from '@vueuse/core';
 import DeviceInfo from '@/components/Dashboard/DeviceInfo.vue';
 
@@ -101,6 +102,14 @@ const ownNodeId = computed(() => {
 const batteryLevel = shallowRef(0);
 const voltage = shallowRef(0.0);
 
+const nodeCount = computed(() => {
+  const nm = useNodeDBStore().nodeDatabase.value?.nodeMap;
+  if (nm) {
+    return Object.entries(nm).length;
+  }
+  return undefined;
+});
+
 const devicePanelItems = ref([
   {
     label: 'Messages',
@@ -131,7 +140,7 @@ const devicePanelItems = ref([
   {
     label: 'Nodes',
     icon: 'IconUsers',
-    badge: 999,
+    badge: nodeCount,
     severity: 'secondary',
     command: () => {
       // Define action here if needed
