@@ -61,7 +61,7 @@
 import { ref, shallowRef, computed } from 'vue';
 import { useConnectionStore } from '@/composables/core/stores/connection/useConnectionStore';
 import { ConnectionStatus } from '@/composables/core/stores/connection/types';
-import { useDeviceStore } from '@/composables/core/stores';
+import { useDeviceStore } from '@/composables/core/stores/device/useDeviceStore';
 import { useColorMode, useCycleList } from '@vueuse/core';
 import { watchEffect } from 'vue';
 import DeviceInfo from '@/components/Dashboard/DeviceInfo.vue';
