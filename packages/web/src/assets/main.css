@@ -64,3 +64,39 @@
 .logo-text {
   color: var(--p-text-color);
 }
+
+.mac-column {
+  width: 8rem;
+}
+
+.mac-column-input {
+  width: 12ch;
+}
+
+.connection-column {
+  max-width: 6rem;
+}
+
+.connection-column-input {
+  max-width: 8.3ch;
+}
+
+.hardware-column {
+  width: 8rem;
+}
+
+.encryption-lock-icon {
+  color: oklch(76.8% 0.233 130.85);
+}
+
+.encryption-unlock-icon {
+  color: oklch(79.5% 0.184 86.047);
+}
+
+.unmessagabel-icon {
+  color: oklch(63.7% 0.237 25.331);
+}
+
+.via-mqtt-icon {
+  color: oklch(55.4% 0.046 257.417);
+}
