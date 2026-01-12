@@ -100,3 +100,7 @@
 .via-mqtt-icon {
   color: oklch(55.4% 0.046 257.417);
 }
+
+.node-avatar {
+  padding: 3ch;
+}

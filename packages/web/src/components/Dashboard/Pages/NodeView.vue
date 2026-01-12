@@ -23,7 +23,18 @@
     <template #empty>No nodes found.</template>
     <Column field="avatar" class="">
       <template #body="{ data }">
-        {{ data.shortName }}
+        <Avatar
+          shape="circle"
+          class="text-xs font-light bg-[rgb(var(--bg-r),var(--bg-g),var(--bg-b))] node-avatar"
+          :style="{
+            '--bg-r': avatarColor(data.nodeNumber).background.r,
+            '--bg-g': avatarColor(data.nodeNumber).background.g,
+            '--bg-b': avatarColor(data.nodeNumber).background.b,
+            color: avatarColor(data.nodeNumber).text,
+          }"
+        >
+          {{ data.shortName }}
+        </Avatar>
       </template>
     </Column>
     <Column field="longName" filterField="longName" header="Long Name" class="" sortable>
@@ -138,6 +149,17 @@ watchImmediate(
     deep: true,
   }
 );
+
+import { useColor } from '@/composables/core/utils/useColor';
+function avatarColor(nodeNumber: number) {
+  const bgColor = useColor().getColorFromNodeNum(nodeNumber || 0);
+  const isLight = useColor().isLightColor(bgColor);
+  const textColor = isLight ? '#000000' : '#FFFFFF';
+  return {
+    background: bgColor,
+    text: textColor,
+  };
+}
 </script>
 
 <style lang="css" scoped></style>
