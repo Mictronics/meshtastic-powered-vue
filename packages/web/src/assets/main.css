@@ -12,10 +12,6 @@
   padding: 1rem;
 }
 
-.dashboard-view {
-  padding: 0.5rem;
-}
-
 .p-dialog-header {
   padding-bottom: 0.5rem !important;
 }
@@ -41,6 +37,7 @@
   border-right-width: 1px;
   border-right-style: solid;
   max-width: 15rem;
+  padding: 0.5rem;
 }
 
 .dashboard-panelmenu {

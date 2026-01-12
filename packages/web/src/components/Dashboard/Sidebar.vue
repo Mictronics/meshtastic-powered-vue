@@ -14,7 +14,7 @@
         <div class="text-xs font-thin italic">Powered</div>
       </div>
     </div>
-    <div class="sidebar-entries h-[calc(100vh-3rem)] whitespace-nowrap">
+    <div class="sidebar-entries whitespace-nowrap">
       <PanelMenu
         :model="devicePanelItems"
         class="w-full gap-2!"

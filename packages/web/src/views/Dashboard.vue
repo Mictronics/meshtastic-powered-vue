@@ -1,6 +1,6 @@
 <template>
   <Toast position="bottom-right" />
-  <main class="dashboard-view">
+  <main>
     <div class="w-full flex">
       <Sidebar :is-side-bar-visible="useAppStore().appData.isSideBarVisible" />
       <div class="w-full h-full">
