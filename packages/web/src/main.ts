@@ -75,7 +75,8 @@ import {
     SunMoon,
     Search,
     Lock,
-    LockOpen
+    LockOpen,
+    MessageSquareOff
 } from "lucide-vue-next";
 import { useGlobalToast } from '@/composables/useGlobalToast';
 import { tryOnMounted } from '@vueuse/core';
@@ -85,6 +86,7 @@ import { useDeviceStore } from '@/composables/core/stores/device/useDeviceStore'
 import { useMessageStore } from '@/composables/core/stores/message/useMessageStore';
 import { useNodeDBStore } from '@/composables/core/stores/nodeDB/useNodeDBStore';
 import { useAppStore } from './composables/core/stores/app/useAppStore';
+import { useFormattedNodeDatabase } from './composables/core/utils/useFormattedNodeDatabase';
 
 const app = createApp(App)
 
@@ -112,6 +114,7 @@ tryOnMounted(() => {
     useDeviceStore();
     useMessageStore();
     useNodeDBStore();
+    useFormattedNodeDatabase();
 });
 
 app.directive('tooltip', Tooltip);
@@ -191,4 +194,5 @@ app.component('IconSunMoon', SunMoon);
 app.component('IconSearch', Search);
 app.component('IconLock', Lock);
 app.component('IconLockOpen', LockOpen);
+app.component('IconMessageSquareOff', MessageSquareOff);
 app.mount('#app')
