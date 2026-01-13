@@ -9,6 +9,8 @@
     scrollable
     scrollHeight="flex"
     :virtualScrollerOptions="{ itemSize: 44 }"
+    :removableSort="true"
+    @sort="onTableSort"
   >
     <template #header>
       <div class="flex justify-end">
@@ -21,13 +23,17 @@
       </div>
     </template>
     <template #empty>No nodes found.</template>
-    <Column field="avatar" class="">
+    <Column field="isFavorite" class="" sortable sortField="isFavorite">
       <template #body="{ data }">
         <NodeAvatar
           :isFavorite="data.isFavorite"
           :nodeNumber="data.nodeNumber"
           :shortName="data.shortName"
         />
+      </template>
+      <template #sorticon>
+        <IconStar v-if="isFavoriteSort" />
+        <IconStarOff v-else />
       </template>
     </Column>
     <Column field="longName" filterField="longName" header="Long Name" class="" sortable>
@@ -125,6 +131,7 @@ import {
   useFormattedNodeDatabase,
 } from '@/composables/core/utils/useFormattedNodeDatabase';
 import NodeAvatar from '@/components/Dashboard/NodeAvatar.vue';
+import { type DataTableSortEvent } from 'primevue';
 
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -156,6 +163,17 @@ function formatLastHeard(epoch?: number) {
   }
   date.setUTCSeconds(epoch);
   return formatTimeAgoIntl(date);
+}
+
+const isFavoriteSort = ref(false);
+function onTableSort(e: DataTableSortEvent) {
+  if (e.sortField === 'isFavorite') {
+    if (e.sortOrder === -1) {
+      isFavoriteSort.value = true;
+      return;
+    }
+  }
+  isFavoriteSort.value = false;
 }
 </script>
 
