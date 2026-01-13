@@ -36,6 +36,7 @@ const avatarColor = computed(() => {
   };
 });
 </script>
+
 <style scoped>
 .avatar-wrap {
   position: relative;
