@@ -1,18 +1,7 @@
 <template>
   <div class="flex flex-col gap-2 py-4 own-node-info">
     <div class="flex items-center gap-1 py-1 flex-shrink-0">
-      <Avatar
-        shape="circle"
-        class="text-xs font-light bg-[rgb(var(--bg-r),var(--bg-g),var(--bg-b))]"
-        :style="{
-          '--bg-r': avatarColor.background.r,
-          '--bg-g': avatarColor.background.g,
-          '--bg-b': avatarColor.background.b,
-          color: avatarColor.text,
-        }"
-      >
-        {{ props.shortName }}
-      </Avatar>
+      <NodeAvatar :nodeNumber="props.nodeId" :shortName="props.shortName" />
       <p
         v-if="isSideBarVisible"
         class="text-sm font-medium logo-text truncate"
@@ -63,10 +52,10 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, watchEffect } from 'vue';
-import { useColor } from '@/composables/core/utils/useColor';
 import BatterLevel from './BatteryStatus.vue';
 import { ConnectionStatus } from '@/composables/core/stores/connection/types';
 import { watchImmediate } from '@vueuse/core';
+import NodeAvatar from '@/components/Dashboard/NodeAvatar.vue';
 
 const props = defineProps<{
   shortName: string | undefined;
@@ -133,16 +122,6 @@ const connectionStatus = ref({
   icon: 'IconUnlink',
   color: 'bg-gray-400',
   label: 'Disconnected',
-});
-
-const avatarColor = computed(() => {
-  const bgColor = useColor().getColorFromNodeNum(props.nodeId || 0);
-  const isLight = useColor().isLightColor(bgColor);
-  const textColor = isLight ? '#000000' : '#FFFFFF';
-  return {
-    background: bgColor,
-    text: textColor,
-  };
 });
 
 const getStatusAttr = (status?: ConnectionStatus) => {

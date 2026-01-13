@@ -76,7 +76,9 @@ import {
     Search,
     Lock,
     LockOpen,
-    MessageSquareOff
+    MessageSquareOff,
+    StarIcon,
+    UserStar
 } from "lucide-vue-next";
 import { useGlobalToast } from '@/composables/useGlobalToast';
 import { tryOnMounted } from '@vueuse/core';
@@ -195,4 +197,6 @@ app.component('IconSearch', Search);
 app.component('IconLock', Lock);
 app.component('IconLockOpen', LockOpen);
 app.component('IconMessageSquareOff', MessageSquareOff);
+app.component('IconStar', StarIcon);
+app.component('IconUserStar', UserStar);
 app.mount('#app')
