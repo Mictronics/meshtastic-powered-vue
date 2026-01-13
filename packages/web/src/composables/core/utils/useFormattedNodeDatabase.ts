@@ -1,6 +1,6 @@
 import { createSharedComposable, watchThrottled } from '@vueuse/core'
 import { toRaw, isReactive, ref, type DebuggerEvent } from 'vue'
-import { formatTimeAgoIntl, watchImmediate } from '@vueuse/core';
+import { watchImmediate } from '@vueuse/core';
 import { base16 } from 'rfc4648';
 import humanizeDuration from 'humanize-duration';
 import { Protobuf } from "@meshtastic/core";
@@ -11,13 +11,15 @@ export interface IFormattedNode {
     shortName: string;
     longName: string;
     hopsAway: string;
+    numHops: number | undefined;
     macAddr: string;
-    lastHeard: string;
+    lastHeard: number;
     isEncrypted: boolean;
     isFavorite: boolean;
     isUnmessagable: boolean | undefined;
     viaMqtt: boolean;
     snr: string;
+    numSnr: number;
     hwModel: string | undefined;
     batteryLevel: number | undefined;
     voltage: number | undefined;
@@ -50,12 +52,14 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
                         longName: names.long,
                         macAddr: formatMacAddr(n.user?.macaddr),
                         hopsAway: formatHops(n.hopsAway, n.viaMqtt),
-                        lastHeard: formatLastHeard(n.lastHeard),
+                        numHops: n.hopsAway,
+                        lastHeard: n.lastHeard,
                         isEncrypted: formatEncryption(n.user?.publicKey),
                         isFavorite: n.isFavorite,
                         isUnmessagable: n.user?.isUnmessagable,
                         viaMqtt: n.viaMqtt,
                         snr: formatSnr(n.snr),
+                        numSnr: n.snr,
                         hwModel: Protobuf.Mesh.HardwareModel[n.user?.hwModel ?? 0]?.replaceAll('_', ' '),
                         batteryLevel: n.deviceMetrics?.batteryLevel,
                         voltage: n.deviceMetrics?.voltage,
@@ -87,15 +91,6 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
                 .match(/.{1,2}/g)
                 ?.join(':') ?? 'Unknown'
         );
-    }
-
-    function formatLastHeard(epoch?: number) {
-        const date = new Date(0);
-        if (epoch === undefined) {
-            return 'Unknown';
-        }
-        date.setUTCSeconds(epoch);
-        return formatTimeAgoIntl(date);
     }
 
     function formatHops(hops?: number, viaMqtt?: boolean) {

@@ -50,6 +50,7 @@
       header="Connection"
       class="connection-column"
       sortable
+      sortField="numHops"
     >
       <template #body="{ data }">
         {{ data.hopsAway }}
@@ -64,9 +65,9 @@
         />
       </template>
     </Column>
-    <Column field="lastHeard" header="Last Heard" class="" sortable>
+    <Column field="lastHeard" header="Last Heard" class="" sortable sortField="lastHeard">
       <template #body="{ data }">
-        {{ data.lastHeard }}
+        {{ formatLastHeard(data.lastHeard) }}
       </template>
     </Column>
     <Column field="features" header="Features">
@@ -79,7 +80,7 @@
         </div>
       </template>
     </Column>
-    <Column field="snr" header="SNR" class="" sortable>
+    <Column field="snr" header="SNR" class="" sortable sortField="numSnr">
       <template #body="{ data }">
         {{ data.snr }}
       </template>
@@ -117,7 +118,7 @@
 
 <script setup lang="ts">
 import { ref, computed, toRaw } from 'vue';
-import { watchImmediate } from '@vueuse/core';
+import { watchImmediate, formatTimeAgoIntl } from '@vueuse/core';
 import { FilterMatchMode } from '@primevue/core/api';
 import {
   type IFormattedNode,
@@ -143,6 +144,19 @@ watchImmediate(
     deep: true,
   }
 );
+
+/**
+ * Last heard needs a to be updated whenever the data table renders to
+ * ensure the time ago string fits the numeric value and sorting order.
+ */
+function formatLastHeard(epoch?: number) {
+  const date = new Date(0);
+  if (epoch === undefined) {
+    return 'Unknown';
+  }
+  date.setUTCSeconds(epoch);
+  return formatTimeAgoIntl(date);
+}
 </script>
 
 <style lang="css" scoped></style>
