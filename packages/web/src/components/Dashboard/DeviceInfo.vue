@@ -39,20 +39,28 @@
         </div>
       </RouterLink>
     </Button>
-    <div
-      v-for="item in deviceInfoItems"
-      :key="item.id"
-      class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400"
-    >
-      <component :is="item.dynamicComponent.comp" v-bind="item.dynamicComponent.props" />
-      <p class="truncate" v-if="isSideBarVisible">{{ item.label }}{{ item.value }}</p>
+    <div class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+      <BatteryStatus :battery-level="batteryLevel" />
+      <p v-if="isSideBarVisible" class="truncate">
+        {{ batteryPercent }}
+      </p>
+    </div>
+
+    <div class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+      <IconBattery size="20" />
+      <p v-if="isSideBarVisible" class="truncate">Voltage: {{ voltage }}</p>
+    </div>
+
+    <div class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+      <IconCpu size="20" />
+      <p v-if="isSideBarVisible" class="truncate">Firmware: {{ firmware }}</p>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, watchEffect } from 'vue';
-import BatterLevel from './BatteryStatus.vue';
+import { ref, computed, watchEffect } from 'vue';
+import BatteryStatus from './BatteryStatus.vue';
 import { ConnectionStatus } from '@/composables/core/stores/connection/types';
 import { watchImmediate } from '@vueuse/core';
 import NodeAvatar from '@/components/Dashboard/NodeAvatar.vue';
@@ -69,54 +77,31 @@ const props = defineProps<{
   voltage: number | undefined;
 }>();
 
-const batteryLevel = ref();
-const voltage = ref('N/A');
-const batteryPercent = ref('N/A');
-watch(
-  () => [props.batteryLevel, props.voltage],
-  ([l, v]) => {
-    batteryLevel.value = l;
-    voltage.value = v !== undefined ? `${v?.toPrecision(2)} V` : 'N/A';
-    if (l !== undefined) {
-      if (l > 100) {
-        batteryPercent.value = 'Plugged in';
-      } else {
-        batteryPercent.value = `Battery: ${l} %`;
-      }
+const batteryLevel = computed(() => {
+  console.log(props.batteryLevel);
+  return props.batteryLevel;
+});
+
+const voltage = computed(() => {
+  return props.voltage !== undefined ? `${props.voltage?.toPrecision(2)} V` : 'N/A';
+});
+
+const batteryPercent = computed(() => {
+  if (batteryLevel.value !== undefined) {
+    if (batteryLevel.value > 100) {
+      return 'Plugged in';
     } else {
-      batteryPercent.value = 'N/A';
+      return `Battery: ${batteryLevel.value} %`;
     }
+  } else {
+    return 'N/A';
   }
-);
+});
 
 const firmware = ref();
 const connectionName = ref();
 watchEffect(() => (firmware.value = props.firmwareVersion ?? 'N/A'));
 watchEffect(() => (connectionName.value = props.connectionName ?? ''));
-
-const deviceInfoItems = [
-  {
-    id: 'battery',
-    label: batteryPercent,
-    dynamicComponent: {
-      comp: BatterLevel,
-      props: { batteryLevel: batteryLevel },
-    },
-    value: undefined,
-  },
-  {
-    id: 'voltage',
-    label: 'Voltage: ',
-    dynamicComponent: { comp: 'IconBattery', props: { size: 20 } },
-    value: voltage,
-  },
-  {
-    id: 'firmware',
-    label: 'Firmware: ',
-    dynamicComponent: { comp: 'IconCpu', props: { size: 20 } },
-    value: firmware,
-  },
-];
 
 const connectionStatus = ref({
   icon: 'IconUnlink',
