@@ -81,6 +81,7 @@
         <div class="flex gap-2">
           <IconLock v-if="data.isEncrypted" :size="20" class="encryption-lock-icon" />
           <IconLockOpen v-else :size="20" class="encryption-unlock-icon" />
+          <BatteryStatus v-if="data.batteryLevel" :batteryLevel="data.batteryLevel" />
           <IconMessageSquareOff v-if="data.isUnmessagable" :size="20" class="unmessagabel-icon" />
           <IconNetwork v-if="data.viaMqtt" :size="20" class="via-mqtt-icon" />
         </div>
@@ -131,6 +132,7 @@ import {
   useFormattedNodeDatabase,
 } from '@/composables/core/utils/useFormattedNodeDatabase';
 import NodeAvatar from '@/components/Dashboard/NodeAvatar.vue';
+import BatteryStatus from '@/components/Dashboard/BatteryStatus.vue';
 import { type DataTableSortEvent } from 'primevue';
 
 const filters = ref({
