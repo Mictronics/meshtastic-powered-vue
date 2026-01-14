@@ -1,5 +1,10 @@
 <template>
-  <ConfirmDialog group="headless" pt:mask:class="backdrop-blur-sm">
+  <ConfirmDialog
+    group="headless"
+    :transition="transitionName"
+    pt:mask:class="backdrop-blur-sm"
+    pt:root:class="dialogRootClass"
+  >
     <template #container="{ message, acceptCallback, rejectCallback }">
       <div class="flex flex-col items-center p-8 bg-surface-0 dark:bg-surface-900 rounded">
         <div
@@ -24,27 +29,40 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue';
 import { useConfirm } from 'primevue/useconfirm';
 
-const emit = defineEmits<{
-  (e: 'eventOnConfirmDelete'): void;
-}>();
-
-const confirm = useConfirm();
 interface ConfirmOptions {
-  header?: string;
-  message?: string;
+  header: string;
+  message: string;
+  acceptLabel?: string;
+  cancelLabel?: string;
 }
 
-const open = (options?: ConfirmOptions) => {
-  confirm.require({
-    group: 'headless',
-    header: options?.header ?? 'Are you sure?',
-    message: options?.message ?? 'This will delete all device data linked to this connection.',
-    accept: () => emit('eventOnConfirmDelete'),
+const confirm = useConfirm();
+
+const transitionName = 'scale'; // PrimeVue built-in animation
+const dialogRootClass = 'transition-all duration-200 ease-out';
+
+/**
+ * Opens the confirm dialog and returns a Promise<boolean>
+ * true if accepted, false if rejected
+ */
+const open = (options: ConfirmOptions): Promise<boolean> => {
+  return new Promise((resolve) => {
+    confirm.require({
+      group: 'headless',
+      header: options.header,
+      message: options.message,
+      acceptLabel: options.acceptLabel,
+      rejectLabel: options.cancelLabel,
+      accept: () => resolve(true),
+      reject: () => resolve(false),
+    });
   });
 };
 
+// Expose function to parent component
 defineExpose({ open });
 </script>
 

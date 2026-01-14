@@ -36,12 +36,12 @@
       @event-connect="onConnect"
       @event-disconnect="onDisconnect"
       @event-reconnect="onConnect"
-      @event-connection-delete="onDelete"
+      @event-connection-delete="deleteConnection"
       @event-connection-default="setDefaultConnection"
     />
   </div>
   <AddConnectionDialog ref="addConnectionDialog" />
-  <DeleteConfirmDialog ref="deleteConfirmDialog" @event-on-confirm-delete="deleteConnection" />
+  <ConfirmDialog ref="confirmDialogRef" />
 </template>
 
 <script setup lang="ts">
@@ -49,7 +49,7 @@ import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import ConnectionItem from './ConnectionItem.vue';
 import AddConnectionDialog from './AddConnectionDialog.vue';
-import DeleteConfirmDialog from './DeleteConfirmDialog.vue';
+import ConfirmDialog from './ConfirmDialog.vue';
 import { useConnectionStore } from '@/composables/core/stores/connection/useConnectionStore';
 import { useConnection } from '@/composables/core/useConnection';
 import { useGlobalToast } from '@/composables/useGlobalToast';
@@ -58,9 +58,6 @@ const router = useRouter();
 
 type AddConnectionDialogHandle = { open: () => void; close: () => void };
 const addConnectionDialog = ref<AddConnectionDialogHandle | null>(null);
-
-type DeleteConfirmDialogHandle = { open: () => void };
-const deleteConfirmDialog = ref<DeleteConfirmDialogHandle | null>(null);
 
 const connections = useConnectionStore().connections;
 // Sort and show default connection first.
@@ -75,15 +72,18 @@ function showAddConnectionDialog() {
   addConnectionDialog.value?.open();
 }
 
-const connectionToDelete = ref<number>(0);
-// Called first when connection shall be deleted. Show confirmation dialog.
-function onDelete(id: number) {
-  connectionToDelete.value = id;
-  deleteConfirmDialog.value?.open();
-}
-// Called second if confirmation is accepted. Triggers deletes connection.
-async function deleteConnection() {
-  await useConnection().deleteConnection(connectionToDelete.value);
+const confirmDialogRef = ref<InstanceType<typeof ConfirmDialog> | null>(null);
+async function deleteConnection(id: number) {
+  const confirmed = await confirmDialogRef.value?.open({
+    header: 'Delete Connection?',
+    message: 'All device data linked to this connection will be permanently deleted.',
+    acceptLabel: 'Delete',
+    cancelLabel: 'Cancel',
+  });
+
+  if (confirmed) {
+    await useConnection().deleteConnection(id);
+  }
 }
 
 const connectionStore = useConnectionStore();
