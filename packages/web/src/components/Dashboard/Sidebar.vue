@@ -99,8 +99,12 @@ const ownNodeId = computed(() => {
   return device.value?.myNodeNum;
 });
 
-const batteryLevel = shallowRef(0);
-const voltage = shallowRef(0.0);
+const batteryLevel = ref();
+const voltage = computed(() => {
+  const ni = useNodeDBStore().nodeDatabase.value?.getMyNode();
+  batteryLevel.value = ni?.deviceMetrics?.batteryLevel;
+  return ni?.deviceMetrics?.voltage;
+});
 
 const nodeCount = computed(() => {
   const nm = useNodeDBStore().nodeDatabase.value?.nodeMap;

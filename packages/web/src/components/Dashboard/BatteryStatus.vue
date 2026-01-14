@@ -3,9 +3,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue';
+import { computed } from 'vue';
 const props = defineProps<{
-  batteryLevel: any;
+  batteryLevel?: number;
 }>();
 
 interface StatusConfig {
@@ -57,7 +57,7 @@ const statusConfigMap: Record<BatteryStatus, StatusConfig> = {
 };
 
 const batteryStatus = computed(() => {
-  return statusConfigMap[getBatteryStatus(props.batteryLevel)];
+  return statusConfigMap[getBatteryStatus(props.batteryLevel || 0)];
 });
 </script>
 
