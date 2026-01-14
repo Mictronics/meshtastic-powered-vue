@@ -102,7 +102,7 @@ async function onConnect(id: number) {
         detail: 'Device connected.',
         life: 2000,
       });
-      router.push({ name: 'NodeView', params: {}, query: {} });
+      router.push({ name: 'dashboard.home', params: {}, query: {} });
     } else {
       useGlobalToast().add({
         severity: 'error',

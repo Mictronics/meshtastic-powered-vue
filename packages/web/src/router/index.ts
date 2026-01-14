@@ -11,7 +11,7 @@ const router = createRouter({
       name: 'dashboard',
       component: Dashboard,
       children: [
-        { path: '', name: 'NodeView', component: NodeView },
+        { path: '', name: 'dashboard.home', component: NodeView },
       ],
     },
     {
