@@ -22,7 +22,7 @@
         </IconField>
       </div>
     </template>
-    <template #empty>No nodes found.</template>
+    <template #empty>No nodes found or match your filter.</template>
     <Column field="isFavorite" class="" sortable sortField="isFavorite">
       <template #body="{ data }">
         <NodeAvatar
@@ -81,7 +81,7 @@
         <div class="flex gap-2">
           <IconLock v-if="data.isEncrypted" :size="20" class="encryption-lock-icon" />
           <IconLockOpen v-else :size="20" class="encryption-unlock-icon" />
-          <BatteryStatus v-if="data.batteryLevel" :batteryLevel="data.batteryLevel" />
+          <BatteryStatus v-if="data.batteryLevel !== undefined" :batteryLevel="data.batteryLevel" />
           <IconMessageSquareOff v-if="data.isUnmessagable" :size="20" class="unmessagabel-icon" />
           <IconNetwork v-if="data.viaMqtt" :size="20" class="via-mqtt-icon" />
         </div>
@@ -124,8 +124,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, toRaw } from 'vue';
-import { watchImmediate, formatTimeAgoIntl } from '@vueuse/core';
+import { ref, computed } from 'vue';
+import { formatTimeAgoIntl } from '@vueuse/core';
 import { FilterMatchMode } from '@primevue/core/api';
 import {
   type IFormattedNode,
@@ -139,44 +139,38 @@ const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   longName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   macAddr: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  hopsAway: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+  hopsAway: { value: null, matchMode: FilterMatchMode.EQUALS },
   hwModel: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
 });
-const nodes = ref<IFormattedNode[]>([]);
-watchImmediate(
-  useFormattedNodeDatabase().nodeDatabase,
-  (n) => {
-    nodes.value = Object.values(n || {});
-    //console.log('###', toRaw(test));
-  },
-  {
-    deep: true,
-  }
-);
+
+const nodeDatabase = useFormattedNodeDatabase().nodeDatabase;
+const nodes = computed<IFormattedNode[]>(() => {
+  return Object.values(nodeDatabase.value || {});
+});
 
 /**
  * Last heard needs a to be updated whenever the data table renders to
  * ensure the time ago string fits the numeric value and sorting order.
  */
+const lastHeardCache = new Map<number, string>();
 function formatLastHeard(epoch?: number) {
-  const date = new Date(0);
-  if (epoch === undefined) {
-    return 'Unknown';
-  }
-  date.setUTCSeconds(epoch);
-  return formatTimeAgoIntl(date);
+  if (epoch === undefined) return 'Unknown';
+  if (lastHeardCache.has(epoch)) return lastHeardCache.get(epoch)!;
+
+  const date = new Date(epoch * 1000);
+  const value = formatTimeAgoIntl(date);
+  lastHeardCache.set(epoch, value);
+  return value;
 }
 
 const isFavoriteSort = ref(false);
 function onTableSort(e: DataTableSortEvent) {
-  if (e.sortField === 'isFavorite') {
-    if (e.sortOrder === -1) {
-      isFavoriteSort.value = true;
-      return;
-    }
-  }
-  isFavoriteSort.value = false;
+  isFavoriteSort.value = e.sortField === 'isFavorite' && e.sortOrder === -1;
 }
 </script>
 
-<style lang="css" scoped></style>
+<style lang="css" scoped>
+:deep(.p-datatable-tbody > tr) {
+  height: 44px;
+}
+</style>
