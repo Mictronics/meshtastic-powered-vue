@@ -65,53 +65,64 @@ const deleteConfirmDialog = ref<DeleteConfirmDialogHandle | null>(null);
 const connections = useConnectionStore().connections;
 // Sort and show default connection first.
 const sortedConnections = computed(() => {
-  return new Map(
-    Array.from(connections.value.entries()).sort((a, b) => {
-      return (b[1].isDefault === true ? 1 : 0) - (a[1].isDefault === true ? 1 : 0);
-    })
-  );
+  const sortedEntries = [...connections.value.entries()].sort((a, b) => {
+    return (b[1].isDefault ? 1 : 0) - (a[1].isDefault ? 1 : 0);
+  });
+  return new Map(sortedEntries);
 });
 
 function showAddConnectionDialog() {
   addConnectionDialog.value?.open();
 }
 
-let connectionToDelete = 0;
+const connectionToDelete = ref<number>(0);
 // Called first when connection shall be deleted. Show confirmation dialog.
 function onDelete(id: number) {
-  connectionToDelete = id;
+  connectionToDelete.value = id;
   deleteConfirmDialog.value?.open();
 }
 // Called second if confirmation is accepted. Triggers deletes connection.
 async function deleteConnection() {
-  await useConnection().deleteConnection(connectionToDelete);
+  await useConnection().deleteConnection(connectionToDelete.value);
 }
 
+const connectionStore = useConnectionStore();
 function setDefaultConnection(id: number, isDefault: boolean) {
-  useConnectionStore().setDefaultConnection(id, isDefault);
+  connectionStore.setDefaultConnection(id, isDefault);
 }
 
+const connection = useConnection();
 async function onConnect(id: number) {
-  const isConnected = await useConnection().connect(id);
-  if (isConnected) {
-    useGlobalToast().add({
-      severity: 'success',
-      summary: 'Connection',
-      detail: 'Device connected.',
-      life: 2000,
-    });
-    router.push({ name: 'dashboard', params: {}, query: {} });
-  } else {
+  try {
+    const isConnected = await connection.connect(id);
+    if (isConnected) {
+      useGlobalToast().add({
+        severity: 'success',
+        summary: 'Connection',
+        detail: 'Device connected.',
+        life: 2000,
+      });
+      router.push({ name: 'dashboard', params: {}, query: {} });
+    } else {
+      useGlobalToast().add({
+        severity: 'error',
+        summary: 'Connection Error',
+        detail: 'Check connection.',
+        life: 5000,
+      });
+    }
+  } catch (error) {
+    console.error('Connection error:', error);
     useGlobalToast().add({
       severity: 'error',
       summary: 'Connection Error',
-      detail: 'Check connection.',
+      detail: 'An unexpected error occurred. Please try again later.',
       life: 5000,
     });
   }
 }
 
 function onDisconnect(id: number) {
-  useConnection().disconnect(id);
+  connection.disconnect(id);
 }
 </script>
