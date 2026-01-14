@@ -47,7 +47,7 @@ const avatarColor = computed(() => {
 /* 3D avatar */
 .node-avatar {
   position: relative;
-  padding: 3ch;
+  padding: 2.5ch;
   background: rgb(var(--bg-r), var(--bg-g), var(--bg-b));
   border-radius: 50%;
 
