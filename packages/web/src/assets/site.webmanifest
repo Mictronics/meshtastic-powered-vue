@@ -1,8 +1,8 @@
 {
-  "name": "Meshtastic Nexus",
-  "short_name": "Nexus",
+  "name": "Meshtastic powered Vue",
+  "short_name": "MeshtasticVue",
   "start_url": ".",
-  "description": "Meshtastic Nexus Client",
+  "description": "Meshtastic powered alternative web client in Vue",
   "icons": [
     {
       "src": "/logo.svg",

@@ -1,10 +1,10 @@
 {
-  "name": "@mictronics/meshtastic-nexus",
+  "name": "@mictronics/meshtastic-powered-vue",
   "version": "1.0.0",
-  "description": "Meshtastic Nexus alternative web client.",
+  "description": "Meshtastic powered alternative web client in Vue.",
   "keywords": [
     "Meshtastic",
-    "nexus"
+    "Vue"
   ],
   "license": "GPL-3.0-or-later",
   "author": "Michael Wolf",
