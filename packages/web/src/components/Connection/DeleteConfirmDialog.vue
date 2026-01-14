@@ -31,14 +31,17 @@ const emit = defineEmits<{
 }>();
 
 const confirm = useConfirm();
-const open = () => {
+interface ConfirmOptions {
+  header?: string;
+  message?: string;
+}
+
+const open = (options?: ConfirmOptions) => {
   confirm.require({
     group: 'headless',
-    header: 'Are you sure?',
-    message: 'This will delete all device data linked to this connection.',
-    accept: () => {
-      emit('eventOnConfirmDelete');
-    },
+    header: options?.header ?? 'Are you sure?',
+    message: options?.message ?? 'This will delete all device data linked to this connection.',
+    accept: () => emit('eventOnConfirmDelete'),
   });
 };
 
