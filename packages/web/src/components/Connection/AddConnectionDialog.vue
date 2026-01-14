@@ -205,7 +205,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useVuelidate } from '@vuelidate/core';
 import { required, or, ipAddress } from '@vuelidate/validators';
 import {
@@ -223,9 +223,9 @@ const httpType = ref('https://');
 const httpTypeOptions = ref(['https://', 'http://']);
 const isVisible = ref(false);
 const isTestPending = ref(false);
-const saveEnabled = ref(false);
-const isBluetoothSupported = ref(useConnection().isBluetoothSupported());
-const isSerialSupported = ref(useConnection().isSerialSupported());
+const connectionApi = useConnection();
+const isBluetoothSupported = ref(connectionApi.isBluetoothSupported());
+const isSerialSupported = ref(connectionApi.isSerialSupported());
 const connectionStatus = ref(ConnectionStatus.Disconnected);
 const connectionType = ref(ConnectionType.Http);
 const selectedTab = ref<string | number>('http');
@@ -236,14 +236,17 @@ const newConnection = ref<INewConnection>({
 
 let usbVendorId = 0;
 let usbProductId = 0;
-const serialPort = ref('Not port selected');
+const serialPort = ref('No port selected');
 
 const connectionUrl = computed(() => httpType.value + domainOrIp.value);
 
-const rules = {
+const rules = computed(() => ({
   connectionName: { required },
-  connectionUrl: { required, urlOrIp: or(useUrlValidator, ipAddress) },
-};
+  connectionUrl: {
+    required,
+    urlOrIp: or(useUrlValidator, ipAddress),
+  },
+}));
 
 const v$ = useVuelidate(rules, { connectionName, connectionUrl });
 
@@ -255,71 +258,79 @@ function close() {
   isVisible.value = false;
 }
 
+watch(isVisible, (visible) => {
+  if (!visible) resetForm();
+});
+
+function resetForm() {
+  connectionName.value = '';
+  domainOrIp.value = '';
+  httpType.value = 'https://';
+  selectedTab.value = 'http';
+  connectionType.value = ConnectionType.Http;
+  connectionStatus.value = ConnectionStatus.Disconnected;
+  serialPort.value = 'No port selected';
+  v$.value.$reset();
+}
+
 function addConnection() {
   v$.value.$touch();
   if (v$.value.$invalid) return;
+
+  let connection: INewConnection;
   if (connectionType.value === ConnectionType.Http) {
-    newConnection.value = {
-      type: connectionType.value,
+    connection = {
+      type: ConnectionType.Http,
       name: connectionName.value,
       url: connectionUrl.value,
     };
   } else if (connectionType.value === ConnectionType.Bluetooth) {
-    newConnection.value = {
-      type: connectionType.value,
+    connection = {
+      type: ConnectionType.Bluetooth,
       name: connectionName.value,
       deviceId: '',
       deviceName: '',
       gattServiceUUID: '',
     };
-  } else if (connectionType.value === ConnectionType.Serial) {
-    newConnection.value = {
-      type: connectionType.value,
+  } else {
+    connection = {
+      type: ConnectionType.Serial,
       name: connectionName.value,
-      usbVendorId: usbVendorId,
-      usbProductId: usbProductId,
+      usbVendorId,
+      usbProductId,
     };
   }
   useConnectionStore()
-    .addConnection(newConnection.value)
+    .addConnection(structuredClone(connection))
     .then(() => {
       isVisible.value = false;
-      connectionName.value = '';
-      domainOrIp.value = '';
-      httpType.value = 'https://';
-      v$.value.$reset();
-      saveEnabled.value = false;
+      resetForm();
     });
 }
 
 function testConnection() {
   isTestPending.value = true;
   connectionStatus.value = ConnectionStatus.Disconnected;
-  useConnection()
-    .testHttpConnection(connectionUrl.value)
-    .then((result) => {
-      isTestPending.value = false;
-      if (result) {
-        connectionStatus.value = ConnectionStatus.Connected;
-      } else {
-        connectionStatus.value = ConnectionStatus.Error;
-      }
-    });
+  connectionApi.testHttpConnection(connectionUrl.value).then((result) => {
+    isTestPending.value = false;
+    if (result) {
+      connectionStatus.value = ConnectionStatus.Connected;
+    } else {
+      connectionStatus.value = ConnectionStatus.Error;
+    }
+  });
 }
 
 function requestSerialPort() {
-  useConnection()
-    .requestSerialPortInfo()
-    .then((info) => {
-      if (info.usbVendorId && info.usbProductId) {
-        usbVendorId = info.usbVendorId;
-        usbProductId = info.usbProductId;
-        const v = info.usbVendorId ? info.usbVendorId.toString(16) : '?';
-        const p = info.usbProductId ? info.usbProductId.toString(16) : '?';
-        serialPort.value = `USB ${v}:${p}`;
-        saveEnabled.value = true;
-      }
-    });
+  connectionApi.requestSerialPortInfo().then((info) => {
+    if (info.usbVendorId && info.usbProductId) {
+      usbVendorId = info.usbVendorId;
+      usbProductId = info.usbProductId;
+      const v = info.usbVendorId ? info.usbVendorId.toString(16) : '?';
+      const p = info.usbProductId ? info.usbProductId.toString(16) : '?';
+      serialPort.value = `USB ${v}:${p}`;
+    }
+  });
 }
 
 function handleTabChange(value: string | number) {
@@ -346,6 +357,7 @@ defineExpose({ open, close });
   width: 48% !important;
 }
 .dialog-max-w {
-  max-width: 25% !important;
+  max-width: 420px;
+  width: 90vw;
 }
 </style>
