@@ -1,5 +1,12 @@
 <template>
-  <component :class="batteryStatus.class" :size="20" :is="batteryStatus.icon" />
+  <transition name="fade" mode="out-in">
+    <component
+      :class="batteryStatus.class"
+      :size="20"
+      :is="batteryStatus.icon"
+      :key="batteryLevel"
+    />
+  </transition>
 </template>
 
 <script setup lang="ts">
@@ -61,4 +68,13 @@ const batteryStatus = computed(() => {
 });
 </script>
 
-<style lang="css" scoped></style>
+<style lang="css" scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s ease;
+}
+.fade-enter,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>
