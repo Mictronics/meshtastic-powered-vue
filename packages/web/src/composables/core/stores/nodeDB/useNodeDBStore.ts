@@ -11,7 +11,7 @@ import {
     createSharedComposable,
     watchThrottled,
 } from '@vueuse/core'
-import { ref, isReactive, toRaw, type DebuggerEvent } from 'vue'
+import { ref, isReactive, toRaw, type DebuggerEvent, isProxy } from 'vue'
 import { useGlobalToast, type ToastSeverity } from '@/composables/useGlobalToast';
 
 const NODE_RETENTION_DAYS = 14; // Remove nodes not heard from in 14 days
@@ -77,16 +77,7 @@ class NodeDB implements INodeDB {
     }
 
     get() {
-        return {
-            id: this.id,
-            myNodeNum: this.myNodeNum,
-            nodeMap: Object.fromEntries(
-                Object.entries(this.nodeMap).map(([k, v]) => [k, { ...v }])
-            ),
-            nodeErrors: Object.fromEntries(
-                Object.entries(this.nodeErrors).map(([k, v]) => [k, { ...v }])
-            )
-        };
+        return Object.fromEntries(Object.entries(this));
     }
 
     addNode(node: Protobuf.Mesh.NodeInfo) {
@@ -112,7 +103,9 @@ class NodeDB implements INodeDB {
         // Merge with existing node data if it exists
         let merged;
         if (existing) {
+            // shallow clone into a new plain object without using spread
             merged = Object.assign({}, existing, next);
+            // apply the nullish-coalescing fallbacks explicitly
             merged.user = next.user ?? existing.user;
             merged.position = next.position ?? existing.position;
             merged.deviceMetrics = next.deviceMetrics ?? existing.deviceMetrics;
@@ -193,15 +186,22 @@ class NodeDB implements INodeDB {
     };
 
     processPacket(data: ProcessPacketParams) {
-        const nowSec = Math.floor(Date.now() / 1000); // lastHeard in seconds
-        const current = this.nodeMap[data.from];
-
-        this.nodeMap[String(data.from)] = Object.assign({}, current ?? create(Protobuf.Mesh.NodeInfoSchema), {
-            num: data.from,
-            lastHeard: data.time > 0 ? data.time : nowSec,
-            snr: data.snr,
-        });
-    }
+        const node = toRaw(this.nodeMap[data.from]);
+        const nowSec = Math.floor(Date.now() / 1000); // lastHeard is in seconds(!)
+        if (node) {
+            const updated = Object.assign({}, node, {
+                lastHeard: data.time > 0 ? data.time : nowSec,
+                snr: data.snr,
+            });
+            this.nodeMap[String(data.from)] = updated;
+        } else {
+            this.nodeMap[String(data.from)] = create(Protobuf.Mesh.NodeInfoSchema, {
+                num: data.from,
+                lastHeard: data.time > 0 ? data.time : nowSec, // fallback to now if time is 0 or negative,
+                snr: data.snr,
+            });
+        }
+    };
 
     addUser(user: Types.PacketMetadata<Protobuf.Mesh.User>) {
         const current = toRaw(this.nodeMap[user.from]);
