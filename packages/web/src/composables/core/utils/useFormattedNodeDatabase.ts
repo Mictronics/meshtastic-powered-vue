@@ -34,46 +34,37 @@ type IFormattedNodeMap = { [key: string]: IFormattedNode };
 export const useFormattedNodeDatabase = createSharedComposable(() => {
     const nodeDatabase = ref<IFormattedNodeMap>({});
 
-    watchImmediate(
-        useNodeDBStore().nodeDatabase,
-        () => { },
-        {
-            onTrigger: (e: DebuggerEvent) => {
-                // Trigger is called prior watch callback.
-                // Get property and new value of what has changed.
-                const n: Protobuf.Mesh.NodeInfo = e.newValue;
-                if (Object.hasOwn(n, '$typeName') === false) return;
-                if (n.$typeName === 'meshtastic.NodeInfo') {
-                    const names = formatName(n.num, n.user?.shortName, n.user?.longName)
-                    const node: Protobuf.Mesh.NodeInfo | {} = nodeDatabase.value[n.num] || {};
-                    Object.assign<IFormattedNode | {}, IFormattedNode>(node, {
-                        nodeNumber: n.num,
-                        shortName: names.short,
-                        longName: names.long,
-                        macAddr: formatMacAddr(n.user?.macaddr),
-                        hopsAway: formatHops(n.hopsAway, n.viaMqtt),
-                        numHops: n.hopsAway,
-                        lastHeard: n.lastHeard,
-                        isEncrypted: formatEncryption(n.user?.publicKey),
-                        isFavorite: n.isFavorite,
-                        isUnmessagable: n.user?.isUnmessagable,
-                        viaMqtt: n.viaMqtt,
-                        snr: formatSnr(n.snr),
-                        numSnr: n.snr,
-                        hwModel: Protobuf.Mesh.HardwareModel[n.user?.hwModel ?? 0]?.replaceAll('_', ' '),
-                        batteryLevel: n.deviceMetrics?.batteryLevel,
-                        voltage: n.deviceMetrics?.voltage,
-                        channelUtilization: n.deviceMetrics?.airUtilTx,
-                        airUtilTx: n.deviceMetrics?.airUtilTx,
-                        uptimeSeconds: formatUptime(n.deviceMetrics?.uptimeSeconds),
-                        role: Protobuf.Config.Config_DeviceConfig_Role[n.user?.role ?? 0]?.replaceAll('_', ' ')
-                    });
-                    nodeDatabase.value[n.num] = node as IFormattedNode;
-                }
-            },
-            deep: true,
+    watchImmediate(useNodeDBStore().nodeDatabase, (ndb) => {
+        if (!ndb?.nodeMap) return;
+
+        for (const node of Object.values(ndb.nodeMap)) {
+            if (node.$typeName !== 'meshtastic.NodeInfo') continue;
+            const names = formatName(node.num, node.user?.shortName, node.user?.longName);
+            const formatted: IFormattedNode = {
+                nodeNumber: node.num,
+                shortName: names.short,
+                longName: names.long,
+                macAddr: formatMacAddr(node.user?.macaddr),
+                hopsAway: formatHops(node.hopsAway, node.viaMqtt),
+                numHops: node.hopsAway,
+                lastHeard: node.lastHeard,
+                isEncrypted: formatEncryption(node.user?.publicKey),
+                isFavorite: node.isFavorite,
+                isUnmessagable: node.user?.isUnmessagable,
+                viaMqtt: node.viaMqtt,
+                snr: formatSnr(node.snr),
+                numSnr: node.snr,
+                hwModel: Protobuf.Mesh.HardwareModel[node.user?.hwModel ?? 0]?.replaceAll('_', ' '),
+                batteryLevel: node.deviceMetrics?.batteryLevel,
+                voltage: node.deviceMetrics?.voltage,
+                channelUtilization: node.deviceMetrics?.airUtilTx,
+                airUtilTx: node.deviceMetrics?.airUtilTx,
+                uptimeSeconds: formatUptime(node.deviceMetrics?.uptimeSeconds),
+                role: Protobuf.Config.Config_DeviceConfig_Role[node.user?.role ?? 0]?.replaceAll('_', ' '),
+            };
+            nodeDatabase.value[node.num] = formatted;
         }
-    );
+    }, { deep: true });
 
     function formatName(num: number, shortName?: string, longName?: string) {
         const short = shortName ?? num.toString(16).slice(-4).toUpperCase();
@@ -84,31 +75,24 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
         };
     }
 
-    function formatMacAddr(mac: Uint8Array<ArrayBufferLike> | undefined) {
-        return (
-            base16
-                .stringify(mac ?? [])
-                .match(/.{1,2}/g)
-                ?.join(':') ?? 'Unknown'
-        );
+    function formatMacAddr(mac?: Uint8Array | ArrayBuffer): string {
+        if (!mac) return 'Unknown';
+        const u8 = mac instanceof Uint8Array ? mac : new Uint8Array(mac);
+        return base16.stringify(u8).match(/.{1,2}/g)?.join(':') ?? 'Unknown';
     }
 
     function formatHops(hops?: number, viaMqtt?: boolean) {
-        const s1 =
-            hops !== undefined
-                ? viaMqtt === false && hops === 0
-                    ? 'direct'
-                    : `${hops?.toString()} ${hops ?? 0 > 1 ? 'hops' : 'hop'}`
-                : 'Unknown';
-        const s2 = viaMqtt === true ? ' via MQTT' : '';
+        if (hops === undefined) return 'Unknown';
+        const hopText = hops === 1 ? 'hop' : 'hops';
+        const s1 = hops === 0 && !viaMqtt ? 'direct' : `${hops} ${hopText}`;
+        const s2 = viaMqtt ? ' via MQTT' : '';
         return s1 + s2;
     }
 
-    function formatEncryption(pki?: Uint8Array<ArrayBufferLike> | undefined) {
-        if (pki && pki.length > 0) {
-            return true;
-        }
-        return false;
+    function formatEncryption(pki?: Uint8Array | ArrayBuffer): boolean {
+        if (!pki) return false;
+        const u8 = pki instanceof Uint8Array ? pki : new Uint8Array(pki);
+        return u8.length > 0;
     }
 
     function formatSnr(snr: number) {
