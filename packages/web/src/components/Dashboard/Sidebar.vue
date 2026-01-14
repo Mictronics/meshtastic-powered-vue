@@ -113,12 +113,8 @@ const device = computed(() => {
 const firmwareVersion = computed(() => {
   return device.value?.metadata.firmwareVersion || undefined;
 });
-const ownLongName = computed(() => {
-  return 'NFN-866#9 Mesh Observer';
-});
-const ownShortName = computed(() => {
-  return '9F31';
-});
+const ownLongName = computed(() => myNode.value?.user?.longName);
+const ownShortName = computed(() => myNode.value?.user?.shortName);
 const ownNodeId = computed(() => {
   return device.value?.myNodeNum;
 });
