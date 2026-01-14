@@ -78,7 +78,6 @@ const props = defineProps<{
 }>();
 
 const batteryLevel = computed(() => {
-  console.log(props.batteryLevel);
   return props.batteryLevel;
 });
 
