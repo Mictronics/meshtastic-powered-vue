@@ -1,11 +1,9 @@
 <template>
-  <div class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-    <component :class="batteryStatus.class" :size="20" :is="batteryStatus.icon" />
-  </div>
+  <component :class="batteryStatus.class" :size="20" :is="batteryStatus.icon" />
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 const props = defineProps<{
   batteryLevel: any;
 }>();
@@ -35,7 +33,6 @@ const getBatteryStatus = (level: number): BatteryStatus => {
   return BatteryStatus.Warning;
 };
 
-const getBatteryPercentage = ref('N/A');
 const statusConfigMap: Record<BatteryStatus, StatusConfig> = {
   [BatteryStatus.PluggedIn]: {
     icon: 'IconBatteryCharging',
@@ -59,9 +56,8 @@ const statusConfigMap: Record<BatteryStatus, StatusConfig> = {
   },
 };
 
-const batteryStatus = ref(statusConfigMap[getBatteryStatus(0)]);
-watch(props.batteryLevel, (n) => {
-  batteryStatus.value = statusConfigMap[getBatteryStatus(n)];
+const batteryStatus = computed(() => {
+  return statusConfigMap[getBatteryStatus(props.batteryLevel)];
 });
 </script>
 
