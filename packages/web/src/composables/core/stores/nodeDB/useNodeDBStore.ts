@@ -77,7 +77,16 @@ class NodeDB implements INodeDB {
     }
 
     get() {
-        return Object.fromEntries(Object.entries(this));
+        return {
+            id: this.id,
+            myNodeNum: this.myNodeNum,
+            nodeMap: Object.fromEntries(
+                Object.entries(this.nodeMap).map(([k, v]) => [k, { ...v }])
+            ),
+            nodeErrors: Object.fromEntries(
+                Object.entries(this.nodeErrors).map(([k, v]) => [k, { ...v }])
+            )
+        };
     }
 
     addNode(node: Protobuf.Mesh.NodeInfo) {
@@ -103,9 +112,7 @@ class NodeDB implements INodeDB {
         // Merge with existing node data if it exists
         let merged;
         if (existing) {
-            // shallow clone into a new plain object without using spread
             merged = Object.assign({}, existing, next);
-            // apply the nullish-coalescing fallbacks explicitly
             merged.user = next.user ?? existing.user;
             merged.position = next.position ?? existing.position;
             merged.deviceMetrics = next.deviceMetrics ?? existing.deviceMetrics;
@@ -174,12 +181,8 @@ class NodeDB implements INodeDB {
     };
 
     setNodeError(nodeNum: number, error: NodeErrorType) {
-        this.nodeErrors = {};
-        this.nodeErrors[nodeNum] = {
-            node: nodeNum,
-            error,
-        };
-    };
+        this.nodeErrors[nodeNum] = { node: nodeNum, error };
+    }
 
     clearNodeError(nodeNum: number) {
         delete this.nodeErrors[nodeNum];
@@ -190,22 +193,15 @@ class NodeDB implements INodeDB {
     };
 
     processPacket(data: ProcessPacketParams) {
-        const node = toRaw(this.nodeMap[data.from]);
-        const nowSec = Math.floor(Date.now() / 1000); // lastHeard is in seconds(!)
-        if (node) {
-            const updated = Object.assign({}, node, {
-                lastHeard: data.time > 0 ? data.time : nowSec,
-                snr: data.snr,
-            });
-            this.nodeMap[String(data.from)] = updated;
-        } else {
-            this.nodeMap[String(data.from)] = create(Protobuf.Mesh.NodeInfoSchema, {
-                num: data.from,
-                lastHeard: data.time > 0 ? data.time : nowSec, // fallback to now if time is 0 or negative,
-                snr: data.snr,
-            });
-        }
-    };
+        const nowSec = Math.floor(Date.now() / 1000); // lastHeard in seconds
+        const current = this.nodeMap[data.from];
+
+        this.nodeMap[String(data.from)] = Object.assign({}, current ?? create(Protobuf.Mesh.NodeInfoSchema), {
+            num: data.from,
+            lastHeard: data.time > 0 ? data.time : nowSec,
+            snr: data.snr,
+        });
+    }
 
     addUser(user: Types.PacketMetadata<Protobuf.Mesh.User>) {
         const current = toRaw(this.nodeMap[user.from]);
@@ -370,13 +366,32 @@ export const useNodeDBStore = createSharedComposable(() => {
 
     async function updateNodeDB(db: NodeDB | undefined) {
         if (!db) return;
+        const o = db.get();
         try {
-            const o = db.get();
             await useIndexedDB().updateStore(IDB_NODESDB_STORE, o);
         } catch (e: any) {
             toast('error', e.message);
+            console.log('###', findUncloneable(o));
         }
         return db;
+    }
+
+    function findUncloneable(value: any, path = 'root'): string | null {
+        try {
+            structuredClone(value);
+            return null;
+        } catch {
+            if (typeof value !== 'object' || value === null) {
+                return path;
+            }
+
+            for (const key of Object.keys(value)) {
+                const result = findUncloneable(value[key], `${path}.${key}`);
+                if (result) return result;
+            }
+
+            return path;
+        }
     }
 
     async function deleteNodeDB(id: number) {
@@ -429,7 +444,7 @@ export const useNodeDBStore = createSharedComposable(() => {
                             nodeDatabase.value.nodeMap = mergedNodes;
                             nodeDatabase.value.nodeErrors = mergedErrors;
                         }
-                        useNodeDBStore().deleteNodeDB(oldDB.id);
+                        await useNodeDBStore().deleteNodeDB(oldDB.id);
                     }
                 }
             }
