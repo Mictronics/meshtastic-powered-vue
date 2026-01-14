@@ -152,15 +152,13 @@ const nodes = computed<IFormattedNode[]>(() => {
  * Last heard needs a to be updated whenever the data table renders to
  * ensure the time ago string fits the numeric value and sorting order.
  */
-const lastHeardCache = new Map<number, string>();
 function formatLastHeard(epoch?: number) {
-  if (epoch === undefined) return 'Unknown';
-  if (lastHeardCache.has(epoch)) return lastHeardCache.get(epoch)!;
-
-  const date = new Date(epoch * 1000);
-  const value = formatTimeAgoIntl(date);
-  lastHeardCache.set(epoch, value);
-  return value;
+  const date = new Date(0);
+  if (epoch === undefined) {
+    return 'Unknown';
+  }
+  date.setUTCSeconds(epoch);
+  return formatTimeAgoIntl(date);
 }
 
 const isFavoriteSort = ref(false);
