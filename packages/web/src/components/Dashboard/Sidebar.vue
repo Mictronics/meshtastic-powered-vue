@@ -21,9 +21,14 @@
         pt:panel:class="dashboard-panelmenu"
       >
         <template #item="{ item }">
-          <a class="flex items-center py-1 cursor-pointer group">
+          <router-link
+            v-if="item.to"
+            :to="item.to"
+            class="flex items-center py-1 group w-full"
+            @click.native="item.command && item.command"
+          >
             <component :is="item.icon" />
-            <span v-if="isSideBarVisible" :class="['ml-2']">{{ item.label }}</span>
+            <span v-if="isSideBarVisible" class="ml-2">{{ item.label }}</span>
             <Badge
               v-if="item.badge"
               :severity="item.severity"
@@ -31,7 +36,24 @@
               class="ml-auto"
               :value="item.badge"
             />
-          </a>
+          </router-link>
+
+          <button
+            v-else
+            type="button"
+            class="flex items-center py-1 group w-full"
+            @click="item.command && item.command"
+          >
+            <component :is="item.icon" />
+            <span v-if="isSideBarVisible" class="ml-2">{{ item.label }}</span>
+            <Badge
+              v-if="item.badge"
+              :severity="item.severity"
+              size="small"
+              class="ml-auto"
+              :value="item.badge"
+            />
+          </button>
         </template>
       </PanelMenu>
       <DeviceInfo
@@ -58,7 +80,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, shallowRef, computed, watchEffect } from 'vue';
+import { ref, computed, watchEffect } from 'vue';
 import { useConnectionStore } from '@/composables/core/stores/connection/useConnectionStore';
 import { ConnectionStatus } from '@/composables/core/stores/connection/types';
 import { useDeviceStore } from '@/composables/core/stores/device/useDeviceStore';
@@ -70,11 +92,13 @@ const props = defineProps<{
   isSideBarVisible: boolean;
 }>();
 
+const connectionStore = useConnectionStore();
+const deviceStore = useDeviceStore();
+const nodeDBStore = useNodeDBStore();
+
 const connection = computed(() => {
-  const activeConnectionId = useConnectionStore().activeConnectionId.value;
-  if (activeConnectionId) {
-    return useConnectionStore().connections.value.get(activeConnectionId);
-  }
+  const id = connectionStore.activeConnectionId.value;
+  return id ? connectionStore.connections.value.get(id) : undefined;
 });
 const connectionName = computed(() => {
   return connection.value?.name;
@@ -84,7 +108,7 @@ const connectionStatus = computed(() => {
 });
 
 const device = computed(() => {
-  return useDeviceStore().device.value;
+  return deviceStore.device.value;
 });
 const firmwareVersion = computed(() => {
   return device.value?.metadata.firmwareVersion || undefined;
@@ -99,71 +123,48 @@ const ownNodeId = computed(() => {
   return device.value?.myNodeNum;
 });
 
-const batteryLevel = ref();
-const voltage = computed(() => {
-  const ni = useNodeDBStore().nodeDatabase.value?.getMyNode();
-  batteryLevel.value = ni?.deviceMetrics?.batteryLevel;
-  return ni?.deviceMetrics?.voltage;
-});
+const myNode = computed(() => nodeDBStore.nodeDatabase.value?.getMyNode());
+const batteryLevel = computed(() => myNode.value?.deviceMetrics?.batteryLevel);
+const voltage = computed(() => myNode.value?.deviceMetrics?.voltage);
 
 const nodeCount = computed(() => {
-  const nm = useNodeDBStore().nodeDatabase.value?.nodeMap;
+  const nm = nodeDBStore.nodeDatabase.value?.nodeMap;
   if (nm) {
     return Object.entries(nm).length;
   }
   return undefined;
 });
 
-const devicePanelItems = ref([
+const devicePanelItems = computed(() => [
   {
     label: 'Messages',
     icon: 'IconMessageSquareText',
     badge: 2,
     severity: 'info',
-    command: () => {
-      // You can define action here if needed
-      console.log('Test1');
-    },
+    command: () => console.log('Test1'),
+    //    to: { name: 'Messages' }, // or a path string '/map'
   },
   {
     label: 'Map',
     icon: 'IconMap',
-    command: () => {
-      // Define action here if needed
-      console.log('Test2');
-    },
+    command: () => console.log('Test2'),
+    //to: { name: 'Map' }
   },
   {
     label: 'Settings',
     icon: 'IconSettings',
-    command: () => {
-      // Define action here if needed
-      console.log('Test3');
-    },
+    command: () => console.log('Test3'),
+    //    to: { name: 'Settings' },
   },
   {
     label: 'Nodes',
     icon: 'IconUsers',
-    badge: nodeCount,
+    badge: nodeCount.value,
     severity: 'secondary',
-    command: () => {
-      // Define action here if needed
-      console.log('Test4');
-    },
+    command: () => console.log('Test4'),
+    //    to: { name: 'Nodes' },
   },
 ]);
-
-const modeIcon = computed(() => {
-  switch (state.value) {
-    case 'light':
-      return 'IconSun';
-    case 'dark':
-      return 'IconMoon';
-    case 'auto':
-    default:
-      return 'IconSunMoon';
-  }
-});
 
 const appPanelItems = ref([
   {
@@ -177,10 +178,17 @@ const appPanelItems = ref([
   },
 ]);
 
-const mode = useColorMode({
-  emitAuto: true,
+type Theme = 'auto' | 'light' | 'dark';
+const mode = useColorMode({ emitAuto: true });
+const { state, next } = useCycleList<Theme>(['auto', 'light', 'dark'], {
+  initialValue: mode.value as Theme,
 });
-const { state, next } = useCycleList(['auto', 'light', 'dark'] as const, { initialValue: mode });
+
+const modeIcon = computed(() => {
+  if (state.value === 'light') return 'IconSun';
+  if (state.value === 'dark') return 'IconMoon';
+  return 'IconSunMoon';
+});
 watchEffect(() => (mode.value = state.value));
 </script>
 
