@@ -22,7 +22,8 @@ export const useConnection = createGlobalState(() => {
     const bluetoothSupport = useBluetooth({ acceptAllDevices: true });
     const configSubscriptions = new Map<ConnectionId, () => void>();
     const serialSupport = useSerial();
-    const connections = useConnectionStore().connections;
+    const connectionStore = useConnectionStore();
+    const connections = connectionStore.connections;
 
     async function testHttpConnection(
         url: string,
@@ -68,7 +69,7 @@ export const useConnection = createGlobalState(() => {
             error: error || undefined,
             ...(status === ConnectionStatus.Disconnected ? { lastConnectedAt: Date.now() / 1000 } : {}),
         };
-        useConnectionStore().updateConnection(id, updates);
+        connectionStore.updateConnection(id, updates);
     };
 
     async function setupMeshDevice(
@@ -107,7 +108,7 @@ export const useConnection = createGlobalState(() => {
         }
 
         // Set active connection and link device bidirectionally
-        useConnectionStore().activeConnectionId.value = connectionId;
+        connectionStore.activeConnectionId.value = connectionId;
         if (device) device.setConnectionId(connectionId);
 
         // Listen for config complete event (with nonce/ID)
@@ -176,7 +177,7 @@ export const useConnection = createGlobalState(() => {
                 updateStatus(connectionId, ConnectionStatus.Error, error.message);
             });
 
-        useConnectionStore().updateConnection(connectionId, { meshDeviceId: deviceId });
+        connectionStore.updateConnection(connectionId, { meshDeviceId: deviceId });
         return deviceId;
     }
 
@@ -462,7 +463,7 @@ export const useConnection = createGlobalState(() => {
             } catch { }
         }
 
-        useConnectionStore().deleteConnection(connectionId);
+        connectionStore.deleteConnection(connectionId);
     };
 
     return {
