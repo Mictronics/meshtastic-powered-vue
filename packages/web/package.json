@@ -20,6 +20,7 @@
     "@meshtastic/transport-http": "link:../transport-http",
     "@meshtastic/transport-web-bluetooth": "link:../transport-web-bluetooth",
     "@meshtastic/transport-web-serial": "link:../transport-web-serial",
+    "@noble/curves": "^2.0.1",
     "@primeuix/themes": "^2.0.2",
     "@primevue/core": "^4.5.4",
     "@tailwindcss/vite": "^4.1.18",
