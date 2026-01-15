@@ -46,11 +46,3 @@ export function useConnectionError(id: ConnectionId): string | null {
 export function useSavedConnections(): Map<number, IConnection> {
   return useConnectionStore().connections.value;
 }
-
-/**
- * Hook to check if a connection is connected
- */
-export function useIsConnected(id: ConnectionId): boolean {
-  const status = useConnectionStore().connections.value.get(id)?.status;
-  return status === ConnectionStatus.Connected || status === ConnectionStatus.Configured;
-}

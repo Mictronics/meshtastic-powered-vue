@@ -104,6 +104,8 @@ export const useConnectionStore = createSharedComposable(() => {
     const connections = ref<Map<number, IConnection>>(new Map());
     const activeConnectionId = ref<ConnectionId | null>(null);
 
+    init();
+
     async function init() {
         connections.value = await getDatabaseConnections();
     }
@@ -209,7 +211,10 @@ export const useConnectionStore = createSharedComposable(() => {
         return [...connections.value.values()].find(c => c.meshDeviceId === deviceId);
     };
 
-    init();
+    function isConnected(id?: ConnectionId): boolean {
+        const status = connections.value.get(id || activeConnectionId.value || 0)?.status;
+        return status === ConnectionStatus.Connected || status === ConnectionStatus.Configured;
+    }
 
     return {
         connections,
@@ -218,6 +223,7 @@ export const useConnectionStore = createSharedComposable(() => {
         deleteConnection,
         setDefaultConnection,
         getConnectionForDevice,
-        activeConnectionId
+        activeConnectionId,
+        isConnected,
     }
 });
