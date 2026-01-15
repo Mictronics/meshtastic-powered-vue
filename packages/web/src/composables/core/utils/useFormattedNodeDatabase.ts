@@ -27,6 +27,7 @@ export interface IFormattedNode {
     airUtilTx: number | undefined;
     uptimeSeconds: string | undefined;
     role: string | undefined;
+    hasPosition: boolean;
 }
 
 type IFormattedNodeMap = { [key: string]: IFormattedNode };
@@ -61,6 +62,7 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
                 airUtilTx: node.deviceMetrics?.airUtilTx,
                 uptimeSeconds: formatUptime(node.deviceMetrics?.uptimeSeconds),
                 role: Protobuf.Config.Config_DeviceConfig_Role[node.user?.role ?? 0]?.replaceAll('_', ' '),
+                hasPosition: !!node.position,
             };
             nodeDatabase.value[node.num] = formatted;
         }
