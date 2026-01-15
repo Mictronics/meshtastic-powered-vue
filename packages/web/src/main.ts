@@ -9,7 +9,7 @@ import Card from 'primevue/card';
 import Button from 'primevue/button';
 import Chip from 'primevue/chip';
 import Popover from 'primevue/popover';
-import { Message } from 'primevue';
+import Message from 'primevue/message';
 import SelectButton from 'primevue/selectbutton';
 import Checkbox from 'primevue/checkbox';
 import InputText from 'primevue/inputtext';
@@ -36,6 +36,9 @@ import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
+
+import Drawer from 'primevue/drawer';
+import VirtualScroller from 'primevue/virtualscroller';
 // Import icons
 import {
     Cable,
@@ -77,6 +80,7 @@ import {
     Lock,
     LockOpen,
     MessageSquareOff,
+    Satellite
 } from "lucide-vue-next";
 import { useGlobalToast } from '@/composables/useGlobalToast';
 import { tryOnMounted } from '@vueuse/core';
@@ -155,6 +159,10 @@ app.component('DataTable', DataTable);
 app.component('Column', Column);
 app.component('IconField', IconField);
 app.component('InputIcon', InputIcon);
+
+app.component('Drawer', Drawer);
+app.component('VirtualScroller', VirtualScroller);
+
 /* Icons */
 app.component('IconCable', Cable);
 app.component('IconGlobe', Globe);
@@ -195,4 +203,5 @@ app.component('IconSearch', Search);
 app.component('IconLock', Lock);
 app.component('IconLockOpen', LockOpen);
 app.component('IconMessageSquareOff', MessageSquareOff);
+app.component('IconSatellite', Satellite);
 app.mount('#app')
