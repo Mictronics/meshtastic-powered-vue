@@ -25,7 +25,7 @@ export interface IFormattedNode {
     voltage: number | undefined;
     channelUtilization: number | undefined;
     airUtilTx: number | undefined;
-    uptimeSeconds: string | undefined;
+    uptime: string | undefined;
     role: string | undefined;
     hasPosition: boolean;
 }
@@ -58,9 +58,9 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
                 hwModel: Protobuf.Mesh.HardwareModel[node.user?.hwModel ?? 0]?.replaceAll('_', ' '),
                 batteryLevel: node.deviceMetrics?.batteryLevel,
                 voltage: node.deviceMetrics?.voltage,
-                channelUtilization: node.deviceMetrics?.airUtilTx,
+                channelUtilization: node.deviceMetrics?.channelUtilization,
                 airUtilTx: node.deviceMetrics?.airUtilTx,
-                uptimeSeconds: formatUptime(node.deviceMetrics?.uptimeSeconds),
+                uptime: formatUptime(node.deviceMetrics?.uptimeSeconds),
                 role: Protobuf.Config.Config_DeviceConfig_Role[node.user?.role ?? 0]?.replaceAll('_', ' '),
                 hasPosition: !!node.position,
             };
@@ -103,7 +103,7 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
 
     function formatUptime(t?: number) {
         if (t) {
-            return humanizeDuration(t * 1000, { round: true, serialComma: false, language: "en" })
+            return humanizeDuration(t * 1000, { round: true, serialComma: false, language: "en", units: ["y", "mo", "w", "d", "h", "m"] })
         }
         return undefined;
     }
