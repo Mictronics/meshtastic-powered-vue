@@ -13,6 +13,7 @@ import {
 } from '@vueuse/core'
 import { ref, isReactive, toRaw, type DebuggerEvent, isProxy } from 'vue'
 import { useGlobalToast, type ToastSeverity } from '@/composables/useGlobalToast';
+import { purgeUncloneableProperties } from "../utils/purgeUncloneable";
 
 const NODE_RETENTION_DAYS = 14; // Remove nodes not heard from in 14 days
 
@@ -119,11 +120,13 @@ class NodeDB implements INodeDB {
             console.log(
                 `[NodeDB] Adding new node from NodeInfo packet: ${merged.num} (${merged.user?.longName || "unknown"})`,
             );
-        } else {
+        }
+        /* else {
             console.log(
                 `[NodeDB] Updating existing node from NodeInfo packet: ${merged.num} (${merged.user?.longName || "unknown"})`,
             );
         }
+        */
     };
 
     removeNode(nodeNum: number) {
@@ -291,6 +294,8 @@ class NodeDB implements INodeDB {
 export const useNodeDBStore = createSharedComposable(() => {
     const nodeDatabase = ref<NodeDB>();
 
+    loadAllNodeDBs();
+
     function toast(severity: ToastSeverity, detail: string, life?: number) {
         useGlobalToast().add({ severity, summary: 'Nodes Database Error', detail, life: life || 6000 });
     }
@@ -371,27 +376,9 @@ export const useNodeDBStore = createSharedComposable(() => {
             await useIndexedDB().updateStore(IDB_NODESDB_STORE, o);
         } catch (e: any) {
             toast('error', e.message);
-            console.log('###', findUncloneable(o));
+            purgeUncloneableProperties(db);
         }
         return db;
-    }
-
-    function findUncloneable(value: any, path = 'root'): string | null {
-        try {
-            structuredClone(value);
-            return null;
-        } catch {
-            if (typeof value !== 'object' || value === null) {
-                return path;
-            }
-
-            for (const key of Object.keys(value)) {
-                const result = findUncloneable(value[key], `${path}.${key}`);
-                if (result) return result;
-            }
-
-            return path;
-        }
     }
 
     async function deleteNodeDB(id: number) {
@@ -447,6 +434,24 @@ export const useNodeDBStore = createSharedComposable(() => {
                         await useNodeDBStore().deleteNodeDB(oldDB.id);
                     }
                 }
+            }
+        } catch (e: any) {
+            toast('error', e.message);
+        }
+    }
+
+    async function loadAllNodeDBs() {
+        try {
+            const all: NodeDB[] = await useIndexedDB().getAllFromStore(IDB_NODESDB_STORE);
+
+            if (!all || all.length === 0) {
+                return;
+            }
+            const preferred =
+                all.values().find(db => db.myNodeNum !== undefined) ??
+                all[all.length - 1];
+            if (preferred) {
+                nodeDatabase.value = new NodeDB(preferred.id, preferred);
             }
         } catch (e: any) {
             toast('error', e.message);
