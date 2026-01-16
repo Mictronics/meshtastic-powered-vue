@@ -10,13 +10,20 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import {
+  BatteryCharging,
+  BatteryFull,
+  BatteryMedium,
+  BatteryLow,
+  BatteryWarning,
+} from 'lucide-vue-next';
+import { computed, type Component } from 'vue';
 const props = defineProps<{
   batteryLevel?: number;
 }>();
 
 interface StatusConfig {
-  icon: string;
+  icon: Component;
   class: string;
 }
 
@@ -42,23 +49,23 @@ const getBatteryStatus = (level: number): BatteryStatus => {
 
 const statusConfigMap: Record<BatteryStatus, StatusConfig> = {
   [BatteryStatus.PluggedIn]: {
-    icon: 'IconBatteryCharging',
+    icon: BatteryCharging,
     class: 'text-sky-500',
   },
   [BatteryStatus.Full]: {
-    icon: 'IconBatteryFull',
+    icon: BatteryFull,
     class: 'text-lime-500',
   },
   [BatteryStatus.Medium]: {
-    icon: 'IconBatteryMedium',
+    icon: BatteryMedium,
     class: 'text-yellow-500',
   },
   [BatteryStatus.Low]: {
-    icon: 'IconBatteryLow',
+    icon: BatteryLow,
     class: 'text-orange-500',
   },
   [BatteryStatus.Warning]: {
-    icon: 'IconBatteryWarning',
+    icon: BatteryWarning,
     class: 'text-red-500',
   },
 };

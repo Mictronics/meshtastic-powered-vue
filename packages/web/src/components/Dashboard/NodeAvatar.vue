@@ -12,11 +12,12 @@
     >
       {{ props.shortName }}
     </Avatar>
-    <IconStar v-if="props.isFavorite" :size="20" class="avatar-badge" aria-hidden="true" />
+    <Star v-if="props.isFavorite" :size="20" class="avatar-badge" aria-hidden="true" />
   </div>
 </template>
 
 <script setup lang="ts">
+import { Star } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 const props = defineProps({

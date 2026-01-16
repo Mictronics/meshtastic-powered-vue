@@ -61,16 +61,16 @@
                     :shortName="node.shortName"
                   />
                   <div class="flex gap-2">
-                    <IconLock v-if="node.isEncrypted" :size="20" class="encryption-lock-icon" />
-                    <IconLockOpen v-else :size="20" class="encryption-unlock-icon" />
+                    <Lock v-if="node.isEncrypted" :size="20" class="encryption-lock-icon" />
+                    <LockOpen v-else :size="20" class="encryption-unlock-icon" />
 
-                    <IconMessageSquareOff
+                    <MessageSquareOff
                       v-if="node.isUnmessagable"
                       :size="20"
                       class="unmessagabel-icon"
                     />
-                    <IconSatellite v-if="node.hasPosition" :size="20" class="via-mqtt-icon" />
-                    <IconNetwork v-if="node.viaMqtt" :size="20" class="via-mqtt-icon" />
+                    <Satellite v-if="node.hasPosition" :size="20" class="via-mqtt-icon" />
+                    <Network v-if="node.viaMqtt" :size="20" class="via-mqtt-icon" />
                   </div>
                 </div>
                 <h3 class="text-lg font-bold text-slate-800 mb-2 truncate">{{ node.longName }}</h3>
@@ -117,7 +117,7 @@
       </template>
 
       <div v-if="selectedNode" class="space-y-3">
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-3 gap-2">
           <NodeDetailsItem label="Node number" :value="selectedNode.nodeNumber" />
           <NodeDetailsItem
             label="Node number"
@@ -131,14 +131,25 @@
           />
           <NodeDetailsItem label="Hardware" :value="selectedNode.hwModel" />
         </div>
-        <div class="pt-3 border-t border-slate-100 flex flex-col gap-3">
-          <div class="grid grid-cols-2 gap-3">
-            <NodeDetailsItem label="Air TX utilization" :value="airTxUtilization" />
-            <NodeDetailsItem label="Channel utilization" :value="channelUtilization" />
-            <NodeDetailsItem label="Battery" :value="batteryPercent" />
-            <NodeDetailsItem label="Voltage" :value="voltage" />
-            <NodeDetailsItem label="Uptime" :value="selectedNode.uptime" />
-          </div>
+        <div class="divider">
+          <span class="text-nowrap text-sm text-slate-400">Metrics</span>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <NodeDetailsItem label="Air TX" :value="airTxUtilization" />
+          <NodeDetailsItem label="Channel" :value="channelUtilization" />
+          <NodeDetailsItem label="Battery" :value="batteryPercent" />
+          <NodeDetailsItem label="Voltage" :value="voltage" />
+          <NodeDetailsItem class="col-span-2" label="Uptime" :value="selectedNode.uptime" />
+        </div>
+        <div class="divider">
+          <span class="text-nowrap text-sm text-slate-400">Position</span>
+        </div>
+        <div class="grid grid-cols-1">
+          <CoordinateDisplay
+            :latitude="selectedNode.lat"
+            :longitude="selectedNode.lon"
+            :alt="selectedNode.alt"
+          />
         </div>
         <div class="pt-6 border-t border-slate-100 flex flex-col gap-3">Button</div>
       </div>
@@ -147,6 +158,7 @@
 </template>
 
 <script setup lang="ts">
+import { Lock, LockOpen, MessageSquareOff, Satellite, Network } from 'lucide-vue-next';
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { formatTimeAgoIntl } from '@vueuse/core';
 import { numberToHexUnpadded } from '@noble/curves/utils.js';
@@ -158,6 +170,7 @@ import NodeAvatar from '@/components/Dashboard/NodeAvatar.vue';
 import BatteryStatus from '@/components/Dashboard/BatteryStatus.vue';
 import NodeDetailsItem from '@/components/Dashboard/NodeDetailsItem.vue';
 import DeviceImage from '@/components/Dashboard/DeviceImage.vue';
+import CoordinateDisplay from '@/components/Dashboard/CoordinateDisplay.vue';
 
 const nodeDatabase = useFormattedNodeDatabase().nodeDatabase;
 const nodes = computed<IFormattedNode[]>(() => {
@@ -231,7 +244,7 @@ const chunkedNodes = computed(() => {
   return chunks;
 });
 
-const toggleSort = (key) => {
+const toggleSort = (key: any) => {
   if (sortKey.value === key) {
     sortOrder.value *= -1;
   } else {
@@ -259,4 +272,25 @@ function formatLastHeard(epoch?: number) {
 }
 </script>
 
-<style scoped lang="css"></style>
+<style scoped lang="css">
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid oklch(96.8% 0.007 247.896);
+}
+
+.divider::before {
+  margin-right: 10px;
+}
+
+.divider::after {
+  margin-left: 10px;
+}
+</style>

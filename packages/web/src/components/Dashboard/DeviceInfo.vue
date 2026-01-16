@@ -47,18 +47,19 @@
     </div>
 
     <div class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-      <IconBattery size="20" />
+      <Battery :size="20" />
       <p v-if="isSideBarVisible" class="truncate">Voltage: {{ voltage }}</p>
     </div>
 
     <div class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-      <IconCpu size="20" />
+      <Cpu :size="20" />
       <p v-if="isSideBarVisible" class="truncate">Firmware: {{ firmware }}</p>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { Battery, Cpu } from 'lucide-vue-next';
 import { computed } from 'vue';
 import BatteryStatus from './BatteryStatus.vue';
 import { ConnectionStatus } from '@/composables/core/stores/connection/types';

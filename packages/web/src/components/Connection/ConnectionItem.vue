@@ -5,26 +5,26 @@
         {{ connection.name }}
         <div>
           <Chip v-if="connection.isDefault" class="connection-item-chip">
-            <IconStar fill="orange" strokeWidth="0" :size="15" />
+            <Star fill="orange" strokeWidth="0" :size="15" />
             Default
           </Chip>
           <Chip v-if="isConnected()" class="connection-item-chip">
-            <IconLink :size="15" />
+            <Link :size="15" />
             Connected
           </Chip>
           <Chip
             v-else-if="connection.status === ConnectionStatus.Disconnected"
             class="connection-item-chip"
           >
-            <IconUnlink :size="15" />
+            <Unlink :size="15" />
             Disconnected
           </Chip>
           <Chip v-else class="connection-item-chip">
-            <IconHourglass :size="15" />
+            <Hourglass :size="15" />
             {{ getEnumKey(ConnectionStatus, connection.status) }}
           </Chip>
           <Button size="small" severity="secondary" variant="text" @click="toggle">
-            <IconEllipsis :size="15" />
+            <Ellipsis :size="15" />
           </Button>
           <Popover ref="op" id="popover" @show="setPopoverPosition">
             <div class="flex flex-col gap-2 text-sm">
@@ -36,7 +36,7 @@
                 size="small"
                 @click="onSetDefault(false)"
               >
-                <IconStarOff :size="15" />
+                <StarOff :size="15" />
                 Unset default
               </Button>
               <Button
@@ -47,7 +47,7 @@
                 size="small"
                 @click="onSetDefault(true)"
               >
-                <IconStar :size="15" />
+                <Star :size="15" />
                 Set default
               </Button>
               <Button
@@ -57,7 +57,7 @@
                 size="small"
                 @click="onDelete()"
               >
-                <IconTrash2 :size="15" />
+                <Trash2 :size="15" />
                 Delete
               </Button>
             </div>
@@ -68,15 +68,15 @@
     <template #subtitle>
       <div>
         <Chip v-if="connection.type === ConnectionType.Http" class="connection-item-chip">
-          <IconGlobe :size="15" />
+          <Globe :size="15" />
           HTTP
         </Chip>
         <Chip v-else-if="connection.type === ConnectionType.Serial" class="connection-item-chip">
-          <IconCable :size="15" />
+          <Cable :size="15" />
           Serial
         </Chip>
         <Chip v-else-if="connection.type === ConnectionType.Bluetooth" class="connection-item-chip">
-          <IconBluetooth :size="15" />
+          <Bluetooth :size="15" />
           Bluetooth
         </Chip>
         {{ formatConnectionSubtext(connection) }}
@@ -104,7 +104,7 @@
           size="small"
           @click="$emit('eventConnect', connection.id)"
         >
-          <IconLink :size="15" />
+          <Link :size="15" />
           Connect
         </Button>
         <Button
@@ -113,7 +113,7 @@
           size="small"
           @click="$emit('eventDisconnect', connection.id)"
         >
-          <IconUnlink :size="15" />
+          <Unlink :size="15" />
           Disconnect
         </Button>
         <Button
@@ -122,7 +122,7 @@
           size="small"
           @click="$emit('eventReconnect', connection.id)"
         >
-          <IconRotateCcw :size="15" />
+          <RotateCcw :size="15" />
           Retry
         </Button>
         <Button v-else severity="info" size="small" disabled="true">
@@ -134,6 +134,19 @@
 </template>
 
 <script setup lang="ts">
+import {
+  Star,
+  Link,
+  Unlink,
+  Hourglass,
+  Ellipsis,
+  StarOff,
+  Trash2,
+  Globe,
+  Cable,
+  Bluetooth,
+  RotateCcw,
+} from 'lucide-vue-next';
 import { ref } from 'vue';
 import {
   ConnectionStatus,

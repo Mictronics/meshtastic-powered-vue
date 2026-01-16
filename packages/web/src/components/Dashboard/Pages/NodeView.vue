@@ -14,12 +14,12 @@
   >
     <template #header>
       <div class="flex justify-end">
-        <IconField>
+        <Field>
           <InputIcon>
-            <IconSearch :size="15" />
+            <Search :size="15" />
           </InputIcon>
           <InputText v-model="filters['global'].value" placeholder="Keyword Search" size="small" />
-        </IconField>
+        </Field>
       </div>
     </template>
     <template #empty>No nodes found or match your filter.</template>
@@ -32,8 +32,8 @@
         />
       </template>
       <template #sorticon>
-        <IconStar v-if="isFavoriteSort" />
-        <IconStarOff v-else />
+        <Star v-if="isFavoriteSort" />
+        <StarOff v-else />
       </template>
     </Column>
     <Column field="longName" filterField="longName" header="Long Name" class="" sortable>
@@ -79,11 +79,11 @@
     <Column field="features" header="Features">
       <template #body="{ data }">
         <div class="flex gap-2">
-          <IconLock v-if="data.isEncrypted" :size="20" class="encryption-lock-icon" />
-          <IconLockOpen v-else :size="20" class="encryption-unlock-icon" />
+          <Lock v-if="data.isEncrypted" :size="20" class="encryption-lock-icon" />
+          <LockOpen v-else :size="20" class="encryption-unlock-icon" />
           <BatteryStatus v-if="data.batteryLevel !== undefined" :batteryLevel="data.batteryLevel" />
-          <IconMessageSquareOff v-if="data.isUnmessagable" :size="20" class="unmessagabel-icon" />
-          <IconNetwork v-if="data.viaMqtt" :size="20" class="via-mqtt-icon" />
+          <MessageSquareOff v-if="data.isUnmessagable" :size="20" class="unmessagabel-icon" />
+          <Network v-if="data.viaMqtt" :size="20" class="via-mqtt-icon" />
         </div>
       </template>
     </Column>
@@ -124,6 +124,16 @@
 </template>
 
 <script setup lang="ts">
+import {
+  FileDiff,
+  Search,
+  Star,
+  StarOff,
+  Lock,
+  LockOpen,
+  MessageSquareOff,
+  Network,
+} from 'lucide-vue-next';
 import { ref, computed } from 'vue';
 import { formatTimeAgoIntl } from '@vueuse/core';
 import { FilterMatchMode } from '@primevue/core/api';

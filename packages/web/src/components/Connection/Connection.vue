@@ -3,7 +3,7 @@
     <div class="flex items-stretch gap-3">
       <Button asChild v-slot="slotProps" aria-label="Go Back" variant="text" severity="secondary">
         <RouterLink to="/dashboard" :class="slotProps.class">
-          <IconArrowLeft :size="24" />
+          <ArrowLeft :size="24" />
         </RouterLink>
       </Button>
       <div>
@@ -22,7 +22,7 @@
         severity="contrast"
         @click="showAddConnectionDialog"
       >
-        <IconRouter :size="24" />
+        <Router :size="24" />
         Add Connection
       </Button>
     </div>
@@ -45,8 +45,9 @@
 </template>
 
 <script setup lang="ts">
+import { ArrowLeft, Router } from 'lucide-vue-next';
 import { ref, computed } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import ConnectionItem from './ConnectionItem.vue';
 import AddConnectionDialog from './AddConnectionDialog.vue';
 import ConfirmDialog from './ConfirmDialog.vue';
@@ -54,6 +55,7 @@ import { useConnectionStore } from '@/composables/core/stores/connection/useConn
 import { useConnection } from '@/composables/core/useConnection';
 import { useGlobalToast } from '@/composables/useGlobalToast';
 
+const route = useRoute();
 const router = useRouter();
 
 type AddConnectionDialogHandle = { open: () => void; close: () => void };
@@ -102,7 +104,9 @@ async function onConnect(id: number) {
         detail: 'Device connected.',
         life: 2000,
       });
-      router.push({ name: 'dashboard.home', params: {}, query: {} });
+      const redirect = route.query.redirect as string | undefined;
+      router.push(redirect ?? { name: 'dashboard.home', params: {}, query: {} });
+      //router.push({ name: 'dashboard.home', params: {}, query: {} });
     } else {
       useGlobalToast().add({
         severity: 'error',

@@ -6,7 +6,7 @@
     pt:root:class="dialog-max-w"
   >
     <template #closeicon>
-      <IconCircleX />
+      <CircleX />
     </template>
     <template #header>
       <div>
@@ -37,15 +37,15 @@
     <Tabs :value="selectedTab" @update:value="handleTabChange">
       <TabList>
         <Tab value="http" as="div" class="flex items-center gap-2 tab-size">
-          <IconGlobe :size="15" />
+          <Globe :size="15" />
           <span class="whitespace-nowrap">HTTP</span>
         </Tab>
         <Tab value="bluetooth" as="div" class="flex items-center gap-2 tab-size">
-          <IconBluetooth :size="15" />
+          <Bluetooth :size="15" />
           <span class="whitespace-nowrap">Bluetooth</span>
         </Tab>
         <Tab value="serial" as="div" class="flex items-center gap-2 tab-size">
-          <IconCable :size="15" />
+          <Cable :size="15" />
           <span class="whitespace-nowrap">Serial</span>
         </Tab>
       </TabList>
@@ -94,7 +94,7 @@
                 strokeWidth="5"
                 fill="transparent"
               />
-              <IconNetwork v-else :size="15" />
+              <Network v-else :size="15" />
               Test connection
             </Button>
             <Message
@@ -104,7 +104,7 @@
               variant="simple"
             >
               <div class="flex items-center gap-2">
-                <IconCircleCheck :size="15" />
+                <CircleCheck :size="15" />
                 Reachable
               </div>
             </Message>
@@ -115,7 +115,7 @@
               variant="simple"
             >
               <div class="flex items-center gap-2">
-                <IconCircleX :size="15" />
+                <CircleX :size="15" />
                 Not reachable
               </div>
             </Message>
@@ -131,7 +131,7 @@
           <Message v-else size="small" severity="error">Web Bluetooth not supported</Message>
           <div class="flex gap-2 items-center mt-4">
             <Button severity="secondary" size="small">
-              <IconSquareMousePointer :size="15" />
+              <SquareMousePointer :size="15" />
               Select device
             </Button>
             <div class="text-sm text-slate-500 dark:text-slate-400 truncate">
@@ -143,7 +143,7 @@
           </p>
           <Message severity="info" size="small">
             <div class="flex gap-2 items-center">
-              <IconInfo />
+              <Info />
               <div>
                 This connection type requires
                 <a
@@ -166,7 +166,7 @@
           <Message v-else size="small" severity="error">Web Serial not supported</Message>
           <div class="flex gap-2 items-center mt-4">
             <Button severity="secondary" size="small" @click="requestSerialPort">
-              <IconSquareMousePointer :size="15" />
+              <SquareMousePointer :size="15" />
               Select port
             </Button>
             <div class="text-sm text-slate-500 dark:text-slate-400 truncate">{{ serialPort }}</div>
@@ -176,7 +176,7 @@
           </p>
           <Message severity="info" size="small">
             <div class="flex gap-2 items-center">
-              <IconInfo />
+              <Info />
               <div>
                 This connection type requires
                 <a
@@ -197,7 +197,7 @@
 
     <template #footer>
       <Button severity="secondary" size="small" :disabled="v$.$invalid" @click="addConnection">
-        <IconSave :size="15" />
+        <Save :size="15" />
         Save connection
       </Button>
     </template>
@@ -206,6 +206,17 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
+import {
+  CircleX,
+  Globe,
+  Bluetooth,
+  Cable,
+  Network,
+  CircleCheck,
+  SquareMousePointer,
+  Info,
+  Save,
+} from 'lucide-vue-next';
 import { useVuelidate } from '@vuelidate/core';
 import { required, or, ipAddress } from '@vuelidate/validators';
 import {

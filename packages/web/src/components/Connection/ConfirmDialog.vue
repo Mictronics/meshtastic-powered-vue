@@ -10,7 +10,7 @@
         <div
           class="rounded-full confirm-icon inline-flex justify-center items-center h-24 w-24 -mt-20"
         >
-          <IconShieldQuestionMark :size="64" />
+          <ShieldQuestionMark :size="64" />
         </div>
         <span class="font-bold text-2xl block mb-2 mt-6">{{ message.header }}</span>
         <p class="mb-0">{{ message.message }}</p>
@@ -29,7 +29,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ShieldQuestionMark } from 'lucide-vue-next';
 import { useConfirm } from 'primevue/useconfirm';
 
 interface ConfirmOptions {
