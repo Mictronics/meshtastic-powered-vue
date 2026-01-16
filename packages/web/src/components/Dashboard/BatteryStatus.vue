@@ -70,9 +70,8 @@ const statusConfigMap: Record<BatteryStatus, StatusConfig> = {
   },
 };
 
-const batteryStatus = computed(() => {
-  return statusConfigMap[getBatteryStatus(props.batteryLevel || 0)];
-});
+const level = computed(() => props.batteryLevel ?? 0);
+const batteryStatus = computed(() => statusConfigMap[getBatteryStatus(level.value)]);
 </script>
 
 <style lang="css" scoped>
