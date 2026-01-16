@@ -43,13 +43,7 @@ import ConfirmationService from 'primevue/confirmationservice';
 import Tooltip from 'primevue/tooltip';
 
 import { useGlobalToast } from '@/composables/useGlobalToast';
-import { useIndexedDB } from '@/composables/core/stores/indexedDB';
-import { useConnectionStore } from '@/composables/core/stores/connection/useConnectionStore';
-import { useDeviceStore } from '@/composables/core/stores/device/useDeviceStore';
-import { useMessageStore } from '@/composables/core/stores/message/useMessageStore';
-import { useNodeDBStore } from '@/composables/core/stores/nodeDB/useNodeDBStore';
-import { useAppStore } from '@/composables/core/stores/app/useAppStore';
-import { useFormattedNodeDatabase } from '@/composables/core/utils/useFormattedNodeDatabase';
+import { bootstrapApp } from './bootstrap';
 
 const app = createApp(App);
 
@@ -72,17 +66,7 @@ app.use(ConfirmationService);
 app.directive('tooltip', Tooltip);
 app.component('Toast', Toast);
 
-try {
-    useIndexedDB();
-    useAppStore();
-    useConnectionStore();
-    useDeviceStore();
-    useMessageStore();
-    useNodeDBStore();
-    useFormattedNodeDatabase();
-} catch (err) {
-    console.error('App bootstrap failed:', err);
-}
+bootstrapApp();
 
 try {
     const globalToast = useGlobalToast();
