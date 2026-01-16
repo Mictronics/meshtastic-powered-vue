@@ -6,8 +6,10 @@
     <component
       v-if="props.isPublicKeyVerified !== undefined"
       :is="iconComponent"
-      class="absolute top-2 right-2 text-slate-500"
-      :size="16"
+      class="absolute top-2 right-2"
+      :class="iconColorClass"
+      :size="15"
+      v-tooltip="{ value: 'Public Key Verification', showDelay: 1000, hideDelay: 300 }"
     />
 
     <div class="flex items-center gap-2 mb-1">
@@ -27,15 +29,22 @@
 import { computed, type Component } from 'vue';
 import { ShieldCheck, ShieldX } from 'lucide-vue-next';
 
-const props = defineProps<{
-  label?: string;
-  value?: string | number;
-  isPublicKeyVerified?: { type: boolean; default: undefined };
-}>();
+const props = defineProps({
+  label: String,
+  value: [String, Number],
+  isPublicKeyVerified: {
+    type: Boolean,
+    default: undefined, // Enforce tri-state variable. Otherwise false by default.
+  },
+});
 
-// Compute icon component only if isPublicKeyVerified is boolean
 const iconComponent = computed<Component | null>(() => {
   if (props.isPublicKeyVerified === undefined) return null;
   return props.isPublicKeyVerified ? ShieldCheck : ShieldX;
+});
+
+const iconColorClass = computed(() => {
+  if (props.isPublicKeyVerified === undefined) return '';
+  return props.isPublicKeyVerified ? 'text-lime-500' : 'text-red-500';
 });
 </script>
