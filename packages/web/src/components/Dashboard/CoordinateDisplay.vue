@@ -7,14 +7,19 @@
     <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
       {{ modes[modeIndex] }}
     </div>
-    <div class="text-sm text-slate-700">
+    <div class="flex gap-2 text-sm text-slate-700">
+      <MapPinned :size="15" />
       {{ displayValue }}
     </div>
-    <div class="text-sm text-slate-700">{{ alt }}m</div>
+    <div class="flex gap-2 text-sm text-slate-700">
+      <MountainSnow :size="15" />
+      {{ alt }}m
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { MountainSnow, MapPinned } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import proj4 from 'proj4';
 
