@@ -3,6 +3,7 @@ import { toRaw, isReactive, ref, type DebuggerEvent } from 'vue'
 import { watchImmediate } from '@vueuse/core';
 import { base16 } from 'rfc4648';
 import humanizeDuration from 'humanize-duration';
+import { fromByteArray } from 'base64-js';
 import { Protobuf } from "@meshtastic/core";
 import { useNodeDBStore } from '@/composables/core/stores/nodeDB/useNodeDBStore';
 
@@ -28,9 +29,12 @@ export interface IFormattedNode {
     uptime?: string;
     role?: string;
     hasPosition: boolean;
+    hasMetrics: boolean;
     lat?: number;
     lon?: number;
     alt?: number;
+    publicKey?: string;
+    isPublicKeyVerified: boolean;
 }
 
 type IFormattedNodeMap = { [key: string]: IFormattedNode };
@@ -65,6 +69,7 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
                 airUtilTx: node.deviceMetrics?.airUtilTx,
                 uptime: formatUptime(node.deviceMetrics?.uptimeSeconds),
                 role: Protobuf.Config.Config_DeviceConfig_Role[node.user?.role ?? 0]?.replaceAll('_', ' '),
+                hasMetrics: !!node.deviceMetrics,
                 hasPosition: !!node.position,
                 lat: node.position?.latitudeI != null
                     ? node.position.latitudeI / 1e7
@@ -73,6 +78,8 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
                     ? node.position.longitudeI / 1e7
                     : undefined,
                 alt: node.position?.altitude,
+                publicKey: formatPublicKey(node.user?.publicKey),
+                isPublicKeyVerified: node.isKeyManuallyVerified,
             };
             nodeDatabase.value[node.num] = formatted;
         }
@@ -116,6 +123,12 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
             return humanizeDuration(t * 1000, { round: true, serialComma: false, language: "en", units: ["y", "mo", "w", "d", "h", "m"], largest: 3 })
         }
         return undefined;
+    }
+
+    function formatPublicKey(key: Uint8Array<ArrayBufferLike> | undefined) {
+        if (key && key.length > 0) {
+            return fromByteArray(key);
+        }
     }
 
     function getNodesLength() {
