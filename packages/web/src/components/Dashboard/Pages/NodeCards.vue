@@ -1,8 +1,6 @@
 <template>
-  <div class="p-6 bg-slate-50 min-h-screen font-sans text-slate-900">
-    <div
-      class="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 mb-8 items-center justify-between"
-    >
+  <div class="p-1 bg-slate-50/50 dark:bg-slade-800 font-sans text-slate-900">
+    <div class="mx-auto flex flex-col md:flex-row gap-4 mb-8 items-center justify-between">
       <div class="relative w-full md:w-96">
         <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" :size="18" />
         <InputText
@@ -12,7 +10,7 @@
         />
       </div>
 
-      <div class="flex gap-2 bg-white p-1 rounded-xl shadow-sm border border-slate-200">
+      <div class="flex gap-2 p-1 rounded-xl shadow-sm border border-slate-200">
         <Button
           @click="toggleSort('name')"
           :variant="sortKey === 'name' ? 'primary' : 'text'"
@@ -34,17 +32,15 @@
       </div>
     </div>
 
-    <div class="max-w-7xl mx-auto">
-      <VirtualScroller
-        :items="chunkedNodes"
-        :itemSize="260"
-        scrollHeight="75vh"
-        class="!bg-transparent"
-      >
+    <div class="mx-auto">
+      <VirtualScroller :items="chunkedNodes" :itemSize="170" scrollHeight="85vh" class="">
         <template #item="{ item: rowNodes }">
           <div
             class="grid gap-6 p-2 w-full"
-            :style="{ gridTemplateColumns: `repeat(${cardsPerRow}, minmax(0, 1fr))` }"
+            :style="{
+              gridTemplateColumns: `repeat(${cardsPerRow}, minmax(0, 1fr))`,
+              height: '170px',
+            }"
           >
             <div
               v-for="node in (rowNodes as IFormattedNode[])"
@@ -224,7 +220,7 @@ onMounted(() => window.addEventListener('resize', updateWidth));
 onUnmounted(() => window.removeEventListener('resize', updateWidth));
 
 const cardsPerRow = computed(() => {
-  if (windowWidth.value >= 1280) return 4; // xl
+  if (windowWidth.value >= 1280) return 5; // xl
   if (windowWidth.value >= 1024) return 3; // lg
   if (windowWidth.value >= 768) return 2; // md
   return 1; // sm
