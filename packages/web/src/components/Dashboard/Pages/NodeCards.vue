@@ -131,24 +131,34 @@
           />
           <NodeDetailsItem label="Hardware" :value="selectedNode.hwModel" />
         </div>
-        <div class="divider">
+        <div v-if="selectedNode.hasMetrics" class="divider">
           <span class="text-nowrap text-sm text-slate-400">Metrics</span>
         </div>
-        <div class="grid grid-cols-3 gap-2">
+        <div v-if="selectedNode.hasMetrics" class="grid grid-cols-3 gap-2">
           <NodeDetailsItem label="Air TX" :value="airTxUtilization" />
           <NodeDetailsItem label="Channel" :value="channelUtilization" />
           <NodeDetailsItem label="Battery" :value="batteryPercent" />
           <NodeDetailsItem label="Voltage" :value="voltage" />
           <NodeDetailsItem class="col-span-2" label="Uptime" :value="selectedNode.uptime" />
         </div>
-        <div class="divider">
+        <div v-if="selectedNode.hasPosition" class="divider">
           <span class="text-nowrap text-sm text-slate-400">Position</span>
         </div>
-        <div class="grid grid-cols-1">
+        <div v-if="selectedNode.hasPosition" class="grid grid-cols-1">
           <CoordinateDisplay
             :latitude="selectedNode.lat"
             :longitude="selectedNode.lon"
             :alt="selectedNode.alt"
+          />
+        </div>
+        <div class="divider">
+          <span class="text-nowrap text-sm text-slate-400">Security</span>
+        </div>
+        <div class="grid grid-cols-1">
+          <NodeDetailsItem
+            label="Public Key"
+            :value="selectedNode.publicKey"
+            :isPublicKeyVerified="selectedNode.isPublicKeyVerified"
           />
         </div>
         <div class="pt-6 border-t border-slate-100 flex flex-col gap-3">Button</div>
