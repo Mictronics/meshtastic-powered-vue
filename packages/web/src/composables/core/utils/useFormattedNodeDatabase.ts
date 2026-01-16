@@ -11,23 +11,26 @@ export interface IFormattedNode {
     shortName: string;
     longName: string;
     hopsAway: string;
-    numHops: number | undefined;
+    numHops?: number;
     macAddr: string;
     lastHeard: number;
     isEncrypted: boolean;
     isFavorite: boolean;
-    isUnmessagable: boolean | undefined;
+    isUnmessagable?: boolean;
     viaMqtt: boolean;
     snr: string;
     numSnr: number;
-    hwModel: string | undefined;
-    batteryLevel: number | undefined;
-    voltage: number | undefined;
-    channelUtilization: number | undefined;
-    airUtilTx: number | undefined;
-    uptime: string | undefined;
-    role: string | undefined;
+    hwModel?: string;
+    batteryLevel?: number;
+    voltage?: number;
+    channelUtilization?: number;
+    airUtilTx?: number;
+    uptime?: string;
+    role?: string;
     hasPosition: boolean;
+    lat?: number;
+    lon?: number;
+    alt?: number;
 }
 
 type IFormattedNodeMap = { [key: string]: IFormattedNode };
@@ -63,6 +66,13 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
                 uptime: formatUptime(node.deviceMetrics?.uptimeSeconds),
                 role: Protobuf.Config.Config_DeviceConfig_Role[node.user?.role ?? 0]?.replaceAll('_', ' '),
                 hasPosition: !!node.position,
+                lat: node.position?.latitudeI != null
+                    ? node.position.latitudeI / 1e7
+                    : undefined,
+                lon: node.position?.longitudeI != null
+                    ? node.position.longitudeI / 1e7
+                    : undefined,
+                alt: node.position?.altitude,
             };
             nodeDatabase.value[node.num] = formatted;
         }
@@ -103,7 +113,7 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
 
     function formatUptime(t?: number) {
         if (t) {
-            return humanizeDuration(t * 1000, { round: true, serialComma: false, language: "en", units: ["y", "mo", "w", "d", "h", "m"] })
+            return humanizeDuration(t * 1000, { round: true, serialComma: false, language: "en", units: ["y", "mo", "w", "d", "h", "m"], largest: 3 })
         }
         return undefined;
     }
