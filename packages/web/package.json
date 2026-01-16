@@ -34,6 +34,7 @@
     "idb": "^8.0.3",
     "lucide-vue-next": "^0.562.0",
     "primevue": "^4.5.4",
+    "proj4": "^2.20.2",
     "rfc4648": "^1.5.4",
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.1.18",
