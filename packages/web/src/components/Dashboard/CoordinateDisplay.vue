@@ -30,18 +30,12 @@ type Props = {
 };
 
 const props = defineProps<Props>();
-
-/* ------------------ CRS modes ------------------ */
-
 const modes = ['WGS84 DD', 'WGS84 DMS', 'WGS84 DM', 'UTM', 'WebMercator'] as const;
-
 const modeIndex = ref(0);
 
 function nextMode() {
   modeIndex.value = (modeIndex.value + 1) % modes.length;
 }
-
-/* ------------------ Formatting helpers ------------------ */
 
 function toDMS(value: number) {
   const sign = value < 0 ? -1 : 1;
@@ -65,9 +59,6 @@ function toDM(value: number) {
   return { deg, min, sign };
 }
 
-/* ------------------ Projections ------------------ */
-
-// EPSG definitions
 proj4.defs('EPSG:4326', '+proj=longlat +datum=WGS84 +no_defs');
 proj4.defs('EPSG:3857', '+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs');
 
@@ -81,9 +72,6 @@ function utmEpsg(lat: number, lon: number) {
 function utmBand(lat: number) {
   return 'CDEFGHJKLMNPQRSTUVWX'.charAt(Math.floor((lat + 80) / 8));
 }
-
-/* ------------------ Display ------------------ */
-
 const displayValue = computed(() => {
   const lat = props.latitude;
   const lon = props.longitude;
@@ -93,8 +81,11 @@ const displayValue = computed(() => {
   }
 
   switch (modes[modeIndex.value]) {
-    case 'WGS84 DD':
-      return `${lat.toFixed(6)}°, ${lon.toFixed(6)}°`;
+    case 'WGS84 DD': {
+      const latDir = lat >= 0 ? 'N' : 'S';
+      const lonDir = lon >= 0 ? 'E' : 'W';
+      return `${Math.abs(lat).toFixed(6)}° ${latDir}, ${Math.abs(lon).toFixed(6)}° ${lonDir}`;
+    }
 
     case 'WGS84 DMS': {
       const la = toDMS(lat);
@@ -119,7 +110,6 @@ const displayValue = computed(() => {
       const [easting, northing] = proj4('EPSG:4326', epsg, [lon, lat]);
       const zone = epsg.slice(-2);
       const band = utmBand(lat);
-
       return `${zone}${band} ${easting.toFixed(0)} mE ${northing.toFixed(0)} mN`;
     }
 
