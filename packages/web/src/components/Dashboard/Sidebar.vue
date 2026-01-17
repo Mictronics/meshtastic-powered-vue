@@ -1,5 +1,14 @@
 <template>
-  <aside class="dashboard-sidebar" id="side-bar">
+  <aside class="dashboard-sidebar relative" id="side-bar">
+    <Button
+      id="test"
+      severity="secondary"
+      variant="outlined"
+      @click="$emit('eventToggleSidebar')"
+      class="absolute top-4 right-0 translate-x-1/2 px-2 py-2 z-50 bg-white dark:bg-slate-600"
+    >
+      <Menu :size="15" />
+    </Button>
     <div class="flex justify-center items-center dashboard-header">
       <img
         src="@/assets/logo.svg"
@@ -81,8 +90,8 @@
 </template>
 
 <script setup lang="ts">
-import { MessageSquareText, Map, Settings, Users, Sun, Moon, SunMoon } from 'lucide-vue-next';
-import { ref, computed, watchEffect, type Component } from 'vue';
+import { MessageSquareText, Map, Settings, Users, Sun, Moon, SunMoon, Menu } from 'lucide-vue-next';
+import { computed, watchEffect } from 'vue';
 import { useConnectionStore } from '@/composables/core/stores/connection/useConnectionStore';
 import { ConnectionStatus } from '@/composables/core/stores/connection/types';
 import { useDeviceStore } from '@/composables/core/stores/device/useDeviceStore';
@@ -91,6 +100,10 @@ import { useColorMode, useCycleList } from '@vueuse/core';
 import DeviceInfo from '@/components/Dashboard/DeviceInfo.vue';
 import type { FunctionalComponent } from 'vue';
 import type { LucideProps } from 'lucide-vue-next';
+
+const emit = defineEmits<{
+  (e: 'eventToggleSidebar'): void;
+}>();
 
 type DevicePanelItem = {
   label: string;

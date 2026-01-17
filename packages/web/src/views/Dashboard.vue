@@ -2,12 +2,12 @@
   <Toast position="bottom-right" />
   <main>
     <div class="w-full flex">
-      <Sidebar :is-side-bar-visible="useAppStore().appData.isSideBarVisible" />
+      <Sidebar
+        :is-side-bar-visible="useAppStore().appData.isSideBarVisible"
+        @event-toggle-sidebar="onToggleSidebar"
+      />
       <div class="w-full h-full">
-        <Header @event-toggle-sidebar="onToggleSidebar" />
-        <div class="w-full h-[calc(100vh-50px)]">
-          <RouterView />
-        </div>
+        <RouterView />
       </div>
     </div>
   </main>
