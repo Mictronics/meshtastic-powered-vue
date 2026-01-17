@@ -25,6 +25,7 @@
           size="small"
           v-model="connectionName"
           @blur="v$.connectionName.$touch()"
+          class="dark:bg-slate-800 dark:text-slate-400"
         />
         <label for="connectionName">Name</label>
       </FloatLabel>
@@ -72,6 +73,7 @@
                 size="small"
                 v-model="domainOrIp"
                 @blur="v$.connectionUrl.$touch()"
+                class="dark:bg-slate-800 dark:text-slate-400"
               />
               <label for="domainOrIp">URL or IP</label>
             </FloatLabel>

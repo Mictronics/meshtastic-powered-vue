@@ -4,22 +4,22 @@
       <div class="flex justify-between">
         {{ connection.name }}
         <div>
-          <Chip v-if="connection.isDefault" class="connection-item-chip">
+          <Chip v-if="connection.isDefault" class="connection-item-chip dark:text-slate-400">
             <Star fill="orange" strokeWidth="0" :size="15" />
             Default
           </Chip>
-          <Chip v-if="isConnected()" class="connection-item-chip">
+          <Chip v-if="isConnected()" class="connection-item-chip dark:text-slate-400">
             <Link :size="15" />
             Connected
           </Chip>
           <Chip
             v-else-if="connection.status === ConnectionStatus.Disconnected"
-            class="connection-item-chip"
+            class="connection-item-chip dark:text-slate-400"
           >
             <Unlink :size="15" />
             Disconnected
           </Chip>
-          <Chip v-else class="connection-item-chip">
+          <Chip v-else class="connection-item-chip dark:text-slate-400">
             <Hourglass :size="15" />
             {{ getEnumKey(ConnectionStatus, connection.status) }}
           </Chip>
@@ -67,15 +67,24 @@
     </template>
     <template #subtitle>
       <div>
-        <Chip v-if="connection.type === ConnectionType.Http" class="connection-item-chip">
+        <Chip
+          v-if="connection.type === ConnectionType.Http"
+          class="connection-item-chip dark:text-slate-400"
+        >
           <Globe :size="15" />
           HTTP
         </Chip>
-        <Chip v-else-if="connection.type === ConnectionType.Serial" class="connection-item-chip">
+        <Chip
+          v-else-if="connection.type === ConnectionType.Serial"
+          class="connection-item-chip dark:text-slate-400"
+        >
           <Cable :size="15" />
           Serial
         </Chip>
-        <Chip v-else-if="connection.type === ConnectionType.Bluetooth" class="connection-item-chip">
+        <Chip
+          v-else-if="connection.type === ConnectionType.Bluetooth"
+          class="connection-item-chip dark:text-slate-400"
+        >
           <Bluetooth :size="15" />
           Bluetooth
         </Chip>
