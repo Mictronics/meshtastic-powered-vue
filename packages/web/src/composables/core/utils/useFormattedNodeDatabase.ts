@@ -7,6 +7,13 @@ import { fromByteArray } from 'base64-js';
 import { Protobuf } from "@meshtastic/core";
 import { useNodeDBStore } from '@/composables/core/stores/nodeDB/useNodeDBStore';
 
+export enum EncryptionStatus {
+    Encrypted = 0,
+    NotEncrypted,
+    DuplicateKey,
+    KeyMismatch
+}
+
 export interface IFormattedNode {
     nodeNumber: number;
     shortName: string;
@@ -15,7 +22,7 @@ export interface IFormattedNode {
     numHops?: number;
     macAddr: string;
     lastHeard: number;
-    isEncrypted: boolean;
+    encryptionStatus: EncryptionStatus;
     isFavorite: boolean;
     isUnmessagable?: boolean;
     viaMqtt: boolean;
@@ -56,7 +63,7 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
                 hopsAway: formatHops(node.hopsAway, node.viaMqtt),
                 numHops: node.hopsAway,
                 lastHeard: node.lastHeard,
-                isEncrypted: formatEncryption(node.user?.publicKey),
+                encryptionStatus: formatEncryption(node.user?.publicKey),
                 isFavorite: node.isFavorite,
                 isUnmessagable: node.user?.isUnmessagable,
                 viaMqtt: node.viaMqtt,
@@ -83,6 +90,20 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
             };
             nodeDatabase.value[node.num] = formatted;
         }
+        // Check for node errors
+        for (const node of Object.values(ndb.nodeErrors)) {
+            const k = node.node;
+            if (nodeDatabase.value[k]) {
+                switch (node.error) {
+                    case 'DUPLICATE_PKI':
+                        nodeDatabase.value[k].encryptionStatus = EncryptionStatus.DuplicateKey;
+                        break;
+                    case 'MISMATCH_PKI':
+                        nodeDatabase.value[k].encryptionStatus = EncryptionStatus.KeyMismatch;
+                        break;
+                }
+            }
+        }
     }, { deep: true });
 
     function formatName(num: number, shortName?: string, longName?: string) {
@@ -108,10 +129,10 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
         return s1 + s2;
     }
 
-    function formatEncryption(pki?: Uint8Array | ArrayBuffer): boolean {
-        if (!pki) return false;
+    function formatEncryption(pki?: Uint8Array | ArrayBuffer): EncryptionStatus {
+        if (!pki) return EncryptionStatus.NotEncrypted;
         const u8 = pki instanceof Uint8Array ? pki : new Uint8Array(pki);
-        return u8.length > 0;
+        return (u8.length > 0) ? EncryptionStatus.Encrypted : EncryptionStatus.NotEncrypted;
     }
 
     function formatSnr(snr: number) {

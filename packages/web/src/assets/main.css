@@ -93,6 +93,10 @@
   color: oklch(79.5% 0.184 86.047);
 }
 
+.encryption-key-icon {
+  color: oklch(70.4% 0.191 22.216);
+}
+
 .unmessagabel-icon {
   color: oklch(70.4% 0.191 22.216);
 }

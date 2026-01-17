@@ -53,9 +53,9 @@
                     :shortName="node.shortName"
                   />
                   <div class="flex gap-2">
-                    <Lock v-if="node.isEncrypted" :size="20" class="encryption-lock-icon" />
-                    <LockOpen v-else :size="20" class="encryption-unlock-icon" />
-
+                    <Lock v-if="node.encryptionStatus === EncryptionStatus.Encrypted" :size="20" class="encryption-lock-icon" />
+                    <LockOpen v-else-if="node.encryptionStatus === EncryptionStatus.NotEncrypted" :size="20" class="encryption-unlock-icon" />
+                    <KeyRound v-else :size="20" class="encryption-key-icon" />
                     <MessageSquareOff
                       v-if="node.isUnmessagable"
                       :size="20"
@@ -164,12 +164,13 @@
 </template>
 
 <script setup lang="ts">
-import { Lock, LockOpen, MessageSquareOff, Satellite, Network } from 'lucide-vue-next';
+import { Lock, LockOpen, MessageSquareOff, Satellite, Network, KeyRound } from 'lucide-vue-next';
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { formatTimeAgoIntl } from '@vueuse/core';
 import { numberToHexUnpadded } from '@noble/curves/utils.js';
 import {
   type IFormattedNode,
+  EncryptionStatus,
   useFormattedNodeDatabase,
 } from '@/composables/core/utils/useFormattedNodeDatabase';
 import NodeAvatar from '@/components/Dashboard/NodeAvatar.vue';
