@@ -1,7 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import ConnectionsView from '@/views/ConnectionsView.vue'
 import Dashboard from '@/views/Dashboard.vue'
-import NodeView from '@/components/Dashboard/Pages/NodeView.vue'
 import NodeCards from '@/components/Dashboard/Pages/NodeCards.vue'
 
 const router = createRouter({
@@ -19,11 +18,6 @@ const router = createRouter({
           component: NodeCards,
         },
       ],
-    },
-    {
-      path: '/test',
-      name: 'test',
-      component: NodeView,
     },
     {
       path: '/',
