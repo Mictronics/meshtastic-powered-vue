@@ -150,8 +150,29 @@
             :isPublicKeyVerified="selectedNode.isPublicKeyVerified"
           />
         </div>
-        <div class="pt-6 border-t border-slate-100 dark:border-slate-600 flex flex-col gap-3">
-          Button
+        <div class="pt-6 border-t border-slate-100 dark:border-slate-600 flex gap-2">
+          <Button
+            v-if="isFavorite"
+            severity="secondary"
+            size="small"
+            @click="onMarkFavorite(selectedNode.nodeNumber, false)"
+          >
+            <StarOff :size="15" />
+            Unmark favorite
+          </Button>
+          <Button
+            v-else
+            severity="secondary"
+            size="small"
+            @click="onMarkFavorite(selectedNode.nodeNumber, true)"
+          >
+            <Star :size="15" />
+            Mark favorite
+          </Button>
+          <Button severity="danger" size="small">
+            <Trash2 :size="15" />
+            Delete
+          </Button>
         </div>
       </div>
     </Drawer>
@@ -167,6 +188,9 @@ import {
   Network,
   KeyRound,
   Search,
+  Star,
+  StarOff,
+  Trash2,
 } from 'lucide-vue-next';
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { formatTimeAgoIntl } from '@vueuse/core';
@@ -176,6 +200,7 @@ import {
   EncryptionStatus,
   useFormattedNodeDatabase,
 } from '@/composables/core/utils/useFormattedNodeDatabase';
+import { useNodeDBStore } from '@/composables/core/stores/nodeDB/useNodeDBStore';
 import NodeAvatar from '@/components/Dashboard/NodeAvatar.vue';
 import BatteryStatus from '@/components/Dashboard/BatteryStatus.vue';
 import NodeDetailsItem from '@/components/Dashboard/NodeDetailsItem.vue';
@@ -186,6 +211,7 @@ import { type SortDir } from '@/components/Dashboard/SortButtonGroup.vue';
 import * as _ from 'lodash-es';
 
 const nodeDatabase = useFormattedNodeDatabase().nodeDatabase;
+const nodeDBStore = useNodeDBStore();
 const searchQuery = ref('');
 const showDrawer = ref(false);
 const selectedNode = ref<IFormattedNode>();
@@ -214,6 +240,11 @@ const channelUtilization = computed(() => {
   const val = selectedNode.value?.channelUtilization;
   if (val == null) return 'N/A';
   return `${val.toFixed(1)} %`;
+});
+
+const isFavorite = computed(() => {
+  if (selectedNode.value?.nodeNumber)
+    return nodeDatabase.value[selectedNode.value.nodeNumber]?.isFavorite;
 });
 
 const updateWidth = () => (windowWidth.value = window.innerWidth);
@@ -276,6 +307,10 @@ function formatLastHeard(epoch?: number) {
   }
   date.setUTCSeconds(epoch);
   return formatTimeAgoIntl(date);
+}
+
+function onMarkFavorite(nodeNumber: number, fav: boolean) {
+  nodeDBStore.nodeDatabase.value?.updateFavorite(nodeNumber, fav);
 }
 </script>
 
