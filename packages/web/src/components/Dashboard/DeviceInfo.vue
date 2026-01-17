@@ -7,13 +7,10 @@
         class="text-sm font-medium logo-text truncate"
         v-tooltip.right="{
           value: longName,
+          showDelay: 100,
+          hideDelay: 500,
           pt: {
-            arrow: {
-              style: {
-                borderBottomColor: 'var(--p-secondary-color)',
-              },
-            },
-            text: '!bg-secondary !logo-text !font-light !text-xs',
+            text: 'bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-400 text-sm',
           },
         }"
       >
