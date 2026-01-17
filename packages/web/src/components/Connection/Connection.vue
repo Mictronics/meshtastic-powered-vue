@@ -7,9 +7,7 @@
         </RouterLink>
       </Button>
       <div>
-        <h1 class="text-xl text-2xl md:text-3xl font-bold tracking-tight">
-          Connect to a Meshtastic device
-        </h1>
+        <h1 class="text-xl md:text-3xl font-bold tracking-tight">Connect to a Meshtastic device</h1>
         <p class="lg:w-4/6 md:w-5/6 text-slate-500 dark:text-slate-400 mt-1">
           Add a device connection via HTTP. Your connections will be saved in your browser.
         </p>
