@@ -27,7 +27,7 @@
             class="flex items-center py-1 group w-full"
             @click.native="item.command && item.command"
           >
-            <component :is="item.icon" />
+            <component :is="item.myIcon" />
             <span v-if="isSideBarVisible" class="ml-2">{{ item.label }}</span>
             <Badge
               v-if="item.badge"
@@ -44,7 +44,7 @@
             class="flex items-center py-1 group w-full"
             @click="item.command && item.command"
           >
-            <component :is="item.icon" />
+            <component :is="item.myIcon" />
             <span v-if="isSideBarVisible" class="ml-2">{{ item.label }}</span>
             <Badge
               v-if="item.badge"
@@ -56,6 +56,7 @@
           </button>
         </template>
       </PanelMenu>
+
       <DeviceInfo
         :connection-status="connectionStatus"
         :connection-name="connectionName"
@@ -70,7 +71,7 @@
       <PanelMenu :model="appPanelItems" class="w-full gap-2!" pt:panel:class="dashboard-panelmenu">
         <template #item="{ item }">
           <a class="flex items-center py-1 cursor-pointer group">
-            <component :is="item.icon" />
+            <component :is="item.myIcon" />
             <span v-if="isSideBarVisible" :class="['ml-2']">{{ item.label }}</span>
           </a>
         </template>
@@ -80,13 +81,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watchEffect } from 'vue';
+import { MessageSquareText, Map, Settings, Users, Sun, Moon, SunMoon } from 'lucide-vue-next';
+import { ref, computed, watchEffect, type Component } from 'vue';
 import { useConnectionStore } from '@/composables/core/stores/connection/useConnectionStore';
 import { ConnectionStatus } from '@/composables/core/stores/connection/types';
 import { useDeviceStore } from '@/composables/core/stores/device/useDeviceStore';
 import { useNodeDBStore } from '@/composables/core/stores/nodeDB/useNodeDBStore';
 import { useColorMode, useCycleList } from '@vueuse/core';
 import DeviceInfo from '@/components/Dashboard/DeviceInfo.vue';
+import type { FunctionalComponent } from 'vue';
+import type { LucideProps } from 'lucide-vue-next';
+
+type DevicePanelItem = {
+  label: string;
+  myIcon: FunctionalComponent<LucideProps>;
+  command: () => void;
+  badge?: number;
+  severity?: 'info' | 'warn' | 'success' | 'danger' | 'secondary';
+  to?: any;
+};
 
 const props = defineProps<{
   isSideBarVisible: boolean;
@@ -131,59 +144,55 @@ const nodeCount = computed(() => {
   return undefined;
 });
 
-const devicePanelItems = computed(() => [
+const devicePanelItems = computed<DevicePanelItem[]>(() => [
   {
     label: 'Messages',
-    icon: 'IconMessageSquareText',
+    myIcon: MessageSquareText,
     badge: 2,
     severity: 'info',
     command: () => console.log('Test1'),
-    //    to: { name: 'Messages' }, // or a path string '/map'
   },
   {
     label: 'Map',
-    icon: 'IconMap',
+    myIcon: Map,
     command: () => console.log('Test2'),
-    //to: { name: 'Map' }
   },
   {
     label: 'Settings',
-    icon: 'IconSettings',
+    myIcon: Settings,
     command: () => console.log('Test3'),
-    //    to: { name: 'Settings' },
   },
   {
     label: 'Nodes',
-    icon: 'IconUsers',
+    myIcon: Users,
     badge: nodeCount.value,
     severity: 'secondary',
     command: () => console.log('Test4'),
-    //    to: { name: 'Nodes' },
   },
 ]);
 
-const appPanelItems = ref([
+const appPanelItems = computed(() => [
   {
     label: 'Color Scheme',
-    get icon() {
-      return modeIcon.value;
-    },
-    command: () => {
-      next();
-    },
+    myIcon: modeIcon.value,
+    command: () => next(),
   },
 ]);
 
 type Theme = 'auto' | 'light' | 'dark';
-const mode = useColorMode({ emitAuto: true });
+const mode = useColorMode({
+  selector: 'html',
+  attribute: 'class',
+  emitAuto: true,
+});
 const { state, next } = useCycleList<Theme>(['auto', 'light', 'dark'], {
   initialValue: mode.value as Theme,
 });
 
 const modeIcon = computed(() => {
-  if (state.value === 'light') return 'IconSun';
-  if (state.value === 'dark') return 'IconMoon';
-  return 'IconSunMoon';
+  if (state.value === 'light') return Sun;
+  if (state.value === 'dark') return Moon;
+  return SunMoon;
 });
 watchEffect(() => (mode.value = state.value));
 </script>
