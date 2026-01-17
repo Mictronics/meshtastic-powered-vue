@@ -44,7 +44,13 @@
           >
             <div v-for="node in rowNodes" :key="node.nodeNumber" @click="openQuickView(node)">
               <div
-                class="group cursor-pointer bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-2xl p-3 shadow-sm hover:shadow-xl hover:border-green-500 transition-all duration-300 active:scale-[0.98]"
+                class="group cursor-pointer bg-white dark:bg-slate-800 border rounded-2xl p-3 shadow-sm hover:shadow-xl hover:border-green-500 transition-all duration-300 active:scale-[0.98]"
+                :class="{
+                  'border-amber-500': node.isFavorite,
+                  'border-slate-200': !node.isFavorite,
+                  'dark:border-amber-500/50': node.isFavorite,
+                  'dark:border-slate-600': !node.isFavorite,
+                }"
               >
                 <div class="flex justify-between items-start mb-3">
                   <NodeAvatar
@@ -153,7 +159,7 @@
             :alt="selectedNode.alt"
           />
         </div>
-        <div class="divider">
+        <div v-if="selectedNode.publicKey" class="divider">
           <span class="text-nowrap text-sm text-slate-400">Security</span>
         </div>
         <div class="grid grid-cols-1">
