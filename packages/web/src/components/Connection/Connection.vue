@@ -38,6 +38,7 @@
       @event-reconnect="onConnect"
       @event-connection-delete="deleteConnection"
       @event-connection-default="setDefaultConnection"
+      class="border border-slate-200 dark:border-slate-600"
     />
   </div>
   <AddConnectionDialog ref="addConnectionDialog" />
