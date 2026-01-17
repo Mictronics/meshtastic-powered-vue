@@ -169,7 +169,7 @@
             <Star :size="15" />
             Mark favorite
           </Button>
-          <Button severity="danger" size="small">
+          <Button severity="danger" size="small" @click="deleteNode(selectedNode.nodeNumber)">
             <Trash2 :size="15" />
             Delete
           </Button>
@@ -177,6 +177,7 @@
       </div>
     </Drawer>
   </div>
+  <ConfirmDialog ref="confirmDialogRef" />
 </template>
 
 <script setup lang="ts">
@@ -207,6 +208,7 @@ import NodeDetailsItem from '@/components/Dashboard/NodeDetailsItem.vue';
 import DeviceImage from '@/components/Dashboard/DeviceImage.vue';
 import CoordinateDisplay from '@/components/Dashboard/CoordinateDisplay.vue';
 import SortButtonGroup from '@/components/Dashboard/SortButtonGroup.vue';
+import ConfirmDialog from '@/components/Connection/ConfirmDialog.vue';
 import { type SortDir } from '@/components/Dashboard/SortButtonGroup.vue';
 import * as _ from 'lodash-es';
 
@@ -311,6 +313,20 @@ function formatLastHeard(epoch?: number) {
 
 function onMarkFavorite(nodeNumber: number, fav: boolean) {
   nodeDBStore.nodeDatabase.value?.updateFavorite(nodeNumber, fav);
+}
+
+const confirmDialogRef = ref<InstanceType<typeof ConfirmDialog> | null>(null);
+async function deleteNode(nodeNumber: number) {
+  const confirmed = await confirmDialogRef.value?.open({
+    header: 'Delete Node?',
+    message: 'All data linked to this node will be permanently deleted.',
+    acceptLabel: 'Delete',
+    cancelLabel: 'Cancel',
+  });
+
+  if (confirmed) {
+    nodeDBStore.nodeDatabase.value?.removeNode(nodeNumber);
+  }
 }
 </script>
 
