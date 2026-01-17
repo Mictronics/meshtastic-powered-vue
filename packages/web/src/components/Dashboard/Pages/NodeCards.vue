@@ -1,50 +1,31 @@
 <template>
   <div class="p-1 bg-slate-50/50 dark:bg-slate-900 font-sans text-slate-900">
-    <div class="mx-auto flex flex-col md:flex-row gap-4 mb-8 items-center justify-between">
-      <div class="relative w-full md:w-96">
-        <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" :size="18" />
+    <div class="mx-auto flex flex-col md:flex-row gap-4 mb-2 mr-6 items-center justify-end">
+      <div class="relative mr-4">
         <InputText
           v-model="searchQuery"
-          placeholder="Nodes durchsuchen..."
-          class="w-full pl-10 pt-2 pb-2 rounded-xl! border-slate-200"
+          placeholder="Search nodes..."
+          class="w-full pr-10 rounded-xl! border-slate-200! dark:border-slate-600! translate-x-4 bg-white dark:bg-slate-800"
+          size="small"
         />
+        <Search class="absolute right-1 top-1/2 -translate-y-1/2 text-slate-400" :size="20" />
       </div>
-
-      <div class="flex gap-2 p-1 rounded-xl shadow-sm border border-slate-200">
-        <Button
-          @click="toggleSort('name')"
-          :variant="sortKey === 'name' ? 'primary' : 'text'"
-          size="small"
-          class="px-4"
-        >
-          Name
-          <ArrowUpDown :size="14" class="ml-2" />
-        </Button>
-        <Button
-          @click="toggleSort('cpu')"
-          :variant="sortKey === 'cpu' ? 'primary' : 'text'"
-          size="small"
-          class="px-4"
-        >
-          Last
-          <Activity :size="14" class="ml-2" />
-        </Button>
-      </div>
+      <SortButtonGroup @sort-toggle="onSortToggle" />
     </div>
 
     <div class="mx-auto">
-      <VirtualScroller :items="chunkedNodes" :itemSize="171" scrollHeight="85vh" class="">
+      <VirtualScroller :items="chunkedNodes" :itemSize="155" scrollHeight="92vh">
         <template #item="{ item: rowNodes }">
           <div
-            class="grid gap-6 p-2 w-full"
+            class="grid gap-4 p-2 w-full"
             :style="{
               gridTemplateColumns: `repeat(${cardsPerRow}, minmax(0, 1fr))`,
-              height: '171px',
+              height: '155px',
             }"
           >
             <div v-for="node in rowNodes" :key="node.nodeNumber" @click="openQuickView(node)">
               <div
-                class="group cursor-pointer bg-white dark:bg-slate-800 border rounded-2xl p-3 shadow-sm hover:shadow-xl hover:border-green-500 transition-all duration-300 active:scale-[0.98]"
+                class="group cursor-pointer bg-white dark:bg-slate-800 border rounded-2xl p-2 shadow-sm hover:shadow-xl hover:border-green-500 transition-all duration-300 active:scale-[0.98]"
                 :class="{
                   'border-amber-500': node.isFavorite,
                   'border-slate-200': !node.isFavorite,
@@ -52,7 +33,7 @@
                   'dark:border-slate-600': !node.isFavorite,
                 }"
               >
-                <div class="flex justify-between items-start mb-3">
+                <div class="flex justify-between items-start mb-2">
                   <NodeAvatar
                     :isFavorite="node.isFavorite"
                     :nodeNumber="node.nodeNumber"
@@ -79,7 +60,7 @@
                     <Network v-if="node.viaMqtt" :size="20" class="via-mqtt-icon" />
                   </div>
                 </div>
-                <h3 class="text-lg font-bold text-slate-800 dark:text-slate-400 mb-2 truncate">
+                <h3 class="text-lg font-bold text-slate-800 dark:text-slate-400 mb-1 truncate">
                   {{ node.longName }}
                 </h3>
                 <div class="space-y-1">
@@ -178,7 +159,15 @@
 </template>
 
 <script setup lang="ts">
-import { Lock, LockOpen, MessageSquareOff, Satellite, Network, KeyRound } from 'lucide-vue-next';
+import {
+  Lock,
+  LockOpen,
+  MessageSquareOff,
+  Satellite,
+  Network,
+  KeyRound,
+  Search,
+} from 'lucide-vue-next';
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { formatTimeAgoIntl } from '@vueuse/core';
 import { numberToHexUnpadded } from '@noble/curves/utils.js';
@@ -192,15 +181,12 @@ import BatteryStatus from '@/components/Dashboard/BatteryStatus.vue';
 import NodeDetailsItem from '@/components/Dashboard/NodeDetailsItem.vue';
 import DeviceImage from '@/components/Dashboard/DeviceImage.vue';
 import CoordinateDisplay from '@/components/Dashboard/CoordinateDisplay.vue';
+import SortButtonGroup from '@/components/Dashboard/SortButtonGroup.vue';
+import { type SortDir } from '@/components/Dashboard/SortButtonGroup.vue';
+import * as _ from 'lodash-es';
 
 const nodeDatabase = useFormattedNodeDatabase().nodeDatabase;
-const nodes = computed<IFormattedNode[]>(() => {
-  return Object.values(nodeDatabase.value || {});
-});
-
 const searchQuery = ref('');
-const sortKey = ref('name');
-const sortOrder = ref(1); // 1: ASC, -1: DESC
 const showDrawer = ref(false);
 const selectedNode = ref<IFormattedNode>();
 const windowWidth = ref(window.innerWidth);
@@ -241,38 +227,38 @@ const cardsPerRow = computed(() => {
   return 1; // sm
 });
 
-const sortedNodes = computed(() => {
-  let items = nodes.value.filter((n) =>
-    n.longName.toLowerCase().includes(searchQuery.value.toLowerCase())
-  );
+const sortKey = ref<string[]>([]);
+const sortDir = ref<SortDir[]>([]);
+const onSortToggle = (keys: string[], dir: SortDir[]) => {
+  sortKey.value = keys;
+  sortDir.value = dir;
+};
 
-  return items.sort((a, b) => {
-    const valA = a[sortKey.value as keyof IFormattedNode];
-    const valB = b[sortKey.value as keyof IFormattedNode];
+const filteredNodes = computed(() => {
+  let nodes = Object.values(nodeDatabase.value);
+  // Apply deep search with Fuse-like behavior (fuzzy searching over multiple fields)
+  if (searchQuery.value.trim()) {
+    nodes = _.filter(nodes, (node: any) => {
+      return _.some(node, (value) => {
+        return value && value.toString().toLowerCase().includes(searchQuery.value.toLowerCase());
+      });
+    });
+  }
+  return nodes;
+});
 
-    if (typeof valA === 'number' && typeof valB === 'number') {
-      return (valA - valB) * sortOrder.value;
-    }
-    return String(valA).localeCompare(String(valB), undefined, { numeric: true }) * sortOrder.value;
-  });
+const sortedFilteredNodes = computed(() => {
+  let nodes = filteredNodes.value;
+  return _.orderBy(nodes, sortKey.value, sortDir.value);
 });
 
 const chunkedNodes = computed(() => {
   const chunks: IFormattedNode[][] = [];
-  for (let i = 0; i < sortedNodes.value.length; i += cardsPerRow.value) {
-    chunks.push(sortedNodes.value.slice(i, i + cardsPerRow.value));
+  for (let i = 0; i < sortedFilteredNodes.value.length; i += cardsPerRow.value) {
+    chunks.push(sortedFilteredNodes.value.slice(i, i + cardsPerRow.value));
   }
   return chunks;
 });
-
-const toggleSort = (key: any) => {
-  if (sortKey.value === key) {
-    sortOrder.value *= -1;
-  } else {
-    sortKey.value = key;
-    sortOrder.value = 1;
-  }
-};
 
 const openQuickView = (node: IFormattedNode) => {
   selectedNode.value = node;
