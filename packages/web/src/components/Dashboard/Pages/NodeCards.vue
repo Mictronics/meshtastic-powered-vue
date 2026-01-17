@@ -53,8 +53,16 @@
                     :shortName="node.shortName"
                   />
                   <div class="flex gap-2">
-                    <Lock v-if="node.encryptionStatus === EncryptionStatus.Encrypted" :size="20" class="encryption-lock-icon" />
-                    <LockOpen v-else-if="node.encryptionStatus === EncryptionStatus.NotEncrypted" :size="20" class="encryption-unlock-icon" />
+                    <Lock
+                      v-if="node.encryptionStatus === EncryptionStatus.Encrypted"
+                      :size="20"
+                      class="encryption-lock-icon"
+                    />
+                    <LockOpen
+                      v-else-if="node.encryptionStatus === EncryptionStatus.NotEncrypted"
+                      :size="20"
+                      class="encryption-unlock-icon"
+                    />
                     <KeyRound v-else :size="20" class="encryption-key-icon" />
                     <MessageSquareOff
                       v-if="node.isUnmessagable"
@@ -97,7 +105,7 @@
     <Drawer
       v-model:visible="showDrawer"
       position="right"
-      class="w-full! md:w-[450px]! border-l! border-slate-200! dark:border-slate-600! shadow-2xl"
+      class="w-full! md:w-112.5! border-l! border-slate-200! dark:border-slate-600! shadow-2xl"
     >
       <template #header>
         <div class="flex items-center gap-3 dark:text-slate-400">
