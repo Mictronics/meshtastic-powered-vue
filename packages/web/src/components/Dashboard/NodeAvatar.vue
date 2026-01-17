@@ -1,5 +1,5 @@
 <template>
-  <div class="avatar-wrap">
+  <div class="avatar-wrap dark:brightness-75">
     <Avatar
       shape="circle"
       class="text-xs font-light bg-[rgb(var(--bg-r),var(--bg-g),var(--bg-b))] node-avatar"
@@ -55,7 +55,9 @@ const avatarColor = computed(() => {
   /* elevation */
   /*box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15), 0 6px 12px rgba(0, 0, 0, 0.18),
     inset 0 -1px 2px rgba(0, 0, 0, 0.25);*/
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
   pointer-events: none;
 }
 

@@ -1,12 +1,12 @@
 <template>
-  <div class="p-1 bg-slate-50/50 dark:bg-slade-800 font-sans text-slate-900">
+  <div class="p-1 bg-slate-50/50 dark:bg-slate-900 font-sans text-slate-900">
     <div class="mx-auto flex flex-col md:flex-row gap-4 mb-8 items-center justify-between">
       <div class="relative w-full md:w-96">
         <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" :size="18" />
         <InputText
           v-model="searchQuery"
           placeholder="Nodes durchsuchen..."
-          class="w-full pl-10 pt-2 pb-2 !rounded-xl border-slate-200"
+          class="w-full pl-10 pt-2 pb-2 rounded-xl! border-slate-200"
         />
       </div>
 
@@ -15,7 +15,7 @@
           @click="toggleSort('name')"
           :variant="sortKey === 'name' ? 'primary' : 'text'"
           size="small"
-          class="!px-4"
+          class="px-4"
         >
           Name
           <ArrowUpDown :size="14" class="ml-2" />
@@ -24,7 +24,7 @@
           @click="toggleSort('cpu')"
           :variant="sortKey === 'cpu' ? 'primary' : 'text'"
           size="small"
-          class="!px-4"
+          class="px-4"
         >
           Last
           <Activity :size="14" class="ml-2" />
@@ -33,22 +33,18 @@
     </div>
 
     <div class="mx-auto">
-      <VirtualScroller :items="chunkedNodes" :itemSize="170" scrollHeight="85vh" class="">
+      <VirtualScroller :items="chunkedNodes" :itemSize="171" scrollHeight="85vh" class="">
         <template #item="{ item: rowNodes }">
           <div
             class="grid gap-6 p-2 w-full"
             :style="{
               gridTemplateColumns: `repeat(${cardsPerRow}, minmax(0, 1fr))`,
-              height: '170px',
+              height: '171px',
             }"
           >
-            <div
-              v-for="node in (rowNodes as IFormattedNode[])"
-              :key="node.nodeNumber"
-              @click="openQuickView(node)"
-            >
+            <div v-for="node in rowNodes" :key="node.nodeNumber" @click="openQuickView(node)">
               <div
-                class="group cursor-pointer bg-white border border-slate-200 rounded-2xl p-3 shadow-sm hover:shadow-xl hover:border-green-500 transition-all duration-300 active:scale-[0.98]"
+                class="group cursor-pointer bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-2xl p-3 shadow-sm hover:shadow-xl hover:border-green-500 transition-all duration-300 active:scale-[0.98]"
               >
                 <div class="flex justify-between items-start mb-3">
                   <NodeAvatar
@@ -69,7 +65,9 @@
                     <Network v-if="node.viaMqtt" :size="20" class="via-mqtt-icon" />
                   </div>
                 </div>
-                <h3 class="text-lg font-bold text-slate-800 mb-2 truncate">{{ node.longName }}</h3>
+                <h3 class="text-lg font-bold text-slate-800 dark:text-slate-400 mb-2 truncate">
+                  {{ node.longName }}
+                </h3>
                 <div class="space-y-1">
                   <div class="flex justify-between text-xs">
                     <span class="text-slate-500 flex items-center gap-1">
@@ -99,10 +97,10 @@
     <Drawer
       v-model:visible="showDrawer"
       position="right"
-      class="!w-full md:!w-[450px] !border-l !border-slate-200 shadow-2xl"
+      class="w-full! md:w-[450px]! border-l! border-slate-200! dark:border-slate-600! shadow-2xl"
     >
       <template #header>
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3 dark:text-slate-400">
           <NodeAvatar
             :isFavorite="selectedNode?.isFavorite"
             :nodeNumber="selectedNode?.nodeNumber"
@@ -157,7 +155,9 @@
             :isPublicKeyVerified="selectedNode.isPublicKeyVerified"
           />
         </div>
-        <div class="pt-6 border-t border-slate-100 flex flex-col gap-3">Button</div>
+        <div class="pt-6 border-t border-slate-100 dark:border-slate-600 flex flex-col gap-3">
+          Button
+        </div>
       </div>
     </Drawer>
   </div>
@@ -290,6 +290,11 @@ function formatLastHeard(epoch?: number) {
   content: '';
   flex: 1;
   border-bottom: 1px solid oklch(96.8% 0.007 247.896);
+}
+
+.dark .divider::before,
+.dark .divider::after {
+  border-bottom: 1px solid oklch(44.6% 0.043 257.281);
 }
 
 .divider::before {

@@ -1,19 +1,21 @@
 <template>
   <div
-    class="p-2 rounded-xl border border-slate-100 bg-slate-50/50 cursor-pointer relative overflow-hidden"
+    class="p-2 rounded-xl border border-slate-100 dark:border-slate-600 bg-slate-50/50 dark:bg-slate-800 cursor-pointer relative overflow-hidden"
     @click="nextMode"
     title="Click to change coordinate format"
   >
-    <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1">
+    <div
+      class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-700 tracking-wider mb-1"
+    >
       {{ modes[modeIndex] }}
     </div>
     <transition name="fade-slide" mode="out-in">
-      <div :key="modeIndex" class="flex gap-2 text-sm text-slate-700">
+      <div :key="modeIndex" class="flex gap-2 text-sm text-slate-700 dark:text-slate-400">
         <MapPinned :size="15" />
         {{ displayValue }}
       </div>
     </transition>
-    <div class="flex gap-2 text-sm text-slate-700 mt-1">
+    <div class="flex gap-2 text-sm text-slate-700 dark:text-slate-400 mt-1">
       <MountainSnow :size="15" />
       {{ altDisplay }}
     </div>

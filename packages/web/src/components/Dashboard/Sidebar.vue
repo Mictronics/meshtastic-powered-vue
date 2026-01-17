@@ -4,7 +4,7 @@
       <img
         src="@/assets/logo.svg"
         alt="Meshtastic Powered Logo"
-        class="size-10 shrink-0 rounded-l mx-1"
+        class="size-10 shrink-0 rounded-l mx-1 dark:brightness-75"
       />
       <div
         class="text-xl text-center flex flex-col items-start h-full p-1 logo-text"
