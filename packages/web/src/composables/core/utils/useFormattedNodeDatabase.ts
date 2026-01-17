@@ -1,11 +1,12 @@
 import { createSharedComposable, watchThrottled } from '@vueuse/core'
-import { toRaw, isReactive, ref, type DebuggerEvent } from 'vue'
+import { ref, type DebuggerEvent } from 'vue'
 import { watchImmediate } from '@vueuse/core';
 import { base16 } from 'rfc4648';
 import humanizeDuration from 'humanize-duration';
 import { fromByteArray } from 'base64-js';
 import { Protobuf } from "@meshtastic/core";
 import { useNodeDBStore } from '@/composables/core/stores/nodeDB/useNodeDBStore';
+import { type NodeErrorType } from '@/composables/core/stores/nodeDB/types';
 
 export enum EncryptionStatus {
     Encrypted = 0,
@@ -88,21 +89,18 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
                 publicKey: formatPublicKey(node.user?.publicKey),
                 isPublicKeyVerified: node.isKeyManuallyVerified,
             };
-            nodeDatabase.value[node.num] = formatted;
-        }
-        // Check for node errors
-        for (const node of Object.values(ndb.nodeErrors)) {
-            const k = node.node;
-            if (nodeDatabase.value[k]) {
-                switch (node.error) {
+            if (ndb.hasNodeError(node.num)) {
+                const err = ndb.getNodeError(node.num)
+                switch (err?.error) {
                     case 'DUPLICATE_PKI':
-                        nodeDatabase.value[k].encryptionStatus = EncryptionStatus.DuplicateKey;
+                        formatted.encryptionStatus = EncryptionStatus.DuplicateKey;
                         break;
                     case 'MISMATCH_PKI':
-                        nodeDatabase.value[k].encryptionStatus = EncryptionStatus.KeyMismatch;
+                        formatted.encryptionStatus = EncryptionStatus.KeyMismatch;
                         break;
                 }
             }
+            nodeDatabase.value[node.num] = formatted;
         }
     }, { deep: true });
 
