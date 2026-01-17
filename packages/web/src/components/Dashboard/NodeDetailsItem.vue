@@ -47,6 +47,6 @@ const iconComponent = computed<Component | null>(() => {
 
 const iconColorClass = computed(() => {
   if (props.isPublicKeyVerified === undefined) return '';
-  return props.isPublicKeyVerified ? 'text-lime-500' : 'text-red-500';
+  return props.isPublicKeyVerified ? 'text-lime-500' : 'text-red-400';
 });
 </script>
