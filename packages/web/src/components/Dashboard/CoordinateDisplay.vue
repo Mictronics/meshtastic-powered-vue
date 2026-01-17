@@ -110,7 +110,7 @@ const displayValue = computed(() => {
   }
 });
 
-const altDisplay = computed(() => (props.alt != null ? props.alt.toFixed(0) : '--'));
+const altDisplay = computed(() => (props.alt != null ? `${props.alt.toFixed(0)} m` : '--'));
 </script>
 
 <style scoped>
