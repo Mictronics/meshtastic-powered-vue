@@ -1,5 +1,5 @@
 <template>
-  <aside class="dashboard-sidebar relative" id="side-bar">
+  <aside class="dashboard-sidebar relative flex flex-col" id="side-bar">
     <Button
       id="test"
       severity="secondary"
@@ -85,6 +85,18 @@
           </a>
         </template>
       </PanelMenu>
+    </div>
+    <div
+      v-if="isSideBarVisible"
+      class="mt-auto text-center text-sm text-slate-500/40 dark:text-slate-400/40"
+    >
+      <p>{{ appName }}</p>
+      <p>Michael Wolf</p>
+      <a class="hover:underline text-link" href="https://www.mictronics.de" target="_blank">
+        Mictronics
+      </a>
+      <p>{{ version }}</p>
+      <p>#{{ commitHash }}</p>
     </div>
   </aside>
 </template>
@@ -208,6 +220,20 @@ const modeIcon = computed(() => {
   return SunMoon;
 });
 watchEffect(() => (mode.value = state.value));
+
+const appName = computed(() => {
+  return String(import.meta.env.VITE_APP_NAME)?.toWellFormed() || '';
+});
+const version = computed(() => {
+  return String(import.meta.env.VITE_VERSION)?.toUpperCase() || '';
+});
+const commitHash = computed(() => {
+  return (
+    String(import.meta.env.VITE_COMMIT_HASH)
+      ?.toUpperCase()
+      .slice(0, 7) || 'Unkown'
+  );
+});
 </script>
 
 <style lang="css" scoped>
