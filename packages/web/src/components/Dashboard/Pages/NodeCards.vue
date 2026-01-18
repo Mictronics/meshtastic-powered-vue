@@ -95,6 +95,9 @@
         <!-- Environment -->
         <SectionDivider v-if="environmentMetricsItems.length" title="Environment" />
         <MetricsGrid :items="environmentMetricsItems" />
+        <!-- Power -->
+        <SectionDivider v-if="powerMetricsItems.length" title="Power" />
+        <MetricsGrid :items="powerMetricsItems" />
         <!-- Position -->
         <SectionDivider v-if="!!selectedNode.position" title="Position" />
         <div v-if="!!selectedNode.position" class="grid grid-cols-1">
@@ -255,6 +258,28 @@ const environmentMetricsItems = computed(() => {
   ];
 });
 
+const powerMetricsItems = computed(() => {
+  const m = selectedNode.value?.powerMetrics;
+  if (!m) return [];
+  return [
+    { label: 'Channel 1', value: m.ch1Voltage },
+    { label: 'Channel 1', value: m.ch1Current },
+    { label: 'Channel 2', value: m.ch2Voltage },
+    { label: 'Channel 2', value: m.ch2Current },
+    { label: 'Channel 3', value: m.ch3Voltage },
+    { label: 'Channel 3', value: m.ch3Current },
+    { label: 'Channel 4', value: m.ch4Voltage },
+    { label: 'Channel 4', value: m.ch4Current },
+    { label: 'Channel 5', value: m.ch5Voltage },
+    { label: 'Channel 5', value: m.ch5Current },
+    { label: 'Channel 6', value: m.ch6Voltage },
+    { label: 'Channel 6', value: m.ch6Current },
+    { label: 'Channel 7', value: m.ch7Voltage },
+    { label: 'Channel 7', value: m.ch7Current },
+    { label: 'Channel 8', value: m.ch8Voltage },
+    { label: 'Channel 8', value: m.ch8Current },
+  ];
+});
 const isFavorite = computed(() => {
   if (selectedNode.value?.nodeNumber)
     return nodeDatabase.value[selectedNode.value.nodeNumber]?.isFavorite;
