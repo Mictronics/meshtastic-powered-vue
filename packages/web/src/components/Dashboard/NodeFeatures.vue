@@ -4,19 +4,56 @@
       v-if="node.encryptionStatus === EncryptionStatus.Encrypted"
       :size="20"
       class="encryption-lock-icon"
+      v-tooltip.right="tooltipPreset('Encrypted')"
     />
     <LockOpen
       v-else-if="node.encryptionStatus === EncryptionStatus.NotEncrypted"
       :size="20"
       class="encryption-unlock-icon"
+      v-tooltip.right="tooltipPreset('Not encrypted')"
     />
-    <KeyRound v-else :size="20" class="encryption-key-icon" />
-    <MessageSquareOff v-if="node.isUnmessagable" :size="20" class="unmessagable-icon" />
-    <ThermometerSun v-if="!!node.environmentMetrics" :size="20" class="feature-icon" />
-    <Zap v-if="!!node.powerMetrics" :size="20" class="feature-icon" />
-    <Satellite v-if="!!node.position" :size="20" class="feature-icon" />
-    <Network v-if="node.viaMqtt" :size="20" class="feature-icon" />
-    <Server v-if="!!node.hostMetrics" :size="20" class="feature-icon" />
+    <KeyRound
+      v-else
+      :size="20"
+      class="encryption-key-icon"
+      v-tooltip.right="tooltipPreset('Encryption key error')"
+    />
+    <MessageSquareOff
+      v-if="node.isUnmessagable"
+      :size="20"
+      class="unmessagable-icon"
+      v-tooltip.right="tooltipPreset('Unmessagable')"
+    />
+    <ThermometerSun
+      v-if="!!node.environmentMetrics"
+      :size="20"
+      class="feature-icon"
+      v-tooltip.right="tooltipPreset('Environment Metrics')"
+    />
+    <Zap
+      v-if="!!node.powerMetrics"
+      :size="20"
+      class="feature-icon"
+      v-tooltip.right="tooltipPreset('Power Metrics')"
+    />
+    <Satellite
+      v-if="!!node.position"
+      :size="20"
+      class="feature-icon"
+      v-tooltip.right="tooltipPreset('Position')"
+    />
+    <Network
+      v-if="node.viaMqtt"
+      :size="20"
+      class="feature-icon"
+      v-tooltip.right="tooltipPreset('Via MQTT')"
+    />
+    <Server
+      v-if="!!node.hostMetrics"
+      :size="20"
+      class="feature-icon"
+      v-tooltip.right="tooltipPreset('Host Metrics')"
+    />
   </div>
 </template>
 
@@ -38,6 +75,15 @@ import { EncryptionStatus } from '@/composables/core/utils/useFormattedNodeDatab
 defineProps<{
   node: FormattedNode;
 }>();
+
+const tooltipPreset = (value: string) => ({
+  value,
+  showDelay: 300,
+  hideDelay: 300,
+  pt: {
+    text: 'bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-400 text-sm',
+  },
+});
 </script>
 
 <style lang="css" scoped>
