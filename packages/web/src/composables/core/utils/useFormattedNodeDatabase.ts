@@ -11,7 +11,8 @@ import type {
     FormattedPowerMetrics,
     FormattedNode,
     FormattedNodeMap,
-    FormattedPosition
+    FormattedPosition,
+    FormattedDeviceMetrics
 } from './types'
 
 export enum EncryptionStatus {
@@ -46,15 +47,10 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
                 snr: formatSnr(node.snr),
                 numSnr: node.snr,
                 hwModel: Protobuf.Mesh.HardwareModel[node.user?.hwModel ?? 0]?.replaceAll('_', ' '),
-                batteryLevel: node.deviceMetrics?.batteryLevel,
-                voltage: node.deviceMetrics?.voltage,
-                channelUtilization: node.deviceMetrics?.channelUtilization,
-                airUtilTx: node.deviceMetrics?.airUtilTx,
-                uptime: formatUptime(node.deviceMetrics?.uptimeSeconds),
                 role: Protobuf.Config.Config_DeviceConfig_Role[node.user?.role ?? 0]?.replaceAll('_', ' '),
-                hasMetrics: !!node.deviceMetrics,
                 publicKey: formatPublicKey(node.user?.publicKey),
                 isPublicKeyVerified: node.isKeyManuallyVerified,
+                deviceMetrics: formatDeviceMetrics(node.deviceMetrics),
                 environmentMetrics: formatEnvironmentMetrics(node.environmentMetrics),
                 powerMetrics: formatPowerMetrics(node.powerMetrics),
                 position: formatPosition(node.position)
@@ -165,6 +161,20 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
         return `${deg}° (${directions[index]})`;
     };
 
+    const formatDeviceMetrics = (
+        m?: Protobuf.Telemetry.DeviceMetrics
+    ): FormattedDeviceMetrics | undefined => {
+        if (!m) return undefined;
+
+        return {
+            batteryLevel: m.batteryLevel,
+            voltage: m.voltage,
+            channelUtilization: m.channelUtilization,
+            airUtilTx: m.airUtilTx,
+            uptimeSeconds: formatUptime(m.uptimeSeconds),
+        };
+    };
+
     const formatEnvironmentMetrics = (
         m?: Protobuf.Telemetry.EnvironmentMetrics
     ): FormattedEnvironmentMetrics | undefined => {
@@ -262,7 +272,6 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
             altitudeSource: p.altitudeSource,
         };
     };
-
 
     return {
         nodeDatabase,

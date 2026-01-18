@@ -83,8 +83,8 @@
                       {{ node.hopsAway }} {{ formatLastHeard(node.lastHeard) }}
                     </span>
                     <BatteryStatus
-                      v-if="node.batteryLevel !== undefined"
-                      :batteryLevel="node.batteryLevel"
+                      v-if="!!node.deviceMetrics"
+                      :batteryLevel="node.deviceMetrics.batteryLevel"
                     />
                   </div>
                 </div>
@@ -126,15 +126,19 @@
           />
           <NodeDetailsItem label="Hardware" :value="selectedNode.hwModel" />
         </div>
-        <div v-if="selectedNode.hasMetrics" class="divider">
-          <span class="text-nowrap text-sm text-slate-400">Metrics</span>
+        <div v-if="!!selectedNode.deviceMetrics" class="divider">
+          <span class="text-nowrap text-sm text-slate-400">Device</span>
         </div>
-        <div v-if="selectedNode.hasMetrics" class="grid grid-cols-3 gap-2">
+        <div v-if="!!selectedNode.deviceMetrics" class="grid grid-cols-3 gap-2">
           <NodeDetailsItem label="Air TX" :value="airTxUtilization" />
           <NodeDetailsItem label="Channel" :value="channelUtilization" />
           <NodeDetailsItem label="Battery" :value="batteryPercent" />
           <NodeDetailsItem label="Voltage" :value="voltage" />
-          <NodeDetailsItem class="col-span-2" label="Uptime" :value="selectedNode.uptime" />
+          <NodeDetailsItem
+            class="col-span-2"
+            label="Uptime"
+            :value="selectedNode.deviceMetrics.uptimeSeconds"
+          />
         </div>
         <div v-if="!!selectedNode.position" class="divider">
           <span class="text-nowrap text-sm text-slate-400">Position</span>
@@ -249,26 +253,26 @@ const selectedNode = ref<FormattedNode>();
 const windowWidth = ref(window.innerWidth);
 
 const voltage = computed(() => {
-  const v = selectedNode.value?.voltage;
+  const v = selectedNode.value?.deviceMetrics?.voltage;
   if (v === undefined || v === null) return 'N/A';
   return `${v.toPrecision(2)} V`;
 });
 
 const batteryPercent = computed(() => {
-  const level = selectedNode.value?.batteryLevel;
+  const level = selectedNode.value?.deviceMetrics?.batteryLevel;
   if (level === undefined || level === null) return 'N/A';
   if (level > 100) return 'Plugged in';
   return `${level} %`;
 });
 
 const airTxUtilization = computed(() => {
-  const val = selectedNode.value?.airUtilTx;
+  const val = selectedNode.value?.deviceMetrics?.airUtilTx;
   if (val == null) return 'N/A';
   return `${val.toFixed(1)} %`;
 });
 
 const channelUtilization = computed(() => {
-  const val = selectedNode.value?.channelUtilization;
+  const val = selectedNode.value?.deviceMetrics?.channelUtilization;
   if (val == null) return 'N/A';
   return `${val.toFixed(1)} %`;
 });

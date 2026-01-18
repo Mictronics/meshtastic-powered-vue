@@ -17,15 +17,10 @@ export interface FormattedNode {
     snr: string;
     numSnr: number;
     hwModel?: string;
-    batteryLevel?: number;
-    voltage?: number;
-    channelUtilization?: number;
-    airUtilTx?: number;
-    uptime?: string;
     role?: string;
-    hasMetrics: boolean;
     publicKey?: string;
     isPublicKeyVerified: boolean;
+    deviceMetrics?: FormattedDeviceMetrics;
     environmentMetrics?: FormattedEnvironmentMetrics;
     powerMetrics?: FormattedPowerMetrics;
     position?: FormattedPosition;
@@ -34,6 +29,14 @@ export interface FormattedNode {
 export type FormattedNodeMap = { [key: string]: FormattedNode };
 export type HumanizedEnvironmentMetrics = {
     [K in keyof Protobuf.Telemetry.EnvironmentMetrics]?: string;
+};
+
+export type FormattedDeviceMetrics = {
+    batteryLevel?: number;
+    voltage?: number;
+    channelUtilization?: number;
+    airUtilTx?: number;
+    uptimeSeconds?: string;
 };
 
 export type FormattedEnvironmentMetrics = {
