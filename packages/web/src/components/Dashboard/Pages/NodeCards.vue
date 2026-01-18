@@ -39,32 +39,7 @@
                     :nodeNumber="node.nodeNumber"
                     :shortName="node.shortName"
                   />
-                  <div class="flex gap-2">
-                    <Lock
-                      v-if="node.encryptionStatus === EncryptionStatus.Encrypted"
-                      :size="20"
-                      class="encryption-lock-icon"
-                    />
-                    <LockOpen
-                      v-else-if="node.encryptionStatus === EncryptionStatus.NotEncrypted"
-                      :size="20"
-                      class="encryption-unlock-icon"
-                    />
-                    <KeyRound v-else :size="20" class="encryption-key-icon" />
-                    <MessageSquareOff
-                      v-if="node.isUnmessagable"
-                      :size="20"
-                      class="unmessagabel-icon"
-                    />
-                    <ThermometerSun
-                      v-if="!!node.environmentMetrics"
-                      :size="20"
-                      class="feature-icon"
-                    />
-                    <Zap v-if="!!node.powerMetrics" :size="20" class="feature-icon" />
-                    <Satellite v-if="!!node.position" :size="20" class="feature-icon" />
-                    <Network v-if="node.viaMqtt" :size="20" class="feature-icon" />
-                  </div>
+                  <NodeFeatures :node="node" />
                 </div>
                 <h3 class="text-lg font-bold text-slate-800 dark:text-slate-400 mb-1 truncate">
                   {{ node.longName }}
@@ -224,6 +199,7 @@ import {
   EyeOff,
   ThermometerSun,
   Zap,
+  Server,
 } from 'lucide-vue-next';
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { formatTimeAgoIntl } from '@vueuse/core';
@@ -240,6 +216,7 @@ import DeviceImage from '@/components/Dashboard/DeviceImage.vue';
 import CoordinateDisplay from '@/components/Dashboard/CoordinateDisplay.vue';
 import SortButtonGroup from '@/components/Dashboard/SortButtonGroup.vue';
 import ConfirmDialog from '@/components/Connection/ConfirmDialog.vue';
+import NodeFeatures from '@/components/Dashboard/NodeFeatures.vue';
 import { useFavoriteNode } from '@/composables/core/hooks/useFavoriteNode';
 import { useIgnoreNode } from '@/composables/core/hooks/useIgnoreNode';
 import { type SortDir } from '@/components/types';

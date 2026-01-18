@@ -84,23 +84,3 @@
 .hardware-column {
   width: 8rem;
 }
-
-.encryption-lock-icon {
-  color: oklch(76.8% 0.233 130.85);
-}
-
-.encryption-unlock-icon {
-  color: oklch(79.5% 0.184 86.047);
-}
-
-.encryption-key-icon {
-  color: oklch(70.4% 0.191 22.216);
-}
-
-.unmessagabel-icon {
-  color: oklch(70.4% 0.191 22.216);
-}
-
-.feature-icon {
-  color: oklch(55.4% 0.046 257.417);
-}
