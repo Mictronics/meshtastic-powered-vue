@@ -1,6 +1,6 @@
 <template>
   <div class="grid gap-2" :class="gridClass">
-    <NodeDetailsItem v-for="item in items" :key="item.label" v-bind="item" />
+    <NodeDetailsItem v-for="item in filteredItems" :key="item.label" v-bind="item" />
   </div>
 </template>
 
@@ -25,4 +25,11 @@ const props = withDefaults(
 );
 
 const gridClass = computed(() => `grid-cols-${props.columns}`);
+
+const filteredItems = computed(() => {
+  return props.items.filter(
+    (item) =>
+      item.value !== undefined && item.value !== null && item.value !== '—' && item.value !== ''
+  );
+});
 </script>
