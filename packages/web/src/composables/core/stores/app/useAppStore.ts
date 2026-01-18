@@ -2,7 +2,7 @@ import {
     IDB_APP_STORE,
     useIndexedDB
 } from "@/composables/core/stores/indexedDB";
-import { reactive } from 'vue';
+import { reactive, toRaw } from 'vue';
 import { createSharedComposable, watchIgnorable } from "@vueuse/core";
 import type { RasterSource } from "./types.ts";
 import type { SortState, ButtonKey } from "@/components/types.ts";
@@ -24,22 +24,12 @@ export const useAppStore = createSharedComposable(() => {
         sortState: {},
     });
 
-    let prop: string = '';
-    let newValue: any = null;
-    const { ignorePrevAsyncUpdates } = watchIgnorable(appData, () => {
+    const { ignorePrevAsyncUpdates } = watchIgnorable(appData, (n) => {
         // Write new value back into IndexedDB with property key.
-        useIndexedDB().put(IDB_APP_STORE, newValue, prop);
-    }, {
-        onTrigger: (e) => {
-            // Trigger is called prior watch callback.
-            // Get property and new value of what has changed.
-            if (e.type === 'set') {
-                prop = e.key;
-                newValue = e.newValue;
-            }
-        },
-        deep: true,
-    })
+        Object.entries(n).map(e => {
+            useIndexedDB().put(IDB_APP_STORE, toRaw(e[1]), e[0]);
+        });
+    });
 
     /**
      * Init app store from IndexedDB but ignore watching the updates to avoid
