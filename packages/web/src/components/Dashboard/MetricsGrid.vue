@@ -1,5 +1,5 @@
 <template>
-  <div class="grid gap-2" :class="gridClass">
+  <div v-if="filteredItems.length > 0" class="grid gap-2" :class="gridClass">
     <NodeDetailsItem v-for="item in filteredItems" :key="item.label" v-bind="item" />
   </div>
 </template>
