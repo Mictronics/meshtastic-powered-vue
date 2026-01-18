@@ -101,9 +101,7 @@
           />
           <NodeDetailsItem label="Hardware" :value="selectedNode.hwModel" />
         </div>
-        <div v-if="!!selectedNode.deviceMetrics" class="divider">
-          <span class="text-nowrap text-sm text-slate-400">Device</span>
-        </div>
+        <SectionDivider v-if="!!selectedNode.deviceMetrics" title="Device" />
         <div v-if="!!selectedNode.deviceMetrics" class="grid grid-cols-3 gap-2">
           <NodeDetailsItem label="Air TX" :value="airTxUtilization" />
           <NodeDetailsItem label="Channel" :value="channelUtilization" />
@@ -115,9 +113,7 @@
             :value="selectedNode.deviceMetrics.uptimeSeconds"
           />
         </div>
-        <div v-if="!!selectedNode.position" class="divider">
-          <span class="text-nowrap text-sm text-slate-400">Position</span>
-        </div>
+        <SectionDivider v-if="!!selectedNode.position" title="Position" />
         <div v-if="!!selectedNode.position" class="grid grid-cols-1">
           <CoordinateDisplay
             :latitude="selectedNode.position.latitudeI"
@@ -125,9 +121,7 @@
             :alt="selectedNode.position.altitude"
           />
         </div>
-        <div v-if="selectedNode.publicKey" class="divider">
-          <span class="text-nowrap text-sm text-slate-400">Security</span>
-        </div>
+        <SectionDivider v-if="selectedNode.publicKey" title="Security" />
         <div class="grid grid-cols-1">
           <NodeDetailsItem
             label="Public Key"
@@ -184,31 +178,12 @@
 </template>
 
 <script setup lang="ts">
-import {
-  Lock,
-  LockOpen,
-  MessageSquareOff,
-  Satellite,
-  Network,
-  KeyRound,
-  Search,
-  Star,
-  StarOff,
-  Trash2,
-  Eye,
-  EyeOff,
-  ThermometerSun,
-  Zap,
-  Server,
-} from 'lucide-vue-next';
+import { Search, Star, StarOff, Trash2, Eye, EyeOff } from 'lucide-vue-next';
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { formatTimeAgoIntl } from '@vueuse/core';
 import { numberToHexUnpadded } from '@noble/curves/utils.js';
 import type { FormattedNode } from '@/composables/core/utils/types';
-import {
-  EncryptionStatus,
-  useFormattedNodeDatabase,
-} from '@/composables/core/utils/useFormattedNodeDatabase';
+import { useFormattedNodeDatabase } from '@/composables/core/utils/useFormattedNodeDatabase';
 import NodeAvatar from '@/components/Dashboard/NodeAvatar.vue';
 import BatteryStatus from '@/components/Dashboard/BatteryStatus.vue';
 import NodeDetailsItem from '@/components/Dashboard/NodeDetailsItem.vue';
@@ -217,6 +192,7 @@ import CoordinateDisplay from '@/components/Dashboard/CoordinateDisplay.vue';
 import SortButtonGroup from '@/components/Dashboard/SortButtonGroup.vue';
 import ConfirmDialog from '@/components/Connection/ConfirmDialog.vue';
 import NodeFeatures from '@/components/Dashboard/NodeFeatures.vue';
+import SectionDivider from '@/components/Dashboard/DrawerSectionDivider.vue';
 import { useFavoriteNode } from '@/composables/core/hooks/useFavoriteNode';
 import { useIgnoreNode } from '@/composables/core/hooks/useIgnoreNode';
 import { type SortDir } from '@/components/types';
