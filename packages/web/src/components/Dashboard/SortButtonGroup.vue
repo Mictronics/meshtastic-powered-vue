@@ -43,34 +43,14 @@ import {
   Signal,
   Battery,
 } from 'lucide-vue-next';
-import { watch, computed, ref } from 'vue';
+import { watch, computed, ref, onMounted } from 'vue';
 import * as _ from 'lodash-es';
-import type { FunctionalComponent } from 'vue';
-import type { LucideProps } from 'lucide-vue-next';
+import type { SortDir, SortState, ButtonKey, ButtonsMap } from '../types';
+import { useAppStore } from '@/composables/core/stores/app/useAppStore';
 
 const emit = defineEmits<{
   (e: 'sortToggle', keys: string[], dirs: SortDir[]): void;
 }>();
-
-export type SortDir = 'asc' | 'desc';
-type SortState = {
-  dir: SortDir;
-  order: number;
-};
-type ButtonConfig = {
-  icon: FunctionalComponent<LucideProps>;
-  toolTip: string;
-};
-type ButtonsMap = {
-  shortName: ButtonConfig;
-  longName: ButtonConfig;
-  isFavorite: ButtonConfig;
-  lastHeard: ButtonConfig;
-  numHops: ButtonConfig;
-  numSnr: ButtonConfig;
-  batteryLevel: ButtonConfig;
-};
-type ButtonKey = keyof ButtonsMap;
 
 const buttons: ButtonsMap = {
   shortName: { icon: List, toolTip: 'Short Name' },
@@ -129,7 +109,20 @@ watch(
       .map(([key]) => key);
     const dirs = keys.map((key) => sortState.value[key as ButtonKey]!.dir);
     emit('sortToggle', keys, dirs);
+    saveToStorage();
   },
   { deep: true }
 );
+
+const appData = useAppStore().appData;
+const saveToStorage = () => {
+  console.log(sortState.value);
+  appData.sortState = sortState.value;
+};
+
+const restoreFromStorage = () => {
+  sortState.value = appData.sortState;
+};
+
+onMounted(restoreFromStorage);
 </script>

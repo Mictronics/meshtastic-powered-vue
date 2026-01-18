@@ -5,24 +5,23 @@ import {
 import { reactive } from 'vue';
 import { createSharedComposable, watchIgnorable } from "@vueuse/core";
 import type { RasterSource } from "./types.ts";
+import type { SortState, ButtonKey } from "@/components/types.ts";
 
 /* https://stackoverflow.com/a/76247596/3731501 */
 
 export interface IApp {
     selectedDeviceId: number;
-    nodeNumToBeRemoved: number;
-    nodeNumDetails: number;
     rasterSources: RasterSource[];
     isSideBarVisible: boolean;
+    sortState: Partial<Record<ButtonKey, SortState>>;
 }
 
 export const useAppStore = createSharedComposable(() => {
     const appData = reactive<IApp>({
         selectedDeviceId: 0,
         rasterSources: [],
-        nodeNumToBeRemoved: 0,
-        nodeNumDetails: 0,
         isSideBarVisible: true,
+        sortState: {},
     });
 
     let prop: string = '';
@@ -42,47 +41,6 @@ export const useAppStore = createSharedComposable(() => {
         deep: true,
     })
 
-    /*
-    // Create our own deep watching proxy to handle IndexedDB stores of properties on change.
-    type ChangeCallback = (path: string, newVal: any) => void
-    function _reactive<T extends object>(target: T, onChange: ChangeCallback, base = ''): T {
-        const handler: ProxyHandler<any> = {
-            get(obj, prop, receiver) {
-                const val = Reflect.get(obj, prop, receiver)
-                // only proxy plain objects/arrays
-                if (val && typeof val === 'object') {
-                    const nextBase = base ? `${base}.${String(prop)}` : String(prop)
-                    return _reactive(val, onChange, nextBase)
-                }
-                return val
-            },
-
-            set(obj, prop, value, receiver) {
-                const path = base ? `${base}.${String(prop)}` : String(prop)
-                const oldVal = obj[prop]
-                const result = Reflect.set(obj, prop, value, receiver)
-                if (oldVal !== value) onChange(path, value)
-                return result
-            },
-        }
-        return new Proxy(target as any, handler)
-    }
-
-    const _appData = {
-        selectedDeviceId: 0,
-        rasterSources: [],
-        commandPaletteOpen: false,
-        connectDialogOpen: false,
-        nodeNumToBeRemoved: 0,
-        nodeNumDetails: 0,
-        isSideBarVisible: true,
-    };
-
-    const appData = _reactive<IApp>(_appData, (prop, n) => {
-        console.log(`Changed: ${prop}`, 'new=', n)
-        useIndexedDB().put(IDB_APP_STORE, n, prop);
-    })
-*/
     /**
      * Init app store from IndexedDB but ignore watching the updates to avoid
      * writing values immediately back into database.
@@ -96,12 +54,8 @@ export const useAppStore = createSharedComposable(() => {
             appData.rasterSources = v || [];
             ignorePrevAsyncUpdates();
         });
-        useIndexedDB().get(IDB_APP_STORE, 'nodeNumToBeRemoved').then((v) => {
-            appData.nodeNumToBeRemoved = v || 0;
-            ignorePrevAsyncUpdates();
-        });
-        useIndexedDB().get(IDB_APP_STORE, 'nodeNumDetails').then((v) => {
-            appData.nodeNumDetails = v || 0;
+        useIndexedDB().get(IDB_APP_STORE, 'sortState').then((v) => {
+            appData.sortState = v || {};
             ignorePrevAsyncUpdates();
         });
         useIndexedDB().get(IDB_APP_STORE, 'isSideBarVisible').then((v) => {
