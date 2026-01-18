@@ -166,6 +166,7 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
 
     function deleteNode(nodeNum: number) {
         if (Object.hasOwn(nodeDatabase.value, nodeNum)) {
+            delete nodeDatabase.value[nodeNum];
         }
     }
 
