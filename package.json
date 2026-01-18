@@ -31,6 +31,7 @@
     "packages/protobufs"
   ],
   "dependencies": {
+    "@bufbuild/buf": "^1.63.0",
     "@bufbuild/protobuf": "^2.10.2",
     "@meshtastic/protobufs": "npm:@jsr/meshtastic__protobufs@^2.7.12-1",
     "biome": "^0.3.3",
