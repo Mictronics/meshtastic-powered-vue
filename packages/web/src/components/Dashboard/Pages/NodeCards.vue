@@ -221,7 +221,6 @@ import {
   EncryptionStatus,
   useFormattedNodeDatabase,
 } from '@/composables/core/utils/useFormattedNodeDatabase';
-import { useNodeDBStore } from '@/composables/core/stores/nodeDB/useNodeDBStore';
 import NodeAvatar from '@/components/Dashboard/NodeAvatar.vue';
 import BatteryStatus from '@/components/Dashboard/BatteryStatus.vue';
 import NodeDetailsItem from '@/components/Dashboard/NodeDetailsItem.vue';
@@ -233,9 +232,9 @@ import { useFavoriteNode } from '@/composables/core/hooks/useFavoriteNode';
 import { useIgnoreNode } from '@/composables/core/hooks/useIgnoreNode';
 import { type SortDir } from '@/components/types';
 import * as _ from 'lodash-es';
+import { useDeleteNode } from '@/composables/core/hooks/useDeleteNode';
 
 const nodeDatabase = useFormattedNodeDatabase().nodeDatabase;
-const nodeDBStore = useNodeDBStore();
 const searchQuery = ref('');
 const showDrawer = ref(false);
 const selectedNode = ref<IFormattedNode>();
@@ -356,8 +355,7 @@ async function deleteNode(nodeNumber: number) {
   });
 
   if (confirmed) {
-    useFormattedNodeDatabase().deleteNode(nodeNumber);
-    nodeDBStore.nodeDatabase.value?.removeNode(nodeNumber);
+    useDeleteNode().deleteNode(nodeNumber);
     showDrawer.value = false;
   }
 }
