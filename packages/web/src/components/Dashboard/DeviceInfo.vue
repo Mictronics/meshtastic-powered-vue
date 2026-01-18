@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col gap-2 py-4 own-node-info">
-    <div class="flex items-center gap-1 py-1 flex-shrink-0">
+    <div class="flex items-center gap-1 py-1 shrink-0">
       <NodeAvatar :nodeNumber="nodeId" :shortName="shortName" />
       <p
         v-if="isSideBarVisible"
@@ -27,7 +27,7 @@
     >
       <RouterLink to="/" :class="slotProps.class + ' connection-info'">
         <span
-          :class="'h-2.5 w-2.5 ml-2 rounded-full flex-shrink-0 ' + connectionStatus.color"
+          :class="'h-2.5 w-2.5 ml-2 rounded-full shrink-0 ' + connectionStatus.color"
           aria-hidden="true"
         />
         <div class="text-xs logo-text">
