@@ -25,6 +25,7 @@ export type FormattedNode = {
     powerMetrics?: FormattedPowerMetrics;
     position?: FormattedPosition;
     hostMetrics?: FormattedHostMetrics;
+    airQualityMetrics?: FormattedAirQualityMetrics;
 }
 
 export type FormattedNodeMap = { [key: string]: FormattedNode };
@@ -88,3 +89,43 @@ export type FormattedPosition = {
 export type FormattedHostMetrics = {
     [K in keyof Protobuf.Telemetry.HostMetrics]?: string;
 };
+
+export type FormattedAirQualityMetrics = {
+    pm?: {
+        standard?: {
+            pm10?: string;
+            pm25?: string;
+            pm40?: string;
+            pm100?: string;
+        };
+        environmental?: {
+            pm10?: string;
+            pm25?: string;
+            pm100?: string;
+        };
+        temperature?: string;
+        humidity?: string;
+        vocIdx?: string;
+        noxIdx?: string;
+        tps?: string;
+    };
+    particles?: {
+        '0.3um'?: string;
+        '0.5um'?: string;
+        '1.0um'?: string;
+        '2.5um'?: string;
+        '4.0um'?: string;
+        '5.0um'?: string;
+        '10.0um'?: string;
+    };
+    co2?: {
+        ppm?: string;
+        temperature?: string;
+        humidity?: string;
+    };
+    formaldehyde?: {
+        ppb?: string;
+        temperature?: string;
+        humidity?: string;
+    };
+}

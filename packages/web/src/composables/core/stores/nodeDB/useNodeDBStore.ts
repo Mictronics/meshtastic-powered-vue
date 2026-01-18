@@ -21,6 +21,7 @@ export type NodeInfoExtented = Protobuf.Mesh.NodeInfo & {
     environmentMetrics?: Protobuf.Telemetry.EnvironmentMetrics;
     powerMetrics?: Protobuf.Telemetry.PowerMetrics;
     hostMetrics?: Protobuf.Telemetry.HostMetrics;
+    airQualityMetrics?: Protobuf.Telemetry.AirQualityMetrics;
 }
 
 type NodeMap = { [key: string]: NodeInfoExtented };
@@ -341,6 +342,13 @@ class NodeDB implements INodeDB {
                     metrics = toRaw(existing.hostMetrics);
                 }
                 merged.hostMetrics = (val as Protobuf.Telemetry.HostMetrics) ?? metrics;
+                break;
+            case 'airQualityMetrics':
+                metrics = existing.airQualityMetrics;
+                if (isReactive(metrics)) {
+                    metrics = toRaw(existing.airQualityMetrics);
+                }
+                merged.airQualityMetrics = (val as Protobuf.Telemetry.AirQualityMetrics) ?? metrics;
                 break;
             default:
                 return;

@@ -13,7 +13,8 @@ import type {
     FormattedNodeMap,
     FormattedPosition,
     FormattedDeviceMetrics,
-    FormattedHostMetrics
+    FormattedHostMetrics,
+    FormattedAirQualityMetrics
 } from './types'
 
 export enum EncryptionStatus {
@@ -56,6 +57,7 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
                 powerMetrics: formatPowerMetrics(node.powerMetrics),
                 position: formatPosition(node.position),
                 hostMetrics: formatHostMetrics(node.hostMetrics),
+                airQualityMetrics: formatAirQualityMetrics(node.airQualityMetrics),
             };
             if (ndb.hasNodeError(node.num)) {
                 const err = ndb.getNodeError(node.num)
@@ -313,6 +315,51 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
         };
     };
 
+    const formatAirQualityMetrics = (
+        m?: Protobuf.Telemetry.AirQualityMetrics
+    ): FormattedAirQualityMetrics | undefined => {
+        if (!m) return undefined;
+
+        return {
+            pm: {
+                standard: {
+                    pm10: orDash(fmtInt(m.pm10Standard, 'µg/m³')),
+                    pm25: orDash(fmtInt(m.pm25Standard, 'µg/m³')),
+                    pm40: orDash(fmtInt(m.pm40Standard, 'µg/m³')),
+                    pm100: orDash(fmtInt(m.pm100Standard, 'µg/m³')),
+                },
+                environmental: {
+                    pm10: orDash(fmtInt(m.pm10Environmental, 'µg/m³')),
+                    pm25: orDash(fmtInt(m.pm25Environmental, 'µg/m³')),
+                    pm100: orDash(fmtInt(m.pm100Environmental, 'µg/m³')),
+                },
+                temperature: orDash(fmt(m.pmTemperature, 1, '°C')),
+                humidity: orDash(fmt(m.pmHumidity, 1, '%')),
+                vocIdx: orDash(fmt(m.pmVocIdx, 1, '')),
+                noxIdx: orDash(fmt(m.pmNoxIdx, 1, '')),
+                tps: orDash(fmt(m.particlesTps, 1, 'µm')),
+            },
+            particles: {
+                '0.3um': orDash(fmtInt(m.particles03um, '')),
+                '0.5um': orDash(fmtInt(m.particles05um, '')),
+                '1.0um': orDash(fmtInt(m.particles10um, '')),
+                '2.5um': orDash(fmtInt(m.particles25um, '')),
+                '4.0um': orDash(fmtInt(m.particles40um, '')),
+                '5.0um': orDash(fmtInt(m.particles50um, '')),
+                '10.0um': orDash(fmtInt(m.particles100um, '')),
+            },
+            co2: {
+                ppm: orDash(fmtInt(m.co2, 'ppm')),
+                temperature: orDash(fmt(m.co2Temperature, 1, '°C')),
+                humidity: orDash(fmt(m.co2Humidity, 1, '%')),
+            },
+            formaldehyde: {
+                ppb: orDash(fmt(m.formFormaldehyde, 2, 'ppb')),
+                temperature: orDash(fmt(m.formTemperature, 1, '°C')),
+                humidity: orDash(fmt(m.formHumidity, 1, '%RH')),
+            },
+        };
+    }
 
     return {
         nodeDatabase,

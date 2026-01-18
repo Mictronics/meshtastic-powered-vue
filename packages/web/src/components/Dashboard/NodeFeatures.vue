@@ -30,6 +30,12 @@
       class="feature-icon"
       v-tooltip.right="tooltipPreset('Environment Metrics')"
     />
+    <AirVent
+      v-if="!!node.airQualityMetrics"
+      :size="20"
+      class="feature-icon"
+      v-tooltip.right="tooltipPreset('Air Quality')"
+    />
     <Zap
       v-if="!!node.powerMetrics"
       :size="20"
@@ -68,6 +74,7 @@ import {
   Satellite,
   Network,
   Server,
+  AirVent,
 } from 'lucide-vue-next';
 import type { FormattedNode } from '@/composables/core/utils/types';
 import { EncryptionStatus } from '@/composables/core/utils/useFormattedNodeDatabase';
