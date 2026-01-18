@@ -87,32 +87,12 @@
       </template>
 
       <div v-if="selectedNode" class="space-y-3">
-        <div class="grid grid-cols-3 gap-2">
-          <NodeDetailsItem label="Node number" :value="selectedNode.nodeNumber" />
-          <NodeDetailsItem
-            label="Node number"
-            :value="'!' + numberToHexUnpadded(selectedNode.nodeNumber)"
-          />
-          <NodeDetailsItem label="Role" :value="selectedNode.role" />
-          <NodeDetailsItem label="Last heard" :value="formatLastHeard(selectedNode.lastHeard)" />
-          <NodeDetailsItem
-            label="Messageable"
-            :value="selectedNode.isUnmessagable ? 'No' : 'Yes'"
-          />
-          <NodeDetailsItem label="Hardware" :value="selectedNode.hwModel" />
-        </div>
-        <SectionDivider v-if="!!selectedNode.deviceMetrics" title="Device" />
-        <div v-if="!!selectedNode.deviceMetrics" class="grid grid-cols-3 gap-2">
-          <NodeDetailsItem label="Air TX" :value="airTxUtilization" />
-          <NodeDetailsItem label="Channel" :value="channelUtilization" />
-          <NodeDetailsItem label="Battery" :value="batteryPercent" />
-          <NodeDetailsItem label="Voltage" :value="voltage" />
-          <NodeDetailsItem
-            class="col-span-2"
-            label="Uptime"
-            :value="selectedNode.deviceMetrics.uptimeSeconds"
-          />
-        </div>
+        <!-- Node Info -->
+        <MetricsGrid :items="nodeInfoItems" />
+        <!-- Device -->
+        <SectionDivider v-if="deviceMetricsItems.length" title="Device" />
+        <MetricsGrid v-if="deviceMetricsItems.length" :items="deviceMetricsItems" />
+        <!-- Position -->
         <SectionDivider v-if="!!selectedNode.position" title="Position" />
         <div v-if="!!selectedNode.position" class="grid grid-cols-1">
           <CoordinateDisplay
@@ -121,6 +101,7 @@
             :alt="selectedNode.position.altitude"
           />
         </div>
+        <!-- Security -->
         <SectionDivider v-if="selectedNode.publicKey" title="Security" />
         <div class="grid grid-cols-1">
           <NodeDetailsItem
@@ -193,6 +174,7 @@ import SortButtonGroup from '@/components/Dashboard/SortButtonGroup.vue';
 import ConfirmDialog from '@/components/Connection/ConfirmDialog.vue';
 import NodeFeatures from '@/components/Dashboard/NodeFeatures.vue';
 import SectionDivider from '@/components/Dashboard/DrawerSectionDivider.vue';
+import MetricsGrid from '@/components/Dashboard/MetricsGrid.vue';
 import { useFavoriteNode } from '@/composables/core/hooks/useFavoriteNode';
 import { useIgnoreNode } from '@/composables/core/hooks/useIgnoreNode';
 import { type SortDir } from '@/components/types';
@@ -205,29 +187,42 @@ const showDrawer = ref(false);
 const selectedNode = ref<FormattedNode>();
 const windowWidth = ref(window.innerWidth);
 
-const voltage = computed(() => {
-  const v = selectedNode.value?.deviceMetrics?.voltage;
-  if (v === undefined || v === null) return 'N/A';
-  return `${v.toPrecision(2)} V`;
+const nodeInfoItems = computed(() => {
+  const n = selectedNode.value;
+  if (!n) return [];
+
+  return [
+    { label: 'Node number', value: n.nodeNumber },
+    { label: 'Hex', value: '!' + numberToHexUnpadded(n.nodeNumber) },
+    { label: 'Role', value: n.role },
+    { label: 'Last heard', value: formatLastHeard(n.lastHeard) },
+    { label: 'Messageable', value: n.isUnmessagable ? 'No' : 'Yes' },
+    { label: 'Hardware', value: n.hwModel },
+  ];
 });
 
-const batteryPercent = computed(() => {
-  const level = selectedNode.value?.deviceMetrics?.batteryLevel;
-  if (level === undefined || level === null) return 'N/A';
-  if (level > 100) return 'Plugged in';
-  return `${level} %`;
-});
+const deviceMetricsItems = computed(() => {
+  const m = selectedNode.value?.deviceMetrics;
+  if (!m) return [];
 
-const airTxUtilization = computed(() => {
-  const val = selectedNode.value?.deviceMetrics?.airUtilTx;
-  if (val == null) return 'N/A';
-  return `${val.toFixed(1)} %`;
-});
+  const formatVoltage = (v?: number) => (v == null ? 'N/A' : `${v.toPrecision(2)} V`);
 
-const channelUtilization = computed(() => {
-  const val = selectedNode.value?.deviceMetrics?.channelUtilization;
-  if (val == null) return 'N/A';
-  return `${val.toFixed(1)} %`;
+  const formatBattery = (level?: number) =>
+    level == null ? 'N/A' : level > 100 ? 'Plugged in' : `${level} %`;
+
+  const formatPercent = (val?: number) => (val == null ? 'N/A' : `${val.toFixed(1)} %`);
+
+  return [
+    { label: 'Air TX', value: formatPercent(m.airUtilTx) },
+    { label: 'Channel', value: formatPercent(m.channelUtilization) },
+    { label: 'Battery', value: formatBattery(m.batteryLevel) },
+    { label: 'Voltage', value: formatVoltage(m.voltage) },
+    {
+      label: 'Uptime',
+      value: m.uptimeSeconds ?? 'N/A',
+      class: 'col-span-2',
+    },
+  ];
 });
 
 const isFavorite = computed(() => {
