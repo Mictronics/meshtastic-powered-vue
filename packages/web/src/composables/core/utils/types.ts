@@ -1,7 +1,7 @@
 import { Protobuf } from "@meshtastic/core";
 import { EncryptionStatus } from "./useFormattedNodeDatabase";
 
-export interface FormattedNode {
+export type FormattedNode = {
     nodeNumber: number;
     shortName: string;
     longName: string;
@@ -24,10 +24,11 @@ export interface FormattedNode {
     environmentMetrics?: FormattedEnvironmentMetrics;
     powerMetrics?: FormattedPowerMetrics;
     position?: FormattedPosition;
+    hostMetrics?: FormattedHostMetrics;
 }
 
 export type FormattedNodeMap = { [key: string]: FormattedNode };
-export type HumanizedEnvironmentMetrics = {
+export type FormattedEnvironmentMetrics = {
     [K in keyof Protobuf.Telemetry.EnvironmentMetrics]?: string;
 };
 
@@ -38,31 +39,6 @@ export type FormattedDeviceMetrics = {
     airUtilTx?: number;
     uptimeSeconds?: string;
 };
-
-export type FormattedEnvironmentMetrics = {
-    temperature?: string;
-    soilTemperature?: string;
-    relativeHumidity?: string;
-    soilMoisture?: string;
-    barometricPressure?: string;
-    gasResistance?: string;
-    iaq?: string;
-    voltage?: string;
-    current?: string;
-    lux?: string;
-    whiteLux?: string;
-    irLux?: string;
-    uvLux?: string;
-    rainfall1h?: string;
-    rainfall24h?: string;
-    windSpeed?: string;
-    windGust?: string;
-    windLull?: string;
-    windDirection?: string;
-    distance?: string;
-    weight?: string;
-    radiation?: string;
-}
 
 export type FormattedPowerMetrics = {
     ch1Voltage?: string;
@@ -107,4 +83,8 @@ export type FormattedPosition = {
     nextUpdate: string;
     seqNumber: number;
     precisionBits: number;
+};
+
+export type FormattedHostMetrics = {
+    [K in keyof Protobuf.Telemetry.HostMetrics]?: string;
 };

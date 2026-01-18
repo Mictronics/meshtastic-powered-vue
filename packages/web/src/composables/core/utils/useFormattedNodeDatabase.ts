@@ -12,7 +12,8 @@ import type {
     FormattedNode,
     FormattedNodeMap,
     FormattedPosition,
-    FormattedDeviceMetrics
+    FormattedDeviceMetrics,
+    FormattedHostMetrics
 } from './types'
 
 export enum EncryptionStatus {
@@ -53,7 +54,8 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
                 deviceMetrics: formatDeviceMetrics(node.deviceMetrics),
                 environmentMetrics: formatEnvironmentMetrics(node.environmentMetrics),
                 powerMetrics: formatPowerMetrics(node.powerMetrics),
-                position: formatPosition(node.position)
+                position: formatPosition(node.position),
+                hostMetrics: formatHostMetrics(node.hostMetrics),
             };
             if (ndb.hasNodeError(node.num)) {
                 const err = ndb.getNodeError(node.num)
@@ -272,6 +274,45 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
             altitudeSource: p.altitudeSource,
         };
     };
+
+    const formatBytes = (v?: bigint): string | null => {
+        if (v === undefined) return null;
+
+        const KB = 1024n;
+        const MB = KB * 1024n;
+        const GB = MB * 1024n;
+        const TB = GB * 1024n;
+
+        if (v >= TB) return `${Number(v / TB)} TB`;
+        if (v >= GB) return `${Number(v / GB)} GB`;
+        if (v >= MB) return `${Number(v / MB)} MB`;
+        if (v >= KB) return `${Number(v / KB)} KB`;
+        return `${v} B`;
+    };
+
+    const formatLoad = (v?: number): string | null => {
+        if (v === undefined) return null;
+        return (v / 100).toFixed(2);
+    };
+
+    const formatHostMetrics = (
+        m?: Protobuf.Telemetry.HostMetrics
+    ): FormattedHostMetrics | undefined => {
+        if (!m) return undefined;
+
+        return {
+            uptimeSeconds: formatUptime(m.uptimeSeconds),
+            freememBytes: orDash(formatBytes(m.freememBytes)),
+            diskfree1Bytes: orDash(formatBytes(m.diskfree1Bytes)),
+            diskfree2Bytes: orDash(formatBytes(m.diskfree2Bytes)),
+            diskfree3Bytes: orDash(formatBytes(m.diskfree3Bytes)),
+            load1: orDash(formatLoad(m.load1)),
+            load5: orDash(formatLoad(m.load5)),
+            load15: orDash(formatLoad(m.load15)),
+            userString: m.userString ?? '—',
+        };
+    };
+
 
     return {
         nodeDatabase,

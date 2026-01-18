@@ -20,6 +20,7 @@ const NODE_RETENTION_DAYS = 14; // Remove nodes not heard from in 14 days
 export type NodeInfoExtented = Protobuf.Mesh.NodeInfo & {
     environmentMetrics?: Protobuf.Telemetry.EnvironmentMetrics;
     powerMetrics?: Protobuf.Telemetry.PowerMetrics;
+    hostMetrics?: Protobuf.Telemetry.HostMetrics;
 }
 
 type NodeMap = { [key: string]: NodeInfoExtented };
@@ -334,6 +335,13 @@ class NodeDB implements INodeDB {
                     metrics = toRaw(existing.powerMetrics);
                 }
                 merged.powerMetrics = (val as Protobuf.Telemetry.PowerMetrics) ?? metrics;
+            case 'hostMetrics':
+                metrics = existing.hostMetrics;
+                if (isReactive(metrics)) {
+                    metrics = toRaw(existing.hostMetrics);
+                }
+                merged.hostMetrics = (val as Protobuf.Telemetry.HostMetrics) ?? metrics;
+                break;
             default:
                 return;
         }
