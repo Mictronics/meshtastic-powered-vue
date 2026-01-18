@@ -169,6 +169,24 @@
             <Star :size="15" />
             Mark favorite
           </Button>
+          <Button
+            v-if="isIgnored"
+            severity="secondary"
+            size="small"
+            @click="onMarkIgnored(selectedNode.nodeNumber, false)"
+          >
+            <Eye :size="15" />
+            Monitor
+          </Button>
+          <Button
+            v-else
+            severity="secondary"
+            size="small"
+            @click="onMarkIgnored(selectedNode.nodeNumber, true)"
+          >
+            <EyeOff :size="15" />
+            Ignore
+          </Button>
           <Button severity="danger" size="small" @click="deleteNode(selectedNode.nodeNumber)">
             <Trash2 :size="15" />
             Delete
@@ -192,6 +210,8 @@ import {
   Star,
   StarOff,
   Trash2,
+  Eye,
+  EyeOff,
 } from 'lucide-vue-next';
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { formatTimeAgoIntl } from '@vueuse/core';
@@ -210,6 +230,7 @@ import CoordinateDisplay from '@/components/Dashboard/CoordinateDisplay.vue';
 import SortButtonGroup from '@/components/Dashboard/SortButtonGroup.vue';
 import ConfirmDialog from '@/components/Connection/ConfirmDialog.vue';
 import { useFavoriteNode } from '@/composables/core/hooks/useFavoriteNode';
+import { useIgnoreNode } from '@/composables/core/hooks/useIgnoreNode';
 import { type SortDir } from '@/components/Dashboard/SortButtonGroup.vue';
 import * as _ from 'lodash-es';
 
@@ -248,6 +269,11 @@ const channelUtilization = computed(() => {
 const isFavorite = computed(() => {
   if (selectedNode.value?.nodeNumber)
     return nodeDatabase.value[selectedNode.value.nodeNumber]?.isFavorite;
+});
+
+const isIgnored = computed(() => {
+  if (selectedNode.value?.nodeNumber)
+    return nodeDatabase.value[selectedNode.value.nodeNumber]?.isIgnored;
 });
 
 const updateWidth = () => (windowWidth.value = window.innerWidth);
@@ -314,6 +340,10 @@ function formatLastHeard(epoch?: number) {
 
 function onMarkFavorite(nodeNumber: number, fav: boolean) {
   useFavoriteNode().updateFavorite(nodeNumber, fav);
+}
+
+function onMarkIgnored(nodeNumber: number, fav: boolean) {
+  useIgnoreNode().updateIgnore(nodeNumber, fav);
 }
 
 const confirmDialogRef = ref<InstanceType<typeof ConfirmDialog> | null>(null);

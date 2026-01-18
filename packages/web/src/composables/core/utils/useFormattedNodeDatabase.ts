@@ -25,6 +25,7 @@ export interface IFormattedNode {
     lastHeard: number;
     encryptionStatus: EncryptionStatus;
     isFavorite: boolean;
+    isIgnored: boolean;
     isUnmessagable?: boolean;
     viaMqtt: boolean;
     snr: string;
@@ -66,6 +67,7 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
                 lastHeard: node.lastHeard,
                 encryptionStatus: formatEncryption(node.user?.publicKey),
                 isFavorite: node.isFavorite,
+                isIgnored: node.isIgnored,
                 isUnmessagable: node.user?.isUnmessagable,
                 viaMqtt: node.viaMqtt,
                 snr: formatSnr(node.snr),
