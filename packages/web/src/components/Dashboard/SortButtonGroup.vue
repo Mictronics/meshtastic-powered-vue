@@ -24,8 +24,8 @@
       <component :is="btn.icon" :size="18" />
       <span v-if="btn.active" class="flex gap-1 text-xs">
         {{ btn.order + 1 }}
-        <ArrowDownWideNarrow v-if="btn.dir === 'desc'" :size="15" />
-        <ArrowUpWideNarrow v-else-if="btn.dir === 'asc'" :size="15" />
+        <ArrowDownWideNarrow v-if="btn.dir === 'asc'" :size="15" />
+        <ArrowUpWideNarrow v-else-if="btn.dir === 'desc'" :size="15" />
       </span>
     </Button>
   </div>
