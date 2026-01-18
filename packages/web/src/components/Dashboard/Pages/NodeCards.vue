@@ -209,6 +209,7 @@ import DeviceImage from '@/components/Dashboard/DeviceImage.vue';
 import CoordinateDisplay from '@/components/Dashboard/CoordinateDisplay.vue';
 import SortButtonGroup from '@/components/Dashboard/SortButtonGroup.vue';
 import ConfirmDialog from '@/components/Connection/ConfirmDialog.vue';
+import { useFavoriteNode } from '@/composables/core/hooks/useFavoriteNode';
 import { type SortDir } from '@/components/Dashboard/SortButtonGroup.vue';
 import * as _ from 'lodash-es';
 
@@ -312,7 +313,7 @@ function formatLastHeard(epoch?: number) {
 }
 
 function onMarkFavorite(nodeNumber: number, fav: boolean) {
-  nodeDBStore.nodeDatabase.value?.updateFavorite(nodeNumber, fav);
+  useFavoriteNode().updateFavorite(nodeNumber, fav);
 }
 
 const confirmDialogRef = ref<InstanceType<typeof ConfirmDialog> | null>(null);
