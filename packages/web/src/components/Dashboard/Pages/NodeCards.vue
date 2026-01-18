@@ -231,7 +231,7 @@ import SortButtonGroup from '@/components/Dashboard/SortButtonGroup.vue';
 import ConfirmDialog from '@/components/Connection/ConfirmDialog.vue';
 import { useFavoriteNode } from '@/composables/core/hooks/useFavoriteNode';
 import { useIgnoreNode } from '@/composables/core/hooks/useIgnoreNode';
-import { type SortDir } from '@/components/Dashboard/SortButtonGroup.vue';
+import { type SortDir } from '@/components/types';
 import * as _ from 'lodash-es';
 
 const nodeDatabase = useFormattedNodeDatabase().nodeDatabase;
