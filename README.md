@@ -37,5 +37,5 @@ You'll need to have [pnpm](https://pnpm.io/) installed to work with this monorep
    monorepo.
 3. **Install the Buf CLI**
     Required for building `packages/protobufs`
-    https://buf.build/docs/cli/installation/
+    [Install the Buf CLI](https://buf.build/docs/cli/installation/#install-the-buf-cli)
 
