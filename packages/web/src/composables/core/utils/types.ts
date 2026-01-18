@@ -26,6 +26,7 @@ export type FormattedNode = {
     position?: FormattedPosition;
     hostMetrics?: FormattedHostMetrics;
     airQualityMetrics?: FormattedAirQualityMetrics;
+    localStats?: FormattedLocalStatsMetrics;
 }
 
 export type FormattedNodeMap = { [key: string]: FormattedNode };
@@ -129,3 +130,20 @@ export type FormattedAirQualityMetrics = {
         humidity?: string;
     };
 }
+
+export type FormattedLocalStatsMetrics = {
+    uptime?: string;
+    channelUtilization?: number;
+    airUtilTx?: number;
+    numPacketsTx?: number;
+    numPacketsRx?: number;
+    numPacketsRxBad?: number;
+    numOnlineNodes?: number;
+    numTotalNodes?: number;
+    numRxDupe?: number;
+    numTxRelay?: number;
+    numTxRelayCanceled?: number;
+    heapTotalBytes?: number;
+    heapFreeBytes?: number;
+    numTxDropped?: number;
+};

@@ -60,6 +60,12 @@
       class="feature-icon"
       v-tooltip.right="tooltipPreset('Host Metrics')"
     />
+    <ChartArea
+      v-if="!!node.localStats"
+      :size="20"
+      class="feature-icon"
+      v-tooltip.right="tooltipPreset('Host Metrics')"
+    />
   </div>
 </template>
 
@@ -75,6 +81,7 @@ import {
   Network,
   Server,
   AirVent,
+  ChartArea,
 } from 'lucide-vue-next';
 import type { FormattedNode } from '@/composables/core/utils/types';
 import { EncryptionStatus } from '@/composables/core/utils/useFormattedNodeDatabase';

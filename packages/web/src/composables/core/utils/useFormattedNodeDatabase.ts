@@ -14,7 +14,8 @@ import type {
     FormattedPosition,
     FormattedDeviceMetrics,
     FormattedHostMetrics,
-    FormattedAirQualityMetrics
+    FormattedAirQualityMetrics,
+    FormattedLocalStatsMetrics,
 } from './types'
 
 export enum EncryptionStatus {
@@ -58,6 +59,7 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
                 position: formatPosition(node.position),
                 hostMetrics: formatHostMetrics(node.hostMetrics),
                 airQualityMetrics: formatAirQualityMetrics(node.airQualityMetrics),
+                localStats: formatLocalStats(node.localStats),
             };
             if (ndb.hasNodeError(node.num)) {
                 const err = ndb.getNodeError(node.num)
@@ -358,6 +360,27 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
                 temperature: orDash(fmt(m.formTemperature, 1, '°C')),
                 humidity: orDash(fmt(m.formHumidity, 1, '%RH')),
             },
+        };
+    }
+
+    const formatLocalStats = (m?: Protobuf.Telemetry.LocalStats): FormattedLocalStatsMetrics | undefined => {
+        if (!m) return undefined;
+
+        return {
+            uptime: formatUptime(m.uptimeSeconds),
+            channelUtilization: m.channelUtilization,
+            airUtilTx: m.airUtilTx,
+            numPacketsTx: m.numPacketsTx,
+            numPacketsRx: m.numPacketsRx,
+            numPacketsRxBad: m.numPacketsRxBad,
+            numRxDupe: m.numRxDupe,
+            numTxRelay: m.numTxRelay,
+            numTxRelayCanceled: m.numTxRelayCanceled,
+            numTxDropped: m.numTxDropped,
+            numOnlineNodes: m.numOnlineNodes,
+            numTotalNodes: m.numTotalNodes,
+            heapFreeBytes: m.heapFreeBytes,
+            heapTotalBytes: m.heapTotalBytes,
         };
     }
 
