@@ -134,7 +134,12 @@
           <RotateCcw :size="15" />
           Retry
         </Button>
-        <Button v-else severity="info" size="small" disabled="true">
+        <Button
+          v-else
+          severity="info"
+          size="small"
+          @click="$emit('eventDisconnect', connection.id)"
+        >
           <ProgressSpinner style="width: 15px; height: 15px" strokeWidth="5" fill="transparent" />
         </Button>
       </div>
