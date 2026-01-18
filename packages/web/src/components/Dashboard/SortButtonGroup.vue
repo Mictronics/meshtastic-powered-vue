@@ -116,7 +116,6 @@ watch(
 
 const appData = useAppStore().appData;
 const saveToStorage = () => {
-  console.log(sortState.value);
   appData.sortState = sortState.value;
 };
 
