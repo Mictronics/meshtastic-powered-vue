@@ -34,7 +34,6 @@
             v-if="item.to"
             :to="item.to"
             class="flex items-center py-1 group w-full"
-            @click.native="item.command && item.command"
           >
             <component :is="item.myIcon" />
             <span v-if="isSideBarVisible" class="ml-2">{{ item.label }}</span>
@@ -51,7 +50,6 @@
             v-else
             type="button"
             class="flex items-center py-1 group w-full"
-            @click="item.command && item.command"
           >
             <component :is="item.myIcon" />
             <span v-if="isSideBarVisible" class="ml-2">{{ item.label }}</span>
@@ -120,7 +118,6 @@ const emit = defineEmits<{
 type DevicePanelItem = {
   label: string;
   myIcon: FunctionalComponent<LucideProps>;
-  command: () => void;
   badge?: number;
   severity?: 'info' | 'warn' | 'success' | 'danger' | 'secondary';
   to?: any;
@@ -175,24 +172,21 @@ const devicePanelItems = computed<DevicePanelItem[]>(() => [
     myIcon: MessageSquareText,
     badge: 2,
     severity: 'info',
-    command: () => console.log('Test1'),
   },
   {
     label: 'Map',
     myIcon: Map,
-    command: () => console.log('Test2'),
   },
   {
     label: 'Settings',
     myIcon: Settings,
-    command: () => console.log('Test3'),
   },
   {
     label: 'Nodes',
     myIcon: Users,
     badge: nodeCount.value,
     severity: 'secondary',
-    command: () => console.log('Test4'),
+    to: '/dashboard'
   },
 ]);
 
