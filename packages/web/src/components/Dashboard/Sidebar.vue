@@ -30,11 +30,7 @@
         pt:panel:class="dashboard-panelmenu"
       >
         <template #item="{ item }">
-          <router-link
-            v-if="item.to"
-            :to="item.to"
-            class="flex items-center py-1 group w-full"
-          >
+          <router-link v-if="item.to" :to="item.to" class="flex items-center py-1 group w-full">
             <component :is="item.myIcon" />
             <span v-if="isSideBarVisible" class="ml-2">{{ item.label }}</span>
             <Badge
@@ -46,11 +42,7 @@
             />
           </router-link>
 
-          <button
-            v-else
-            type="button"
-            class="flex items-center py-1 group w-full"
-          >
+          <button v-else type="button" class="flex items-center py-1 group w-full">
             <component :is="item.myIcon" />
             <span v-if="isSideBarVisible" class="ml-2">{{ item.label }}</span>
             <Badge
@@ -88,7 +80,13 @@
       v-if="isSideBarVisible"
       class="mt-auto text-center text-sm text-slate-500/40 dark:text-slate-400/40"
     >
-      <p>{{ appName }}</p>
+      <a
+        href="https://github.com/Mictronics/meshtastic-powered-vue"
+        target="_blank"
+        class="hover:underline text-link"
+      >
+        {{ appName }}
+      </a>
       <p>Michael Wolf</p>
       <a class="hover:underline text-link" href="https://www.mictronics.de" target="_blank">
         Mictronics
@@ -186,7 +184,7 @@ const devicePanelItems = computed<DevicePanelItem[]>(() => [
     myIcon: Users,
     badge: nodeCount.value,
     severity: 'secondary',
-    to: '/dashboard'
+    to: '/dashboard',
   },
 ]);
 
