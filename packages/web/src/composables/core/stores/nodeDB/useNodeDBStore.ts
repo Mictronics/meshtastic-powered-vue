@@ -109,7 +109,16 @@ class NodeDB implements INodeDB {
             // apply the nullish-coalescing fallbacks explicitly
             merged.user = next.user ?? existing.user;
             merged.position = next.position ?? existing.position;
-            merged.deviceMetrics = next.deviceMetrics ?? existing.deviceMetrics;
+            // TODO Find out why device metrics are frequently still stored as reactive object for random nodes.
+            let ndm = next.deviceMetrics;
+            let edm = existing.deviceMetrics;
+            if (isReactive(ndm)) {
+                ndm = toRaw(next.deviceMetrics);
+            }
+            if (isReactive(edm)) {
+                edm = toRaw(existing.deviceMetrics);
+            }
+            merged.deviceMetrics = ndm ?? edm;
         } else {
             merged = next;
         }
