@@ -56,8 +56,14 @@
                       :size="20"
                       class="unmessagabel-icon"
                     />
-                    <Satellite v-if="node.hasPosition" :size="20" class="via-mqtt-icon" />
-                    <Network v-if="node.viaMqtt" :size="20" class="via-mqtt-icon" />
+                    <ThermometerSun
+                      v-if="!!node.environmentMetrics"
+                      :size="20"
+                      class="feature-icon"
+                    />
+                    <Zap v-if="!!node.powerMetrics" :size="20" class="feature-icon" />
+                    <Satellite v-if="node.hasPosition" :size="20" class="feature-icon" />
+                    <Network v-if="node.viaMqtt" :size="20" class="feature-icon" />
                   </div>
                 </div>
                 <h3 class="text-lg font-bold text-slate-800 dark:text-slate-400 mb-1 truncate">
@@ -212,12 +218,14 @@ import {
   Trash2,
   Eye,
   EyeOff,
+  ThermometerSun,
+  Zap,
 } from 'lucide-vue-next';
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { formatTimeAgoIntl } from '@vueuse/core';
 import { numberToHexUnpadded } from '@noble/curves/utils.js';
+import type { FormattedNode } from '@/composables/core/utils/types';
 import {
-  type IFormattedNode,
   EncryptionStatus,
   useFormattedNodeDatabase,
 } from '@/composables/core/utils/useFormattedNodeDatabase';
@@ -237,7 +245,7 @@ import { useDeleteNode } from '@/composables/core/hooks/useDeleteNode';
 const nodeDatabase = useFormattedNodeDatabase().nodeDatabase;
 const searchQuery = ref('');
 const showDrawer = ref(false);
-const selectedNode = ref<IFormattedNode>();
+const selectedNode = ref<FormattedNode>();
 const windowWidth = ref(window.innerWidth);
 
 const voltage = computed(() => {
@@ -312,14 +320,14 @@ const sortedFilteredNodes = computed(() => {
 });
 
 const chunkedNodes = computed(() => {
-  const chunks: IFormattedNode[][] = [];
+  const chunks: FormattedNode[][] = [];
   for (let i = 0; i < sortedFilteredNodes.value.length; i += cardsPerRow.value) {
     chunks.push(sortedFilteredNodes.value.slice(i, i + cardsPerRow.value));
   }
   return chunks;
 });
 
-const openQuickView = (node: IFormattedNode) => {
+const openQuickView = (node: FormattedNode) => {
   selectedNode.value = node;
   showDrawer.value = true;
 };

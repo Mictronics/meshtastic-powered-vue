@@ -6,7 +6,7 @@ import humanizeDuration from 'humanize-duration';
 import { fromByteArray } from 'base64-js';
 import { Protobuf } from "@meshtastic/core";
 import { useNodeDBStore } from '@/composables/core/stores/nodeDB/useNodeDBStore';
-import { type NodeErrorType } from '@/composables/core/stores/nodeDB/types';
+import type { FormattedEnvironmentMetrics, FormattedPowerMetrics, FormattedNode, FormattedNodeMap } from './types'
 
 export enum EncryptionStatus {
     Encrypted = 0,
@@ -15,41 +15,8 @@ export enum EncryptionStatus {
     KeyMismatch
 }
 
-export interface IFormattedNode {
-    nodeNumber: number;
-    shortName: string;
-    longName: string;
-    hopsAway: string;
-    numHops?: number;
-    macAddr: string;
-    lastHeard: number;
-    encryptionStatus: EncryptionStatus;
-    isFavorite: boolean;
-    isIgnored: boolean;
-    isUnmessagable?: boolean;
-    viaMqtt: boolean;
-    snr: string;
-    numSnr: number;
-    hwModel?: string;
-    batteryLevel?: number;
-    voltage?: number;
-    channelUtilization?: number;
-    airUtilTx?: number;
-    uptime?: string;
-    role?: string;
-    hasPosition: boolean;
-    hasMetrics: boolean;
-    lat?: number;
-    lon?: number;
-    alt?: number;
-    publicKey?: string;
-    isPublicKeyVerified: boolean;
-}
-
-type IFormattedNodeMap = { [key: string]: IFormattedNode };
-
 export const useFormattedNodeDatabase = createSharedComposable(() => {
-    const nodeDatabase = ref<IFormattedNodeMap>({});
+    const nodeDatabase = ref<FormattedNodeMap>({});
 
     watchImmediate(useNodeDBStore().nodeDatabase, (ndb) => {
         if (!ndb?.nodeMap) return;
@@ -57,7 +24,7 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
         for (const node of Object.values(ndb.nodeMap)) {
             if (node.$typeName !== 'meshtastic.NodeInfo') continue;
             const names = formatName(node.num, node.user?.shortName, node.user?.longName);
-            const formatted: IFormattedNode = {
+            const formatted: FormattedNode = {
                 nodeNumber: node.num,
                 shortName: names.short,
                 longName: names.long,
@@ -90,6 +57,8 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
                 alt: node.position?.altitude,
                 publicKey: formatPublicKey(node.user?.publicKey),
                 isPublicKeyVerified: node.isKeyManuallyVerified,
+                environmentMetrics: formatEnvironmentMetrics(node.environmentMetrics),
+                powerMetrics: formatPowerMetrics(node.powerMetrics),
             };
             if (ndb.hasNodeError(node.num)) {
                 const err = ndb.getNodeError(node.num)
@@ -169,6 +138,88 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
             delete nodeDatabase.value[nodeNum];
         }
     }
+
+    const fmt = (
+        value: number | undefined,
+        decimals: number,
+        unit: string
+    ): string | null => {
+        if (value === undefined || Number.isNaN(value)) return null;
+        return `${value.toFixed(decimals)} ${unit}`;
+    };
+
+    const fmtInt = (
+        value: number | undefined,
+        unit: string
+    ): string | null => {
+        if (value === undefined || Number.isNaN(value)) return null;
+        return `${Math.round(value)} ${unit}`;
+    };
+
+    const orDash = (v: string | null) => v ?? '—';
+    const windDirectionToText = (deg?: number): string | null => {
+        if (deg === undefined || Number.isNaN(deg)) return null;
+
+        const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+        const index = Math.round(deg / 45) % 8;
+
+        return `${deg}° (${directions[index]})`;
+    };
+
+    const formatEnvironmentMetrics = (
+        m?: Protobuf.Telemetry.EnvironmentMetrics
+    ): FormattedEnvironmentMetrics | undefined => {
+        if (!m) {
+            return undefined;
+        }
+
+        return {
+            temperature: orDash(fmt(m.temperature, 1, '°C')),
+            soilTemperature: orDash(fmt(m.soilTemperature, 1, '°C')),
+
+            relativeHumidity: orDash(fmtInt(m.relativeHumidity, '%')),
+            soilMoisture: orDash(fmtInt(m.soilMoisture, '%')),
+
+            barometricPressure: orDash(fmt(m.barometricPressure, 1, 'hPa')),
+            gasResistance: orDash(fmt(m.gasResistance, 2, 'MΩ')),
+            iaq: m.iaq !== undefined ? `${m.iaq} / 500` : '—',
+
+            voltage: orDash(fmt(m.voltage, 2, 'V')),
+            current: orDash(fmt(m.current, 1, 'mA')),
+
+            lux: orDash(fmt(m.lux, 0, 'lx')),
+            whiteLux: orDash(fmt(m.whiteLux, 0, 'lx')),
+            irLux: orDash(fmt(m.irLux, 0, 'lx')),
+            uvLux: orDash(fmt(m.uvLux, 0, 'lx')),
+
+            rainfall1h: orDash(fmt(m.rainfall1h, 1, 'mm')),
+            rainfall24h: orDash(fmt(m.rainfall24h, 1, 'mm')),
+
+            windSpeed: orDash(fmt(m.windSpeed, 1, 'm/s')),
+            windGust: orDash(fmt(m.windGust, 1, 'm/s')),
+            windLull: orDash(fmt(m.windLull, 1, 'm/s')),
+            windDirection: orDash(windDirectionToText(m.windDirection)),
+
+            distance: orDash(fmt(m.distance, 0, 'mm')),
+            weight: orDash(fmt(m.weight, 2, 'kg')),
+
+            radiation: orDash(fmt(m.radiation, 2, 'µR/h')),
+        };
+    };
+
+    const channels = [1, 2, 3, 4, 5, 6, 7, 8] as const;
+    const formatPowerMetrics = (
+        m?: Protobuf.Telemetry.PowerMetrics
+    ): FormattedPowerMetrics | undefined => {
+        if (!m) return undefined;
+
+        return Object.fromEntries(
+            channels.flatMap(ch => [
+                [`ch${ch}Voltage`, orDash(fmt(m[`ch${ch}Voltage`], 2, 'V'))],
+                [`ch${ch}Current`, orDash(fmt(m[`ch${ch}Current`], 1, 'mA'))],
+            ])
+        ) as FormattedPowerMetrics;
+    };
 
     return {
         nodeDatabase,

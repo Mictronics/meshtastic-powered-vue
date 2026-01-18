@@ -17,7 +17,12 @@ import { purgeUncloneableProperties } from "../utils/purgeUncloneable";
 
 const NODE_RETENTION_DAYS = 14; // Remove nodes not heard from in 14 days
 
-type NodeMap = { [key: string]: Protobuf.Mesh.NodeInfo };
+export type NodeInfoExtented = Protobuf.Mesh.NodeInfo & {
+    environmentMetrics?: Protobuf.Telemetry.EnvironmentMetrics;
+    powerMetrics?: Protobuf.Telemetry.PowerMetrics;
+}
+
+type NodeMap = { [key: string]: NodeInfoExtented };
 type NodeErrors = { [key: string]: NodeError };
 
 export interface INodeDB {
@@ -50,6 +55,7 @@ export interface INodeDB {
 
     getNodeError: (nodeNum: number) => NodeError | undefined;
     hasNodeError: (nodeNum: number) => boolean;
+    setMetrics: (data: Types.PacketMetadata<Protobuf.Telemetry.Telemetry>) => void;
 }
 
 export interface NodeDatabase extends DBSchema {
@@ -297,6 +303,41 @@ class NodeDB implements INodeDB {
 
     hasNodeError(nodeNum: number) {
         return this.nodeErrors.hasOwnProperty(nodeNum) || false;
+    }
+
+    setMetrics(packet: Types.PacketMetadata<Protobuf.Telemetry.Telemetry>) {
+        // Check if node already exists
+        const existing = toRaw(this.nodeMap[packet.from]);
+        if (!existing || packet.data.$typeName !== 'meshtastic.Telemetry') return;
+        // Merge with existing node data if it exists
+        let merged = Object.assign({}, existing);
+        let metrics;
+        const val = packet.data.variant.value;
+        switch (packet.data.variant.case) {
+            case 'deviceMetrics':
+                metrics = existing.deviceMetrics;
+                if (isReactive(metrics)) {
+                    metrics = toRaw(existing.deviceMetrics);
+                }
+                merged.deviceMetrics = (val as Protobuf.Telemetry.DeviceMetrics) ?? metrics;
+                break;
+            case 'environmentMetrics':
+                metrics = existing.environmentMetrics;
+                if (isReactive(metrics)) {
+                    metrics = toRaw(existing.environmentMetrics);
+                }
+                merged.environmentMetrics = (val as Protobuf.Telemetry.EnvironmentMetrics) ?? metrics;
+                break;
+            case 'powerMetrics':
+                metrics = existing.powerMetrics;
+                if (isReactive(metrics)) {
+                    metrics = toRaw(existing.powerMetrics);
+                }
+                merged.powerMetrics = (val as Protobuf.Telemetry.PowerMetrics) ?? metrics;
+            default:
+                return;
+        }
+        this.nodeMap[String(merged.num)] = merged;
     }
 }
 
