@@ -98,6 +98,9 @@
         <!-- Power -->
         <SectionDivider v-if="powerMetricsItems.length" title="Power" />
         <MetricsGrid :items="powerMetricsItems" />
+        <!-- Host -->
+        <SectionDivider v-if="hostMetricsItems.length" title="Host" />
+        <MetricsGrid :items="hostMetricsItems" />
         <!-- Position -->
         <SectionDivider v-if="!!selectedNode.position" title="Position" />
         <div v-if="!!selectedNode.position" class="grid grid-cols-1">
@@ -280,6 +283,31 @@ const powerMetricsItems = computed(() => {
     { label: 'Channel 8', value: m.ch8Current },
   ];
 });
+
+const hostMetricsItems = computed(() => {
+  const m = selectedNode.value?.hostMetrics;
+  if (!m) return [];
+  return [
+    { label: 'Uptime', value: m.uptimeSeconds },
+    { label: 'Memory', value: m.freememBytes },
+    { label: 'Disk 1', value: m.diskfree1Bytes },
+    { label: 'Disk 2', value: m.diskfree2Bytes },
+    { label: 'Disk 3', value: m.diskfree3Bytes },
+    { label: 'Load 1', value: m.load1 },
+    { label: 'Load 5', value: m.load5 },
+    { label: 'Load 15', value: m.load15 },
+    { label: 'User', value: m.userString },
+  ];
+});
+
+const airQualityItems = computed(() => {
+  const m = selectedNode.value?.airQualityMetrics;
+  if (!m) return [];
+  return [
+
+  ];
+});
+
 const isFavorite = computed(() => {
   if (selectedNode.value?.nodeNumber)
     return nodeDatabase.value[selectedNode.value.nodeNumber]?.isFavorite;
