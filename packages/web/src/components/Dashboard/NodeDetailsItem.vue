@@ -9,7 +9,14 @@
       class="absolute top-2 right-2"
       :class="iconColorClass"
       :size="15"
-      v-tooltip="{ value: 'Public Key Verification', showDelay: 1000, hideDelay: 300 }"
+      v-tooltip.left="{
+        value: 'Public Key Verification',
+        showDelay: 300,
+        hideDelay: 300,
+        pt: {
+          text: 'bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-400 text-sm',
+        },
+      }"
     />
 
     <div class="flex items-center gap-2 mb-1">
