@@ -358,6 +358,7 @@ async function deleteNode(nodeNumber: number) {
   if (confirmed) {
     useFormattedNodeDatabase().deleteNode(nodeNumber);
     nodeDBStore.nodeDatabase.value?.removeNode(nodeNumber);
+    showDrawer.value = false;
   }
 }
 </script>
