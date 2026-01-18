@@ -92,6 +92,9 @@
         <!-- Device -->
         <SectionDivider v-if="deviceMetricsItems.length" title="Device" />
         <MetricsGrid v-if="deviceMetricsItems.length" :items="deviceMetricsItems" />
+        <!-- Environment -->
+        <SectionDivider v-if="environmentMetricsItems.length" title="Environment" />
+        <MetricsGrid :items="environmentMetricsItems" />
         <!-- Position -->
         <SectionDivider v-if="!!selectedNode.position" title="Position" />
         <div v-if="!!selectedNode.position" class="grid grid-cols-1">
@@ -206,10 +209,8 @@ const deviceMetricsItems = computed(() => {
   if (!m) return [];
 
   const formatVoltage = (v?: number) => (v == null ? 'N/A' : `${v.toPrecision(2)} V`);
-
   const formatBattery = (level?: number) =>
     level == null ? 'N/A' : level > 100 ? 'Plugged in' : `${level} %`;
-
   const formatPercent = (val?: number) => (val == null ? 'N/A' : `${val.toFixed(1)} %`);
 
   return [
@@ -222,6 +223,35 @@ const deviceMetricsItems = computed(() => {
       value: m.uptimeSeconds ?? 'N/A',
       class: 'col-span-2',
     },
+  ];
+});
+
+const environmentMetricsItems = computed(() => {
+  const m = selectedNode.value?.environmentMetrics;
+  if (!m) return [];
+  return [
+    { label: 'Temperature', value: m.temperature },
+    { label: 'Soil Temperature', value: m.soilTemperature },
+    { label: 'Rel. Humidity', value: m.relativeHumidity },
+    { label: 'Soil Humidity', value: m.soilMoisture },
+    { label: 'Baro Pressure', value: m.barometricPressure },
+    { label: 'Gas Resistance', value: m.gasResistance },
+    { label: 'IAQ', value: m.iaq },
+    { label: 'Voltage', value: m.voltage },
+    { label: 'Current', value: m.current },
+    { label: 'Lux', value: m.lux },
+    { label: 'White Lux', value: m.whiteLux },
+    { label: 'IR Lux', value: m.irLux },
+    { label: 'UV Lux', value: m.uvLux },
+    { label: 'Rain 1h', value: m.rainfall1h },
+    { label: 'Rain 24h', value: m.rainfall24h },
+    { label: 'Speed', value: m.windSpeed },
+    { label: 'Gust', value: m.windGust },
+    { label: 'Lull', value: m.windLull },
+    { label: 'Direction', value: m.windDirection },
+    { label: 'Distance', value: m.distance },
+    { label: 'Weight', value: m.weight },
+    { label: 'Radiation', value: m.radiation },
   ];
 });
 
