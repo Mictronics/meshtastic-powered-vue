@@ -23,15 +23,12 @@ export interface FormattedNode {
     airUtilTx?: number;
     uptime?: string;
     role?: string;
-    hasPosition: boolean;
     hasMetrics: boolean;
-    lat?: number;
-    lon?: number;
-    alt?: number;
     publicKey?: string;
     isPublicKeyVerified: boolean;
     environmentMetrics?: FormattedEnvironmentMetrics;
     powerMetrics?: FormattedPowerMetrics;
+    position?: FormattedPosition;
 }
 
 export type FormattedNodeMap = { [key: string]: FormattedNode };
@@ -81,4 +78,30 @@ export type FormattedPowerMetrics = {
     ch7Current?: string;
     ch8Voltage?: string;
     ch8Current?: string;
+};
+
+export type FormattedPosition = {
+    latitudeI?: number;
+    longitudeI?: number;
+    altitude?: number;
+    time: number;
+    locationSource: Protobuf.Mesh.Position_LocSource;
+    altitudeSource: Protobuf.Mesh.Position_AltSource;
+    timestamp: number;
+    timestampMillisAdjust: number;
+    altitudeHae?: string;
+    altitudeGeoidalSeparation?: string;
+    PDOP: string;
+    HDOP: string
+    VDOP: string;
+    gpsAccuracy: string;
+    groundSpeed?: string;
+    groundTrack?: string;
+    fixQuality: number;
+    fixType: number;
+    satsInView: number;
+    sensorId: number;
+    nextUpdate: string;
+    seqNumber: number;
+    precisionBits: number;
 };

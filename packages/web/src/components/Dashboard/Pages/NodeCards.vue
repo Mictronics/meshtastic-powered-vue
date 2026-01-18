@@ -62,7 +62,7 @@
                       class="feature-icon"
                     />
                     <Zap v-if="!!node.powerMetrics" :size="20" class="feature-icon" />
-                    <Satellite v-if="node.hasPosition" :size="20" class="feature-icon" />
+                    <Satellite v-if="!!node.position" :size="20" class="feature-icon" />
                     <Network v-if="node.viaMqtt" :size="20" class="feature-icon" />
                   </div>
                 </div>
@@ -136,14 +136,14 @@
           <NodeDetailsItem label="Voltage" :value="voltage" />
           <NodeDetailsItem class="col-span-2" label="Uptime" :value="selectedNode.uptime" />
         </div>
-        <div v-if="selectedNode.hasPosition" class="divider">
+        <div v-if="!!selectedNode.position" class="divider">
           <span class="text-nowrap text-sm text-slate-400">Position</span>
         </div>
-        <div v-if="selectedNode.hasPosition" class="grid grid-cols-1">
+        <div v-if="!!selectedNode.position" class="grid grid-cols-1">
           <CoordinateDisplay
-            :latitude="selectedNode.lat"
-            :longitude="selectedNode.lon"
-            :alt="selectedNode.alt"
+            :latitude="selectedNode.position.latitudeI"
+            :longitude="selectedNode.position.longitudeI"
+            :alt="selectedNode.position.altitude"
           />
         </div>
         <div v-if="selectedNode.publicKey" class="divider">

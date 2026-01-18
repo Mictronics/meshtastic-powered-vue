@@ -6,7 +6,13 @@ import humanizeDuration from 'humanize-duration';
 import { fromByteArray } from 'base64-js';
 import { Protobuf } from "@meshtastic/core";
 import { useNodeDBStore } from '@/composables/core/stores/nodeDB/useNodeDBStore';
-import type { FormattedEnvironmentMetrics, FormattedPowerMetrics, FormattedNode, FormattedNodeMap } from './types'
+import type {
+    FormattedEnvironmentMetrics,
+    FormattedPowerMetrics,
+    FormattedNode,
+    FormattedNodeMap,
+    FormattedPosition
+} from './types'
 
 export enum EncryptionStatus {
     Encrypted = 0,
@@ -47,18 +53,11 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
                 uptime: formatUptime(node.deviceMetrics?.uptimeSeconds),
                 role: Protobuf.Config.Config_DeviceConfig_Role[node.user?.role ?? 0]?.replaceAll('_', ' '),
                 hasMetrics: !!node.deviceMetrics,
-                hasPosition: !!node.position,
-                lat: node.position?.latitudeI != null
-                    ? node.position.latitudeI / 1e7
-                    : undefined,
-                lon: node.position?.longitudeI != null
-                    ? node.position.longitudeI / 1e7
-                    : undefined,
-                alt: node.position?.altitude,
                 publicKey: formatPublicKey(node.user?.publicKey),
                 isPublicKeyVerified: node.isKeyManuallyVerified,
                 environmentMetrics: formatEnvironmentMetrics(node.environmentMetrics),
                 powerMetrics: formatPowerMetrics(node.powerMetrics),
+                position: formatPosition(node.position)
             };
             if (ndb.hasNodeError(node.num)) {
                 const err = ndb.getNodeError(node.num)
@@ -220,6 +219,50 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
             ])
         ) as FormattedPowerMetrics;
     };
+
+    const formatTrack = (v?: number): string | null => {
+        if (v === undefined) return null;
+        return `${(v / 100).toFixed(1)}°`;
+    };
+
+    const formatSpeed = (v?: number): string | null => {
+        if (v === undefined) return null;
+        return `${(v / 100).toFixed(2)} m/s`;
+    };
+
+    const formatPosition = (
+        p?: Protobuf.Mesh.Position
+    ): FormattedPosition | undefined => {
+        if (!p) return undefined;
+
+        return {
+            // Formatting is done in CoordinateDisplay
+            latitudeI: p.latitudeI ? p.latitudeI / 1e7 : undefined,
+            longitudeI: p.longitudeI ? p.longitudeI / 1e7 : undefined,
+            altitude: p.altitude,
+            altitudeHae: orDash(fmtInt(p.altitudeHae, 'm')),
+            altitudeGeoidalSeparation: orDash(fmtInt(p.altitudeGeoidalSeparation, 'm')),
+            time: p.time,
+            timestamp: p.timestamp,
+            timestampMillisAdjust: p.timestampMillisAdjust,
+            PDOP: orDash(fmt(p.PDOP / 100, 2, '')),
+            HDOP: orDash(fmt(p.HDOP / 100, 2, '')),
+            VDOP: orDash(fmt(p.VDOP / 100, 2, '')),
+            gpsAccuracy: orDash(fmt(p.gpsAccuracy / 1000, 2, 'm')),
+            groundSpeed: orDash(formatSpeed(p.groundSpeed)),
+            groundTrack: orDash(formatTrack(p.groundTrack)),
+            fixQuality: p.fixQuality,
+            fixType: p.fixType,
+            satsInView: p.satsInView,
+            sensorId: p.sensorId,
+            nextUpdate: orDash(fmtInt(p.nextUpdate, 's')),
+            seqNumber: p.seqNumber,
+            precisionBits: p.precisionBits,
+            locationSource: p.locationSource,
+            altitudeSource: p.altitudeSource,
+        };
+    };
+
 
     return {
         nodeDatabase,
