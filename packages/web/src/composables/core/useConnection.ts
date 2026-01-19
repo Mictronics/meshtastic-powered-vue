@@ -76,6 +76,140 @@ export const useConnection = createGlobalState(() => {
         });
     }
 
+    async function enforceSingleActiveConnection(connectionId: ConnectionId) {
+        const activeId = connectionStore.activeConnectionId.value;
+        if (activeId && activeId !== connectionId) {
+            await disconnect(activeId);
+        }
+    }
+
+    type ResolvedTransport =
+        | { type: ConnectionType.Unknown; transport: undefined }
+        | { type: ConnectionType.Http; transport: Awaited<ReturnType<typeof TransportHTTP.create>> }
+        | { type: ConnectionType.Bluetooth; transport: Awaited<ReturnType<typeof TransportWebBluetooth.createFromDevice>>; device: BluetoothDevice }
+        | { type: ConnectionType.Serial; transport: Awaited<ReturnType<typeof TransportWebSerial.createFromPort>>; port: SerialPort };
+
+    async function resolveTransport(
+        conn: IConnection,
+        opts?: { allowPrompt?: boolean },
+    ): Promise<ResolvedTransport> {
+
+        switch (conn.type) {
+            case ConnectionType.Http: {
+                const ok = await testHttpConnection(conn.url);
+                const url = new URL(conn.url);
+                const isHTTPS = url.protocol === "https:";
+                const message = isHTTPS
+                    ? `Cannot reach HTTPS endpoint. If using a self-signed certificate, open ${conn.url} in a new tab, accept the certificate warning, then try connecting again.`
+                    : "HTTP endpoint not reachable (may be blocked by CORS)";
+                if (!ok) throw new Error(message);
+
+                const transport = await TransportHTTP.create(
+                    url.host,
+                    isHTTPS,
+                );
+
+                return { type: ConnectionType.Http, transport };
+            }
+
+            case ConnectionType.Bluetooth: {
+                if (!("bluetooth" in navigator)) {
+                    throw new Error("Web Bluetooth not supported");
+                }
+
+                let device: BluetoothDevice | undefined;
+
+                // Reuse granted device
+                const getDevices = navigator.bluetooth.getDevices?.bind(navigator.bluetooth);
+                if (getDevices && conn.deviceId) {
+                    const known = await getDevices();
+                    device = known.find(d => d.id === conn.deviceId);
+                }
+
+                if (!device && opts?.allowPrompt) {
+                    device = await navigator.bluetooth.requestDevice({
+                        acceptAllDevices: !conn.gattServiceUUID,
+                        optionalServices: conn.gattServiceUUID
+                            ? [conn.gattServiceUUID]
+                            : undefined,
+                        filters: conn.gattServiceUUID
+                            ? [{ services: [conn.gattServiceUUID] }]
+                            : undefined,
+                    });
+                }
+
+                if (!device) {
+                    throw new Error("Bluetooth device not available");
+                }
+
+                const transport =
+                    await TransportWebBluetooth.createFromDevice(device);
+
+                return { type: ConnectionType.Bluetooth, transport, device };
+            }
+
+            case ConnectionType.Serial: {
+                if (!("serial" in navigator)) {
+                    throw new Error("Web Serial not supported");
+                }
+
+                let port: SerialPort | undefined;
+
+                const ports = await navigator.serial.getPorts();
+                if (ports && conn.usbVendorId && conn.usbProductId) {
+                    port = ports.find(p => {
+                        const info = p.getInfo?.() ?? {};
+                        return (
+                            info.usbVendorId === conn.usbVendorId &&
+                            info.usbProductId === conn.usbProductId
+                        );
+                    });
+                }
+
+                if (!port && opts?.allowPrompt) {
+                    port = await navigator.serial.requestPort({});
+                }
+
+                if (!port) {
+                    throw new Error("Serial port not available");
+                }
+
+                const transport = await TransportWebSerial.createFromPort(port);
+                return { type: ConnectionType.Serial, transport, port };
+            }
+            default:
+                return { type: ConnectionType.Unknown, transport: undefined };
+        }
+    }
+
+    async function attachMeshDevice(
+        connectionId: ConnectionId,
+        resolved: ResolvedTransport,
+    ) {
+        setStatus(connectionId, ConnectionStatus.Connected);
+        connectionStore.activeConnectionId.value = connectionId;
+
+        switch (resolved.type) {
+            case ConnectionType.Http:
+                return setupMeshDevice(connectionId, resolved.transport);
+
+            case ConnectionType.Bluetooth:
+                return setupMeshDevice(
+                    connectionId,
+                    resolved.transport,
+                    resolved.device,
+                );
+
+            case ConnectionType.Serial:
+                return setupMeshDevice(
+                    connectionId,
+                    resolved.transport,
+                    undefined,
+                    resolved.port,
+                );
+        }
+    }
+
     async function setupMeshDevice(
         connectionId: ConnectionId,
         transport:
@@ -183,192 +317,35 @@ export const useConnection = createGlobalState(() => {
         return deviceId;
     }
 
-    async function connect(connectionId: ConnectionId, opts?: { allowPrompt?: boolean }) {
-        const activeId = connectionStore.activeConnectionId.value;
-        if (activeId && activeId !== connectionId) {
-            console.warn("[useConnection] Forcing disconnect of existing active connection.");
-            await disconnect(activeId);
-        }
-
+    async function connect(
+        connectionId: ConnectionId,
+        opts?: { allowPrompt?: boolean },
+    ) {
         const conn = connections.value.get(connectionId);
-        if (!conn) {
-            return false;
-        }
+        if (!conn) return false;
 
-        if (conn.status === ConnectionStatus.Configured || conn.status === ConnectionStatus.Connected) {
+        if (
+            conn.status === ConnectionStatus.Connected ||
+            conn.status === ConnectionStatus.Configured
+        ) {
             return true;
         }
+
         setStatus(connectionId, ConnectionStatus.Connecting);
+
         try {
-            if (conn.type === ConnectionType.Http) {
-                const ok = await testHttpConnection(conn.url);
-                if (!ok) {
-                    const url = new URL(conn.url);
-                    const isHTTPS = url.protocol === "https:";
-                    const message = isHTTPS
-                        ? `Cannot reach HTTPS endpoint. If using a self-signed certificate, open ${conn.url} in a new tab, accept the certificate warning, then try connecting again.`
-                        : "HTTP endpoint not reachable (may be blocked by CORS)";
-                    throw new Error(message);
-                }
+            await enforceSingleActiveConnection(connectionId);
 
-                const url = new URL(conn.url);
-                const isTLS = url.protocol === "https:";
-                const transport = await TransportHTTP.create(url.host, isTLS);
+            const resolved = await resolveTransport(conn, opts);
+            await attachMeshDevice(connectionId, resolved);
 
-                setStatus(connectionId, ConnectionStatus.Connected);
-                connectionStore.activeConnectionId.value = connectionId;
-                await setupMeshDevice(connectionId, transport);
-                // Status will be set to "configured" by onConfigComplete event
-                return true;
-            } else if (conn.type === ConnectionType.Bluetooth) {
-                if (!("bluetooth" in navigator)) {
-                    throw new Error("Web Bluetooth not supported");
-                }
-                let bleDevice = transports.get(connectionId) as BluetoothDevice | undefined;
-                if (!bleDevice) {
-                    // Try to recover permitted devices
-                    const getDevices = (
-                        navigator.bluetooth as Navigator["bluetooth"] & {
-                            getDevices?: () => Promise<BluetoothDevice[]>;
-                        }
-                    ).getDevices;
-
-                    if (getDevices) {
-                        const known = await getDevices();
-                        if (known && known.length > 0 && conn.deviceId) {
-                            bleDevice = known.find(
-                                (d: BluetoothDevice) => d.id === conn.deviceId,
-                            );
-                        }
-                    }
-                }
-                if (!bleDevice && opts?.allowPrompt) {
-                    // Prompt user to reselect (filter by optional service if provided)
-                    bleDevice = await navigator.bluetooth.requestDevice({
-                        acceptAllDevices: !conn.gattServiceUUID,
-                        optionalServices: conn.gattServiceUUID
-                            ? [conn.gattServiceUUID]
-                            : undefined,
-                        filters: conn.gattServiceUUID
-                            ? [{ services: [conn.gattServiceUUID] }]
-                            : undefined,
-                    });
-                }
-                if (!bleDevice) {
-                    throw new Error(
-                        "Bluetooth device not available. Re-select the device.",
-                    );
-                }
-
-                const transport =
-                    await TransportWebBluetooth.createFromDevice(bleDevice);
-
-                setStatus(connectionId, ConnectionStatus.Connected);
-                connectionStore.activeConnectionId.value = connectionId;
-                await setupMeshDevice(connectionId, transport, bleDevice);
-
-                // Clean up any previous Bluetooth listener (defensive)
-                if (activeBluetoothDevice && activeBluetoothDisconnectHandler) {
-                    activeBluetoothDevice.removeEventListener(
-                        "gattserverdisconnected",
-                        activeBluetoothDisconnectHandler,
-                    );
-                    activeBluetoothDevice = null;
-                    activeBluetoothDisconnectHandler = null;
-                }
-
-                const onGattDisconnected = () => {
-                    setStatus(connectionId, ConnectionStatus.Disconnected);
-
-                    // Ensure global active connection is cleared
-                    if (connectionStore.activeConnectionId.value === connectionId) {
-                        connectionStore.activeConnectionId.value = null;
-                    }
-                };
-
-                bleDevice.addEventListener("gattserverdisconnected", onGattDisconnected);
-
-                // Store globally (single active connection invariant)
-                activeBluetoothDevice = bleDevice;
-                activeBluetoothDisconnectHandler = onGattDisconnected;
-
-                // Status will be set to "configured" by onConfigComplete event
-                return true;
-            } else if (conn.type === ConnectionType.Serial) {
-                if (!("serial" in navigator)) {
-                    throw new Error("Web Serial not supported");
-                }
-                let port = transports.get(connectionId) as SerialPort | undefined;
-                if (!port) {
-                    // Find a previously granted port by vendor/product
-                    const ports: SerialPort[] = await (
-                        navigator as Navigator & {
-                            serial: { getPorts: () => Promise<SerialPort[]> };
-                        }
-                    ).serial.getPorts();
-                    if (ports && conn.usbVendorId && conn.usbProductId) {
-                        port = ports.find((p: SerialPort) => {
-                            const info =
-                                (
-                                    p as SerialPort & {
-                                        getInfo?: () => {
-                                            usbVendorId?: number;
-                                            usbProductId?: number;
-                                        };
-                                    }
-                                ).getInfo?.() ?? {};
-                            return (
-                                info.usbVendorId === conn.usbVendorId &&
-                                info.usbProductId === conn.usbProductId
-                            );
-                        });
-                    }
-                }
-                if (!port && opts?.allowPrompt) {
-                    port = await (
-                        navigator as Navigator & {
-                            serial: {
-                                requestPort: (
-                                    options: Record<string, unknown>,
-                                ) => Promise<SerialPort>;
-                            };
-                        }
-                    ).serial.requestPort({});
-                }
-                if (!port) {
-                    throw new Error("Serial port not available. Re-select the port.");
-                }
-
-                // Ensure the port is closed before opening it
-                const portWithStreams = port as SerialPort & {
-                    readable: ReadableStream | null;
-                    writable: WritableStream | null;
-                    close: () => Promise<void>;
-                };
-                if (portWithStreams.readable || portWithStreams.writable) {
-                    try {
-                        await portWithStreams.close();
-                        await new Promise((resolve) => setTimeout(resolve, 100));
-                    } catch (err) {
-                        console.warn("Error closing port before reconnect:", err);
-                    }
-                }
-
-                const transport = await TransportWebSerial.createFromPort(port);
-
-                setStatus(connectionId, ConnectionStatus.Connected);
-                connectionStore.activeConnectionId.value = connectionId;
-                await setupMeshDevice(connectionId, transport, undefined, port);
-                // Status will be set to "configured" by onConfigComplete event
-                return true;
-            }
-        } catch (err: unknown) {
+            return true;
+        } catch (err) {
             const message = err instanceof Error ? err.message : String(err);
             await disconnect(connectionId);
             setStatus(connectionId, ConnectionStatus.Error, message);
             return false;
         }
-        return false;
     }
 
     async function disconnect(connectionId: ConnectionId) {
