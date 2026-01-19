@@ -65,15 +65,16 @@ export const useConnection = createGlobalState(() => {
         return info;
     }
 
-    function updateStatus(id: ConnectionId, status: ConnectionStatus, error?: string) {
-        const updates: Partial<IConnection> = {
+    function setStatus(
+        connectionId: ConnectionId,
+        status: ConnectionStatus,
+        error?: string,
+    ) {
+        connectionStore.updateConnection(connectionId, {
             status,
-            error: error || undefined,
-            ...(status === ConnectionStatus.Connected || status === ConnectionStatus.Configured ? { lastConnectedAt: Date.now() / 1000 } : {}),
-        };
-        connectionStore.updateConnection(id, updates);
-    };
-
+            error: error ?? undefined,
+        });
+    }
 
     async function setupMeshDevice(
         connectionId: ConnectionId,
@@ -117,7 +118,7 @@ export const useConnection = createGlobalState(() => {
                     `[useConnections] Configuration complete with ID: ${configCompleteId}`,
                 );
                 if (device) device.setConnectionPhase(ConnectionPhase.Configured);
-                updateStatus(connectionId, ConnectionStatus.Configured);
+                setStatus(connectionId, ConnectionStatus.Configured);
 
                 // Switch from fast config heartbeat to slow maintenance heartbeat
                 const oldHeartbeat = heartbeats.get(connectionId);
@@ -139,8 +140,10 @@ export const useConnection = createGlobalState(() => {
         configSubscriptions.set(connectionId, unsubConfigComplete);
 
         // Start configuration
-        if (device) device.setConnectionPhase(ConnectionPhase.Configuring);
-        updateStatus(connectionId, ConnectionStatus.Configuring);
+        if (device) {
+            device.setConnectionPhase(ConnectionPhase.Configuring);
+        }
+        setStatus(connectionId, ConnectionStatus.Configuring);
         console.log("[useConnections] Starting configuration");
 
         meshDevice
@@ -173,7 +176,7 @@ export const useConnection = createGlobalState(() => {
             })
             .catch((error) => {
                 console.error(`[useConnections] Failed to configure:`, error);
-                updateStatus(connectionId, ConnectionStatus.Error, error.message);
+                setStatus(connectionId, ConnectionStatus.Error, error.message);
             });
 
         connectionStore.updateConnection(connectionId, { meshDeviceId: deviceId });
@@ -195,7 +198,7 @@ export const useConnection = createGlobalState(() => {
         if (conn.status === ConnectionStatus.Configured || conn.status === ConnectionStatus.Connected) {
             return true;
         }
-        updateStatus(connectionId, ConnectionStatus.Connecting);
+        setStatus(connectionId, ConnectionStatus.Connecting);
         try {
             if (conn.type === ConnectionType.Http) {
                 const ok = await testHttpConnection(conn.url);
@@ -211,7 +214,10 @@ export const useConnection = createGlobalState(() => {
                 const url = new URL(conn.url);
                 const isTLS = url.protocol === "https:";
                 const transport = await TransportHTTP.create(url.host, isTLS);
-                setupMeshDevice(connectionId, transport);
+
+                setStatus(connectionId, ConnectionStatus.Connected);
+                connectionStore.activeConnectionId.value = connectionId;
+                await setupMeshDevice(connectionId, transport);
                 // Status will be set to "configured" by onConfigComplete event
                 return true;
             } else if (conn.type === ConnectionType.Bluetooth) {
@@ -256,7 +262,10 @@ export const useConnection = createGlobalState(() => {
 
                 const transport =
                     await TransportWebBluetooth.createFromDevice(bleDevice);
-                setupMeshDevice(connectionId, transport, bleDevice);
+
+                setStatus(connectionId, ConnectionStatus.Connected);
+                connectionStore.activeConnectionId.value = connectionId;
+                await setupMeshDevice(connectionId, transport, bleDevice);
 
                 // Clean up any previous Bluetooth listener (defensive)
                 if (activeBluetoothDevice && activeBluetoothDisconnectHandler) {
@@ -269,7 +278,7 @@ export const useConnection = createGlobalState(() => {
                 }
 
                 const onGattDisconnected = () => {
-                    updateStatus(connectionId, ConnectionStatus.Disconnected);
+                    setStatus(connectionId, ConnectionStatus.Disconnected);
 
                     // Ensure global active connection is cleared
                     if (connectionStore.activeConnectionId.value === connectionId) {
@@ -346,13 +355,17 @@ export const useConnection = createGlobalState(() => {
                 }
 
                 const transport = await TransportWebSerial.createFromPort(port);
-                setupMeshDevice(connectionId, transport, undefined, port);
+
+                setStatus(connectionId, ConnectionStatus.Connected);
+                connectionStore.activeConnectionId.value = connectionId;
+                await setupMeshDevice(connectionId, transport, undefined, port);
                 // Status will be set to "configured" by onConfigComplete event
                 return true;
             }
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : String(err);
-            updateStatus(connectionId, ConnectionStatus.Error, message);
+            await disconnect(connectionId);
+            setStatus(connectionId, ConnectionStatus.Error, message);
             return false;
         }
         return false;
@@ -434,7 +447,10 @@ export const useConnection = createGlobalState(() => {
                 }
             }
         } finally {
-            updateStatus(connectionId, ConnectionStatus.Disconnected, undefined);
+            if (connectionStore.activeConnectionId.value === connectionId) {
+                connectionStore.activeConnectionId.value = null;
+            }
+            setStatus(connectionId, ConnectionStatus.Disconnected);
         }
     };
 
