@@ -64,7 +64,7 @@
       v-if="!!node.localStats"
       :size="20"
       class="feature-icon"
-      v-tooltip.right="tooltipPreset('Host Metrics')"
+      v-tooltip.right="tooltipPreset('Local Stats')"
     />
   </div>
 </template>
