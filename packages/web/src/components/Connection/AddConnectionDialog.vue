@@ -336,7 +336,7 @@ function testConnection() {
 
 function requestSerialPort() {
   connectionApi.requestSerialPortInfo().then((info) => {
-    if (info.usbVendorId && info.usbProductId) {
+    if (info && info.usbVendorId && info.usbProductId) {
       usbVendorId = info.usbVendorId;
       usbProductId = info.usbProductId;
       const v = info.usbVendorId ? info.usbVendorId.toString(16) : '?';

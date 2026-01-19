@@ -17,15 +17,24 @@ import { createGlobalState } from '@vueuse/core'
 export const useConnection = createGlobalState(() => {
     const HEARTBEAT_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
     const CONFIG_HEARTBEAT_INTERVAL_MS = 5000; // 5s during configuration
-    const transports = new Map<ConnectionId, BluetoothDevice | SerialPort>();
-    const heartbeats = new Map<ConnectionId, ReturnType<typeof setInterval>>();
     const bluetoothSupport = useBluetooth({ acceptAllDevices: true });
-    const configSubscriptions = new Map<ConnectionId, () => void>();
     const serialSupport = useSerial();
     const connectionStore = useConnectionStore();
     const connections = connectionStore.connections;
-    let activeBluetoothDevice: BluetoothDevice | null = null;
-    let activeBluetoothDisconnectHandler: (() => void) | null = null;
+    let connecting = false;
+
+    type ActiveConnectionRuntime = {
+        connectionId: ConnectionId | null;
+        transport?: BluetoothDevice | SerialPort;
+        bluetoothDisconnectHandler?: () => void;
+        heartbeatId?: ReturnType<typeof setInterval>;
+        unsubConfigComplete?: () => void;
+        isConfigured?: boolean;
+    };
+
+    const runtime: ActiveConnectionRuntime = {
+        connectionId: null,
+    };
 
     async function testHttpConnection(
         url: string,
@@ -56,13 +65,12 @@ export const useConnection = createGlobalState(() => {
         return serialSupport.isSupported.value;
     }
 
-    async function requestSerialPortInfo(): Promise<SerialPortInfo> {
-        let info = {};
+    async function requestSerialPortInfo(): Promise<SerialPortInfo | undefined> {
         await serialSupport.requestPort();
         if (serialSupport.port.value) {
-            info = serialSupport.port.value.getInfo() as SerialPortInfo;
+            return serialSupport.port.value.getInfo() as SerialPortInfo;
         }
-        return info;
+        return undefined;
     }
 
     function setStatus(
@@ -75,6 +83,101 @@ export const useConnection = createGlobalState(() => {
             error: error ?? undefined,
         });
     }
+
+    function startHeartbeat(meshDevice: MeshDevice, intervalMs: number) {
+        if (runtime.heartbeatId) {
+            clearInterval(runtime.heartbeatId);
+        }
+
+        runtime.heartbeatId = setInterval(() => {
+            if (!runtime.connectionId) return;
+            meshDevice.heartbeat().catch(err => {
+                console.warn("[useConnection] Heartbeat failed:", err);
+            });
+        }, intervalMs);
+    }
+
+    function stopHeartbeat() {
+        if (runtime.heartbeatId) {
+            clearInterval(runtime.heartbeatId);
+            runtime.heartbeatId = undefined;
+        }
+    }
+
+    async function teardownActiveConnection(reason?: string) {
+        if (!runtime.connectionId) return;
+
+        const connectionId = runtime.connectionId;
+        const conn = connections.value.get(connectionId);
+        runtime.isConfigured = false;
+
+        // 1. Stop heartbeat
+        stopHeartbeat();
+
+        // 2. Unsubscribe config listener
+        if (runtime.unsubConfigComplete) {
+            runtime.unsubConfigComplete();
+            runtime.unsubConfigComplete = undefined;
+        }
+
+        // 3. Bluetooth cleanup
+        if (
+            conn?.type === ConnectionType.Bluetooth &&
+            runtime.transport as BluetoothDevice
+        ) {
+            if (runtime.bluetoothDisconnectHandler) {
+                runtime.transport?.removeEventListener(
+                    "gattserverdisconnected",
+                    runtime.bluetoothDisconnectHandler,
+                );
+                runtime.bluetoothDisconnectHandler = undefined;
+            }
+
+            if ((runtime.transport as BluetoothDevice).gatt?.connected) {
+                (runtime.transport as BluetoothDevice).gatt?.disconnect();
+            }
+        }
+
+        // 4. Serial cleanup
+        if (
+            conn?.type === ConnectionType.Serial &&
+            runtime.transport &&
+            "close" in runtime.transport
+        ) {
+            try {
+                await runtime.transport.close();
+            } catch {
+                // ignore
+            }
+        }
+
+        // 5. MeshDevice cleanup
+        if (conn?.meshDeviceId) {
+            const device = await useDeviceStore().getDevice(conn.meshDeviceId);
+            if (device?.connection) {
+                try {
+                    device.connection.disconnect();
+                } catch { }
+            }
+
+            device?.setConnectionId(null);
+            device?.setConnectionPhase(ConnectionPhase.Disconnected);
+        }
+
+        // 6. Reset connection state
+        setStatus(connectionId, ConnectionStatus.Disconnected);
+
+        // 7. Reset runtime
+        runtime.connectionId = null;
+        runtime.transport = undefined;
+
+        connectionStore.activeConnectionId.value = null;
+
+        if (reason) {
+            console.info(`[useConnection] Connection torn down: ${reason}`);
+        }
+    }
+
 
     async function enforceSingleActiveConnection(connectionId: ConnectionId) {
         const activeId = connectionStore.activeConnectionId.value;
@@ -188,12 +291,33 @@ export const useConnection = createGlobalState(() => {
     ) {
         setStatus(connectionId, ConnectionStatus.Connected);
         connectionStore.activeConnectionId.value = connectionId;
+        runtime.isConfigured = false;
+
+        runtime.connectionId = connectionId;
+        runtime.transport =
+            resolved.type === ConnectionType.Bluetooth
+                ? resolved.device
+                : resolved.type === ConnectionType.Serial
+                    ? resolved.port
+                    : undefined;
 
         switch (resolved.type) {
             case ConnectionType.Http:
                 return setupMeshDevice(connectionId, resolved.transport);
 
             case ConnectionType.Bluetooth:
+                const onGattDisconnected = () => {
+                    if (runtime.connectionId !== connectionId) return;
+                    teardownActiveConnection("bluetooth disconnect");
+                };
+
+                resolved.device.addEventListener(
+                    "gattserverdisconnected",
+                    onGattDisconnected,
+                );
+
+                runtime.bluetoothDisconnectHandler = onGattDisconnected;
+                runtime.transport = resolved.device;
                 return setupMeshDevice(
                     connectionId,
                     resolved.transport,
@@ -234,20 +358,13 @@ export const useConnection = createGlobalState(() => {
         if (device && meshDevice && messageStore && nodeDB)
             subscribeAll(device, meshDevice, messageStore, nodeDB);
 
-        // Store transport locally for cleanup (BT/Serial only)
-        if (btDevice) {
-            transports.set(connectionId, btDevice);
-        } else if (serialPort) {
-            transports.set(connectionId, serialPort);
-        }
-
         // Set active connection and link device bidirectionally
-        connectionStore.activeConnectionId.value = connectionId;
         if (device) device.setConnectionId(connectionId);
 
         // Listen for config complete event (with nonce/ID)
-        const unsubConfigComplete = meshDevice.events.onConfigComplete.subscribe(
+        runtime.unsubConfigComplete = meshDevice.events.onConfigComplete.subscribe(
             (configCompleteId) => {
+                if (runtime.connectionId !== connectionId) return;
                 console.log(
                     `[useConnections] Configuration complete with ID: ${configCompleteId}`,
                 );
@@ -255,23 +372,13 @@ export const useConnection = createGlobalState(() => {
                 setStatus(connectionId, ConnectionStatus.Configured);
 
                 // Switch from fast config heartbeat to slow maintenance heartbeat
-                const oldHeartbeat = heartbeats.get(connectionId);
-                if (oldHeartbeat) {
-                    clearInterval(oldHeartbeat);
-                    console.log(
-                        `[useConnections] Switching to maintenance heartbeat (5 min interval)`,
-                    );
-                }
-
-                const maintenanceHeartbeat = setInterval(() => {
-                    meshDevice.heartbeat().catch((error) => {
-                        console.warn("[useConnections] Heartbeat failed:", error);
-                    });
-                }, HEARTBEAT_INTERVAL_MS);
-                heartbeats.set(connectionId, maintenanceHeartbeat);
+                runtime.isConfigured = true;
+                startHeartbeat(meshDevice, HEARTBEAT_INTERVAL_MS);
+                console.log(
+                    `[useConnections] Switching to maintenance heartbeat (5 min interval)`,
+                );
             },
         );
-        configSubscriptions.set(connectionId, unsubConfigComplete);
 
         // Start configuration
         if (device) {
@@ -284,22 +391,16 @@ export const useConnection = createGlobalState(() => {
             .configure()
             .then(() => {
                 console.log(
-                    "[useConnections] Configuration complete, starting heartbeat",
+                    "[useConnections] Configuration command sent, starting heartbeat",
                 );
                 // Send initial heartbeat after configure completes
                 meshDevice
                     .heartbeat()
                     .then(() => {
                         // Start fast heartbeat after first successful heartbeat
-                        const configHeartbeatId = setInterval(() => {
-                            meshDevice.heartbeat().catch((error) => {
-                                console.warn(
-                                    "[useConnections] Config heartbeat failed:",
-                                    error,
-                                );
-                            });
-                        }, CONFIG_HEARTBEAT_INTERVAL_MS);
-                        heartbeats.set(connectionId, configHeartbeatId);
+                        if (!runtime.isConfigured) {
+                            startHeartbeat(meshDevice, CONFIG_HEARTBEAT_INTERVAL_MS);
+                        }
                         console.log(
                             `[useConnections] Heartbeat started for connection ${connectionId} (5s interval during config)`,
                         );
@@ -308,8 +409,9 @@ export const useConnection = createGlobalState(() => {
                         console.warn("[useConnections] Initial heartbeat failed:", error);
                     });
             })
-            .catch((error) => {
+            .catch(async (error) => {
                 console.error(`[useConnections] Failed to configure:`, error);
+                await teardownActiveConnection("configuration failed");
                 setStatus(connectionId, ConnectionStatus.Error, error.message);
             });
 
@@ -321,6 +423,9 @@ export const useConnection = createGlobalState(() => {
         connectionId: ConnectionId,
         opts?: { allowPrompt?: boolean },
     ) {
+        if (connecting) return false;
+        connecting = true;
+
         const conn = connections.value.get(connectionId);
         if (!conn) return false;
 
@@ -346,157 +451,23 @@ export const useConnection = createGlobalState(() => {
             setStatus(connectionId, ConnectionStatus.Error, message);
             return false;
         }
+        finally {
+            connecting = false;
+        }
     }
 
     async function disconnect(connectionId: ConnectionId) {
-        const conn = connections.value.get(connectionId);
-        if (!conn) {
-            return;
-        }
-        try {
-            // Stop heartbeat
-            const heartbeatId = heartbeats.get(connectionId);
-            if (heartbeatId) {
-                clearInterval(heartbeatId);
-                heartbeats.delete(connectionId);
-                console.log(
-                    `[useConnections] Heartbeat stopped for connection ${connectionId}`,
-                );
-            }
-
-            // Unsubscribe from config complete event
-            const unsubConfigComplete = configSubscriptions.get(connectionId);
-            if (unsubConfigComplete) {
-                unsubConfigComplete();
-                configSubscriptions.delete(connectionId);
-                console.log(
-                    `[useConnections] Config subscription cleaned up for connection ${connectionId}`,
-                );
-            }
-
-            // Get device and meshDevice from Device.connection
-            if (conn.meshDeviceId) {
-                const device = await useDeviceStore().getDevice(conn.meshDeviceId);
-
-                if (device?.connection) {
-                    // Disconnect MeshDevice
-                    try {
-                        device.connection.disconnect();
-                    } catch {
-                        // Ignore errors
-                    }
-                }
-                // Close transport connections
-                const transport = transports.get(connectionId);
-                if (transport) {
-                    if (conn.type === ConnectionType.Bluetooth) {
-                        if (activeBluetoothDevice && activeBluetoothDisconnectHandler) {
-                            activeBluetoothDevice.removeEventListener(
-                                "gattserverdisconnected",
-                                activeBluetoothDisconnectHandler,
-                            );
-                            activeBluetoothDevice = null;
-                            activeBluetoothDisconnectHandler = null;
-                        }
-                        if ((transport as BluetoothDevice).gatt?.connected) {
-                            (transport as BluetoothDevice).gatt?.disconnect();
-                        }
-                    }
-                    if (conn.type === ConnectionType.Serial) {
-                        const port = transport as SerialPort & {
-                            close?: () => Promise<void>;
-                            readable?: ReadableStream | null;
-                        };
-                        if (port.close) {
-                            try {
-                                await port.close();
-                            } catch (err) {
-                                console.warn("Error closing serial port:", err);
-                            }
-                        }
-                    }
-                }
-
-                // Clear the device's connectionId link
-                if (device) {
-                    device.setConnectionId(null);
-                    device.setConnectionPhase(ConnectionPhase.Disconnected);
-                }
-            }
-        } finally {
-            if (connectionStore.activeConnectionId.value === connectionId) {
-                connectionStore.activeConnectionId.value = null;
-            }
-            setStatus(connectionId, ConnectionStatus.Disconnected);
-        }
-    };
+        if (runtime.connectionId !== connectionId) return;
+        await teardownActiveConnection("manual disconnect");
+    }
 
     async function deleteConnection(connectionId: ConnectionId) {
-        const conn = connections.value.get(connectionId);
-
-        // Stop heartbeat
-        const heartbeatId = heartbeats.get(connectionId);
-        if (heartbeatId) {
-            clearInterval(heartbeatId);
-            heartbeats.delete(connectionId);
-            console.log(`[useConnections] Heartbeat stopped for connection ${connectionId}`);
-        }
-
-        // Unsubscribe from config complete event
-        const unsubConfigComplete = configSubscriptions.get(connectionId);
-        if (unsubConfigComplete) {
-            unsubConfigComplete();
-            configSubscriptions.delete(connectionId);
-            console.log(
-                `[useConnections] Config subscription cleaned up for connection ${connectionId}`,
-            );
-        }
-
-        // Get device and MeshDevice from Device.connection
-        if (conn?.meshDeviceId) {
-            const device = await useDeviceStore().getDevice(conn.meshDeviceId);
-
-            if (device?.connection) {
-                // Disconnect MeshDevice
-                try {
-                    device.connection.disconnect();
-                } catch { }
-            }
-
-            // Close transport if it's BT or Serial
-            const transport = transports.get(connectionId);
-            if (transport) {
-                if (activeBluetoothDevice && activeBluetoothDisconnectHandler) {
-                    activeBluetoothDevice.removeEventListener(
-                        "gattserverdisconnected",
-                        activeBluetoothDisconnectHandler,
-                    );
-                    activeBluetoothDevice = null;
-                    activeBluetoothDisconnectHandler = null;
-                }
-
-                if ((transport as BluetoothDevice).gatt?.connected) {
-                    (transport as BluetoothDevice).gatt?.disconnect();
-                }
-
-                const sp = transport as SerialPort & { close?: () => Promise<void> };
-                if (sp.close) {
-                    try {
-                        sp.close();
-                    } catch { }
-                }
-
-                transports.delete(connectionId);
-            }
-
-            // Clean up orphaned Device
-            try {
-                await useDeviceStore().deleteDevice(conn.meshDeviceId);
-            } catch { }
+        if (runtime.connectionId === connectionId) {
+            await teardownActiveConnection("delete connection");
         }
 
         connectionStore.deleteConnection(connectionId);
-    };
+    }
 
     return {
         testHttpConnection,
