@@ -1,5 +1,5 @@
 <template>
-  <div v-if="filteredItems.length > 0" class="grid gap-2" :class="gridClass">
+  <div v-if="filteredItems.length > 0" class="grid gap-2 grid-cols-3" :class="gridClass">
     <NodeDetailsItem v-for="item in filteredItems" :key="item.label" v-bind="item" />
   </div>
 </template>
@@ -24,7 +24,7 @@ const props = withDefaults(
   }
 );
 
-const gridClass = computed(() => `grid-cols-${props.columns}`);
+const gridClass = computed(() => `grid-cols-${props.columns}!`);
 
 const filteredItems = computed(() => {
   return props.items.filter(
