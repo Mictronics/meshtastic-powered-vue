@@ -16,6 +16,7 @@ export type FormattedNode = {
     viaMqtt: boolean;
     snr: string;
     numSnr: number;
+    batteryLevel?: number;
     hwModel?: string;
     role?: string;
     publicKey?: string;

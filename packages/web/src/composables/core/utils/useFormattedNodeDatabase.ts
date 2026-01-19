@@ -49,6 +49,7 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
                 viaMqtt: node.viaMqtt,
                 snr: formatSnr(node.snr),
                 numSnr: node.snr,
+                batteryLevel: node.deviceMetrics?.batteryLevel,
                 hwModel: Protobuf.Mesh.HardwareModel[node.user?.hwModel ?? 0]?.replaceAll('_', ' '),
                 role: Protobuf.Config.Config_DeviceConfig_Role[node.user?.role ?? 0]?.replaceAll('_', ' '),
                 publicKey: formatPublicKey(node.user?.publicKey),
