@@ -101,6 +101,9 @@
         <!-- Host -->
         <SectionDivider v-if="hostMetricsItems.length" title="Host" />
         <MetricsGrid :items="hostMetricsItems" />
+        <!-- Local Stats -->
+        <SectionDivider v-if="localStatsItems.length" title="Local Stats" />
+        <MetricsGrid :items="localStatsItems" />
         <!-- Position -->
         <SectionDivider v-if="!!selectedNode.position" title="Position" />
         <div v-if="!!selectedNode.position" class="grid grid-cols-1">
@@ -220,8 +223,8 @@ const deviceMetricsItems = computed(() => {
   const formatPercent = (val?: number) => (val == null ? 'N/A' : `${val.toFixed(1)} %`);
 
   return [
-    { label: 'Air TX', value: formatPercent(m.airUtilTx) },
-    { label: 'Channel', value: formatPercent(m.channelUtilization) },
+    { label: 'Air TX', value: m.airUtilTx },
+    { label: 'Channel', value: m.channelUtilization },
     { label: 'Battery', value: formatBattery(m.batteryLevel) },
     { label: 'Voltage', value: formatVoltage(m.voltage) },
     {
@@ -300,12 +303,37 @@ const hostMetricsItems = computed(() => {
   ];
 });
 
+const localStatsItems = computed(() => {
+  const m = selectedNode.value?.localStats;
+  if (!m) return [];
+  return [
+    /* Included in device metrics
+    {
+      label: 'Uptime',
+      value: m.uptime ?? 'N/A',
+      class: 'col-span-2',
+    },
+    */
+    { label: 'Channel', value: m.channelUtilization },
+    { label: 'Air TX', value: m.airUtilTx },
+    { label: 'Packets TX', value: m.numPacketsTx },
+    { label: 'Packets RX', value: m.numPacketsRx },
+    { label: 'Bad Packets RX', value: m.numPacketsRxBad },
+    { label: 'Duplicates RX', value: m.numRxDupe },
+    { label: 'TX Relay', value: m.numTxRelay },
+    { label: 'TX Relay Canceled', value: m.numTxRelayCanceled },
+    { label: 'TX Dropped', value: m.numTxDropped },
+    { label: 'Nodes Online', value: m.numOnlineNodes },
+    { label: 'Nodes Total', value: m.numTotalNodes },
+    { label: 'Heap Free', value: m.heapFreeBytes },
+    { label: 'Heap Total', value: m.heapTotalBytes },
+  ];
+});
+
 const airQualityItems = computed(() => {
   const m = selectedNode.value?.airQualityMetrics;
   if (!m) return [];
-  return [
-
-  ];
+  return [];
 });
 
 const isFavorite = computed(() => {

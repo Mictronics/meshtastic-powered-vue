@@ -157,6 +157,8 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
         return `${Math.round(value)} ${unit}`;
     };
 
+    const formatPercent = (val?: number) => (val == null ? '—' : `${val.toFixed(1)} %`);
+
     const orDash = (v: string | null) => v ?? '—';
     const windDirectionToText = (deg?: number): string | null => {
         if (deg === undefined || Number.isNaN(deg)) return null;
@@ -175,8 +177,8 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
         return {
             batteryLevel: m.batteryLevel,
             voltage: m.voltage,
-            channelUtilization: m.channelUtilization,
-            airUtilTx: m.airUtilTx,
+            channelUtilization: formatPercent(m.channelUtilization),
+            airUtilTx: formatPercent(m.airUtilTx),
             uptimeSeconds: formatUptime(m.uptimeSeconds),
         };
     };
@@ -368,8 +370,8 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
 
         return {
             uptime: formatUptime(m.uptimeSeconds),
-            channelUtilization: m.channelUtilization,
-            airUtilTx: m.airUtilTx,
+            channelUtilization: formatPercent(m.channelUtilization),
+            airUtilTx: formatPercent(m.airUtilTx),
             numPacketsTx: m.numPacketsTx,
             numPacketsRx: m.numPacketsRx,
             numPacketsRxBad: m.numPacketsRxBad,

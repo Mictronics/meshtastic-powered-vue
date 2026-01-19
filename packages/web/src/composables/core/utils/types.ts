@@ -37,8 +37,8 @@ export type FormattedEnvironmentMetrics = {
 export type FormattedDeviceMetrics = {
     batteryLevel?: number;
     voltage?: number;
-    channelUtilization?: number;
-    airUtilTx?: number;
+    channelUtilization?: string;
+    airUtilTx?: string;
     uptimeSeconds?: string;
 };
 
@@ -133,8 +133,8 @@ export type FormattedAirQualityMetrics = {
 
 export type FormattedLocalStatsMetrics = {
     uptime?: string;
-    channelUtilization?: number;
-    airUtilTx?: number;
+    channelUtilization?: string;
+    airUtilTx?: string;
     numPacketsTx?: number;
     numPacketsRx?: number;
     numPacketsRxBad?: number;
