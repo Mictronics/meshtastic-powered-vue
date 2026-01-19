@@ -118,7 +118,8 @@ export const useConnectionStore = createSharedComposable(() => {
         const conn = new Connection();
         conn.createConnectionFromInput(input);
         try {
-            const key = useIndexedDB().insertIntoStore(IDB_CONNECTION_STORE, conn);
+            const { status, error, ...persistedProps } = (conn as any).get();
+            const key = useIndexedDB().insertIntoStore(IDB_CONNECTION_STORE, persistedProps);
             if (typeof key === 'number') {
                 const stored = await useIndexedDB().getFromStore(IDB_CONNECTION_STORE, key);
                 if (stored) {
@@ -145,6 +146,8 @@ export const useConnectionStore = createSharedComposable(() => {
             all.forEach((value: any, key: any) => {
                 const conn = new Connection();
                 conn.set(value);
+                conn.status = ConnectionStatus.Disconnected; // reset status
+                conn.error = undefined; // clear transient error
                 connMap.set(key, conn);
             });
             return connMap;
@@ -156,24 +159,27 @@ export const useConnectionStore = createSharedComposable(() => {
 
     async function updateConnection(id: number, updates: Partial<IConnection>) {
         const conn = connections.value.get(id);
-        try {
-            if (conn) {
-                for (const key in updates) {
-                    if (Object.hasOwn(updates, key)) {
-                        (conn as Record<string, unknown>)[key] =
-                            updates[key as keyof typeof updates];
-                    }
-                }
-                await useIndexedDB().updateStore(IDB_CONNECTION_STORE, (conn as any).get());
-                if (conn.id != null) {
-                    const stored = await useIndexedDB().getFromStore(IDB_CONNECTION_STORE, conn.id as any);
-                    if (connections.value.has(conn.id))
-                        (connections.value.get(conn.id) as any).set(stored);
-                }
+        if (!conn) return;
+
+        for (const key in updates) {
+            if (Object.hasOwn(updates, key)) {
+                (conn as Record<string, unknown>)[key] = updates[key as keyof typeof updates];
             }
-        } catch (e: any) {
-            toast('error', e.message);
         }
+
+        // Only persist non-runtime fields
+        const { status, error, meshDeviceId, ...persistedProps } = (conn as any).get();
+        try {
+            await useIndexedDB().updateStore(IDB_CONNECTION_STORE, persistedProps);
+        } catch (e: any) {
+            useGlobalToast().add({
+                severity: 'error',
+                summary: 'Connection Database Error',
+                detail: e.message,
+                life: 6000
+            });
+        }
+
         return conn;
     }
 
