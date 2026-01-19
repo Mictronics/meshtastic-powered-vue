@@ -81,6 +81,7 @@ export const useConnection = createGlobalState(() => {
         connectionStore.updateConnection(connectionId, {
             status,
             error: error ?? undefined,
+            ...(status === ConnectionStatus.Connected ? { lastConnectedAt: Date.now() / 1000 } : {}),
         });
     }
 
