@@ -30,6 +30,7 @@
     "@vuelidate/validators": "^2.0.4",
     "@vueuse/core": "^14.1.0",
     "base64-js": "^1.5.1",
+    "emoji-mart-vue-fast": "^15.0.5",
     "humanize-duration": "^3.33.2",
     "idb": "^8.0.3",
     "lodash-es": "^4.17.22",
