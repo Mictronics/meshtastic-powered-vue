@@ -170,6 +170,7 @@ const devicePanelItems = computed<DevicePanelItem[]>(() => [
     myIcon: MessageSquareText,
     badge: 2,
     severity: 'info',
+    to: '/messages',
   },
   {
     label: 'Map',
