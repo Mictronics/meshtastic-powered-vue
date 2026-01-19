@@ -45,7 +45,7 @@ import {
 } from 'lucide-vue-next';
 import { watch, computed, ref, onMounted } from 'vue';
 import * as _ from 'lodash-es';
-import type { SortDir, SortState, ButtonKey, ButtonsMap } from '../types';
+import type { SortDir, SortState, ButtonKey, ButtonsMap } from './types';
 import { useAppStore } from '@/composables/core/stores/app/useAppStore';
 
 const emit = defineEmits<{

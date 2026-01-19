@@ -6,7 +6,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import NodeDetailsItem from '@/components/Dashboard/NodeDetailsItem.vue';
+import NodeDetailsItem from '@/components/Dashboard/Pages/NodeView/NodeDetailsItem.vue';
 
 export type MetricItem = {
   label: string;

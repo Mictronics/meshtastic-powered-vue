@@ -5,7 +5,7 @@ import {
 import { reactive, toRaw } from 'vue';
 import { createSharedComposable, watchIgnorable } from "@vueuse/core";
 import type { RasterSource } from "./types.ts";
-import type { SortState, ButtonKey } from "@/components/types.ts";
+import type { SortState, ButtonKey } from "@/components/Dashboard/Pages/NodeView/types.ts";
 
 /* https://stackoverflow.com/a/76247596/3731501 */
 

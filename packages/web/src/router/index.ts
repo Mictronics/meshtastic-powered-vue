@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import ConnectionsView from '@/views/ConnectionsView.vue'
 import Dashboard from '@/views/Dashboard.vue'
-import NodeCards from '@/components/Dashboard/Pages/NodeCards.vue'
+import NodeCards from '@/components/Dashboard/Pages/NodeView/NodeCards.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
