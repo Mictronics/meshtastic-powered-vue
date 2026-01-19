@@ -24,6 +24,8 @@ export const useConnection = createGlobalState(() => {
     const serialSupport = useSerial();
     const connectionStore = useConnectionStore();
     const connections = connectionStore.connections;
+    let activeBluetoothDevice: BluetoothDevice | null = null;
+    let activeBluetoothDisconnectHandler: (() => void) | null = null;
 
     async function testHttpConnection(
         url: string,
@@ -34,7 +36,7 @@ export const useConnection = createGlobalState(() => {
             const timer = setTimeout(() => controller.abort(), timeoutMs);
             // Use no-cors to avoid CORS failure; opaque responses resolve but status is 0
             await fetch(url, {
-                method: "GET",
+                method: "HEAD",
                 mode: "no-cors",
                 cache: "no-store",
                 signal: controller.signal,
@@ -67,10 +69,11 @@ export const useConnection = createGlobalState(() => {
         const updates: Partial<IConnection> = {
             status,
             error: error || undefined,
-            ...(status === ConnectionStatus.Disconnected ? { lastConnectedAt: Date.now() / 1000 } : {}),
+            ...(status === ConnectionStatus.Connected || status === ConnectionStatus.Configured ? { lastConnectedAt: Date.now() / 1000 } : {}),
         };
         connectionStore.updateConnection(id, updates);
     };
+
 
     async function setupMeshDevice(
         connectionId: ConnectionId,
@@ -84,11 +87,7 @@ export const useConnection = createGlobalState(() => {
         // Reuse existing meshDeviceId if available to prevent duplicate nodeDBs,
         // but only if the corresponding nodeDB still exists. Otherwise, generate a new ID.
         const conn = connections.value.get(connectionId);
-        let deviceId = conn?.meshDeviceId;
-
-        if (!deviceId) {
-            deviceId = deviceId ?? useRandomId();
-        }
+        const deviceId = conn?.meshDeviceId ?? useRandomId();
 
         const device = await useDeviceStore().addDevice(deviceId);
         const nodeDB = await useNodeDBStore().addNodeDB(deviceId);
@@ -182,6 +181,12 @@ export const useConnection = createGlobalState(() => {
     }
 
     async function connect(connectionId: ConnectionId, opts?: { allowPrompt?: boolean }) {
+        const activeId = connectionStore.activeConnectionId.value;
+        if (activeId && activeId !== connectionId) {
+            console.warn("[useConnection] Forcing disconnect of existing active connection.");
+            await disconnect(activeId);
+        }
+
         const conn = connections.value.get(connectionId);
         if (!conn) {
             return false;
@@ -253,9 +258,30 @@ export const useConnection = createGlobalState(() => {
                     await TransportWebBluetooth.createFromDevice(bleDevice);
                 setupMeshDevice(connectionId, transport, bleDevice);
 
-                bleDevice.addEventListener("gattserverdisconnected", () => {
+                // Clean up any previous Bluetooth listener (defensive)
+                if (activeBluetoothDevice && activeBluetoothDisconnectHandler) {
+                    activeBluetoothDevice.removeEventListener(
+                        "gattserverdisconnected",
+                        activeBluetoothDisconnectHandler,
+                    );
+                    activeBluetoothDevice = null;
+                    activeBluetoothDisconnectHandler = null;
+                }
+
+                const onGattDisconnected = () => {
                     updateStatus(connectionId, ConnectionStatus.Disconnected);
-                });
+
+                    // Ensure global active connection is cleared
+                    if (connectionStore.activeConnectionId.value === connectionId) {
+                        connectionStore.activeConnectionId.value = null;
+                    }
+                };
+
+                bleDevice.addEventListener("gattserverdisconnected", onGattDisconnected);
+
+                // Store globally (single active connection invariant)
+                activeBluetoothDevice = bleDevice;
+                activeBluetoothDisconnectHandler = onGattDisconnected;
 
                 // Status will be set to "configured" by onConfigComplete event
                 return true;
@@ -374,9 +400,16 @@ export const useConnection = createGlobalState(() => {
                 const transport = transports.get(connectionId);
                 if (transport) {
                     if (conn.type === ConnectionType.Bluetooth) {
-                        const dev = transport as BluetoothDevice;
-                        if (dev.gatt?.connected) {
-                            dev.gatt.disconnect();
+                        if (activeBluetoothDevice && activeBluetoothDisconnectHandler) {
+                            activeBluetoothDevice.removeEventListener(
+                                "gattserverdisconnected",
+                                activeBluetoothDisconnectHandler,
+                            );
+                            activeBluetoothDevice = null;
+                            activeBluetoothDisconnectHandler = null;
+                        }
+                        if ((transport as BluetoothDevice).gatt?.connected) {
+                            (transport as BluetoothDevice).gatt?.disconnect();
                         }
                     }
                     if (conn.type === ConnectionType.Serial) {
@@ -384,7 +417,7 @@ export const useConnection = createGlobalState(() => {
                             close?: () => Promise<void>;
                             readable?: ReadableStream | null;
                         };
-                        if (port.close && port.readable) {
+                        if (port.close) {
                             try {
                                 await port.close();
                             } catch (err) {
@@ -440,11 +473,17 @@ export const useConnection = createGlobalState(() => {
             // Close transport if it's BT or Serial
             const transport = transports.get(connectionId);
             if (transport) {
-                const bt = transport as BluetoothDevice;
-                if (bt.gatt?.connected) {
-                    try {
-                        bt.gatt.disconnect();
-                    } catch { }
+                if (activeBluetoothDevice && activeBluetoothDisconnectHandler) {
+                    activeBluetoothDevice.removeEventListener(
+                        "gattserverdisconnected",
+                        activeBluetoothDisconnectHandler,
+                    );
+                    activeBluetoothDevice = null;
+                    activeBluetoothDisconnectHandler = null;
+                }
+
+                if ((transport as BluetoothDevice).gatt?.connected) {
+                    (transport as BluetoothDevice).gatt?.disconnect();
                 }
 
                 const sp = transport as SerialPort & { close?: () => Promise<void> };
