@@ -100,8 +100,6 @@ try {
     Badge,
     PanelMenu,
     Avatar,
-    DataTable,
-    Column,
     IconField,
     InputIcon,
     Drawer,
