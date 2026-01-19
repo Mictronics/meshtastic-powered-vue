@@ -121,10 +121,10 @@ class NodeDB implements INodeDB {
             // TODO Find out why device metrics are frequently still stored as reactive object for random nodes.
             let ndm = next.deviceMetrics;
             let edm = existing.deviceMetrics;
-            if (isReactive(ndm)) {
+            if (isProxy(ndm)) {
                 ndm = toRaw(next.deviceMetrics);
             }
-            if (isReactive(edm)) {
+            if (isProxy(edm)) {
                 edm = toRaw(existing.deviceMetrics);
             }
             merged.deviceMetrics = ndm ?? edm;
@@ -319,44 +319,46 @@ class NodeDB implements INodeDB {
         switch (packet.data.variant.case) {
             case 'deviceMetrics':
                 metrics = existing.deviceMetrics;
-                if (isReactive(metrics)) {
+                if (isProxy(metrics)) {
                     metrics = toRaw(existing.deviceMetrics);
                 }
                 merged.deviceMetrics = (val as Protobuf.Telemetry.DeviceMetrics) ?? metrics;
                 break;
             case 'environmentMetrics':
                 metrics = existing.environmentMetrics;
-                if (isReactive(metrics)) {
+                if (isProxy(metrics)) {
                     metrics = toRaw(existing.environmentMetrics);
                 }
                 merged.environmentMetrics = (val as Protobuf.Telemetry.EnvironmentMetrics) ?? metrics;
                 break;
             case 'powerMetrics':
                 metrics = existing.powerMetrics;
-                if (isReactive(metrics)) {
+                if (isProxy(metrics)) {
                     metrics = toRaw(existing.powerMetrics);
                 }
                 merged.powerMetrics = (val as Protobuf.Telemetry.PowerMetrics) ?? metrics;
+                break;
             case 'hostMetrics':
                 metrics = existing.hostMetrics;
-                if (isReactive(metrics)) {
+                if (isProxy(metrics)) {
                     metrics = toRaw(existing.hostMetrics);
                 }
                 merged.hostMetrics = (val as Protobuf.Telemetry.HostMetrics) ?? metrics;
                 break;
             case 'airQualityMetrics':
                 metrics = existing.airQualityMetrics;
-                if (isReactive(metrics)) {
+                if (isProxy(metrics)) {
                     metrics = toRaw(existing.airQualityMetrics);
                 }
                 merged.airQualityMetrics = (val as Protobuf.Telemetry.AirQualityMetrics) ?? metrics;
                 break;
             case 'localStats':
                 metrics = existing.localStats;
-                if (isReactive(metrics)) {
+                if (isProxy(metrics)) {
                     metrics = toRaw(existing.localStats);
                 }
                 merged.localStats = (val as Protobuf.Telemetry.LocalStats) ?? metrics;
+                break;
             default:
                 return;
         }
