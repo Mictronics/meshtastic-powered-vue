@@ -19,12 +19,12 @@ defineProps<{ title: string }>();
 .divider::after {
   content: '';
   flex: 1;
-  border-bottom: 1px solid oklch(96.8% 0.007 247.896);
+  border-bottom: 1px solid var(--color-slate-200);
 }
 
 .dark .divider::before,
 .dark .divider::after {
-  border-bottom: 1px solid oklch(44.6% 0.043 257.281);
+  border-bottom: 1px solid var(--color-slate-600);
 }
 
 .divider::before {
