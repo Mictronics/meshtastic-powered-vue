@@ -14,7 +14,7 @@
     </div>
 
     <div class="mx-auto">
-      <VirtualScroller :items="chunkedNodes" :itemSize="155" scrollHeight="92vh">
+      <VirtualScroller :items="chunkedNodes" :itemSize="155" :scrollHeight="virtualScrollerHeight">
         <template #item="{ item: rowNodes }">
           <div
             class="grid gap-4 p-2 w-full"
@@ -172,7 +172,7 @@
 
 <script setup lang="ts">
 import { Search, Star, StarOff, Trash2, Eye, EyeOff } from 'lucide-vue-next';
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, onBeforeUnmount } from 'vue';
 import { formatTimeAgoIntl } from '@vueuse/core';
 import { numberToHexUnpadded } from '@noble/curves/utils.js';
 import type { FormattedNode } from '@/composables/core/utils/types';
@@ -430,8 +430,20 @@ async function deleteNode(nodeNumber: number) {
     showDrawer.value = false;
   }
 }
+
+const virtualScrollerHeight = ref('0px');
+onMounted(() => {
+  virtualScrollerHeight.value = `${window.innerHeight - 80}px`;
+  window.addEventListener('resize', onResize);
+});
+
+const onResize = () => {
+  virtualScrollerHeight.value = `${window.innerHeight - 80}px`;
+};
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', onResize);
+});
 </script>
 
-<style scoped lang="css">
-
-</style>
+<style scoped lang="css"></style>
