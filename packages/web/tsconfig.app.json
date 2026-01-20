@@ -1,6 +1,6 @@
 {
   "extends": "@vue/tsconfig/tsconfig.dom.json",
-  "include": ["env.d.ts", "src/**/*", "src/**/*.vue"],
+  "include": ["env.d.ts", "src/**/*", "src/**/*.vue", "src/emoji-mart-vue-fast.d.ts"],
   "exclude": ["src/**/__tests__/*"],
   "compilerOptions": {
     "types": ["@types/w3c-web-serial", "@types/web-bluetooth"],
