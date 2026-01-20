@@ -40,14 +40,7 @@ interface ConfirmOptions {
 }
 
 const confirm = useConfirm();
-
-const transitionName = 'scale'; // PrimeVue built-in animation
-const dialogRootClass = 'transition-all duration-200 ease-out';
-
-/**
- * Opens the confirm dialog and returns a Promise<boolean>
- * true if accepted, false if rejected
- */
+const transitionName = 'scale';
 const open = (options: ConfirmOptions): Promise<boolean> => {
   return new Promise((resolve) => {
     confirm.require({
@@ -62,7 +55,6 @@ const open = (options: ConfirmOptions): Promise<boolean> => {
   });
 };
 
-// Expose function to parent component
 defineExpose({ open });
 </script>
 
