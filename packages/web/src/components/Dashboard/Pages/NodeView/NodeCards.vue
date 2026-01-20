@@ -185,7 +185,7 @@ import CoordinateDisplay from '@/components/Dashboard/Pages/NodeView/CoordinateD
 import SortButtonGroup from '@/components/Dashboard/Pages/NodeView/SortButtonGroup.vue';
 import ConfirmDialog from '@/components/Connection/ConfirmDialog.vue';
 import NodeFeatures from '@/components/Dashboard/Pages/NodeView/NodeFeatures.vue';
-import SectionDivider from '@/components/Dashboard/Pages/NodeView/DrawerSectionDivider.vue';
+import SectionDivider from '@/components/Dashboard/Pages/SectionDivider.vue';
 import MetricsGrid from '@/components/Dashboard/Pages/NodeView/MetricsGrid.vue';
 import { useFavoriteNode } from '@/composables/core/hooks/useFavoriteNode';
 import { useIgnoreNode } from '@/composables/core/hooks/useIgnoreNode';
