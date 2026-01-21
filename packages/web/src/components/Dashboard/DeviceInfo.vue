@@ -43,14 +43,20 @@
       </p>
     </div>
 
-    <div class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+    <div
+      v-if="isSideBarVisible"
+      class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400"
+    >
       <Battery :size="20" />
-      <p v-if="isSideBarVisible" class="truncate">Voltage: {{ voltage }}</p>
+      <p class="truncate">Voltage: {{ voltage }}</p>
     </div>
 
-    <div class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+    <div
+      v-if="isSideBarVisible"
+      class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400"
+    >
       <Cpu :size="20" />
-      <p v-if="isSideBarVisible" class="truncate">Firmware: {{ firmware }}</p>
+      <p class="truncate">Firmware: {{ firmware }}</p>
     </div>
   </div>
 </template>
