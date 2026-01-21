@@ -2,7 +2,7 @@
   <header class="flex items-start justify-between">
     <div class="flex items-stretch gap-3">
       <Button asChild v-slot="slotProps" aria-label="Go Back" variant="text" severity="secondary">
-        <RouterLink to="/dashboard" :class="slotProps.class">
+        <RouterLink to="/nodes" :class="slotProps.class">
           <ArrowLeft :size="24" />
         </RouterLink>
       </Button>
