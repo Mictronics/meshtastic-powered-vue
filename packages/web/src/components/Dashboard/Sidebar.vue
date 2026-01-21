@@ -60,7 +60,12 @@
         pt:panel:class="dashboard-panelmenu"
       >
         <template #item="{ item }">
-          <router-link v-if="item.to" :to="item.to" class="flex items-center py-1 group w-full">
+          <router-link
+            v-if="item.to"
+            :to="item.to"
+            class="flex items-center py-1 group w-full rounded-md"
+            :class="{ 'bg-slate-200 dark:bg-slate-700': item.active }"
+          >
             <MessagesSquare />
             <span v-if="isSideBarVisible" class="ml-2">{{ item.label }}</span>
             <span v-else class="ml-2">{{ item.id }}</span>
@@ -167,6 +172,7 @@ type ChannelPanelItem = {
   badge?: number;
   severity?: 'info' | 'warn' | 'success' | 'danger' | 'secondary';
   to?: string;
+  active: boolean;
 };
 
 const emit = defineEmits<{
@@ -283,6 +289,7 @@ const commitHash = computed(() => {
 const isChatView = computed(() => route.matched.some((r) => r.meta?.viewChat));
 const channelPanelItems = computed<ChannelPanelItem[]>(() => {
   const chList: ChannelPanelItem[] = [];
+  const activeChannel = route.params.id;
   if (device.value) {
     for (const [k, v] of Object.entries(device.value.channels) as [
       k: string,
@@ -293,6 +300,7 @@ const channelPanelItems = computed<ChannelPanelItem[]>(() => {
           id: v.index,
           label: v.settings?.name || 'Unknown',
           to: `/chat/broadcast/${v.index}`,
+          active: activeChannel === v.index.toString(),
         });
       }
     }
