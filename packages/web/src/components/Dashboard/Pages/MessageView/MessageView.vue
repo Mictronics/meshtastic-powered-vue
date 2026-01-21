@@ -123,8 +123,14 @@ import { Picker, EmojiIndex } from 'emoji-mart-vue-fast/src';
 import SectionDivider from '@/components/Dashboard/Pages/SectionDivider.vue';
 import 'emoji-mart-vue-fast/css/emoji-mart.css';
 import data from 'emoji-mart-vue-fast/data/all.json';
-let emojiIndex = new EmojiIndex(data);
 
+// via router
+const props = defineProps<{
+  type: String; // broadcast or direct
+  id: String; // channel or node id
+}>();
+
+let emojiIndex = new EmojiIndex(data);
 const textValue = ref('');
 const popOver = ref();
 const scroller = ref();
