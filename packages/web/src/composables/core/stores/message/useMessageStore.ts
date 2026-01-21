@@ -8,6 +8,7 @@ import { createSharedComposable, watchThrottled } from '@vueuse/core'
 import { toRaw, isReactive, ref, type DebuggerEvent } from 'vue'
 import { useGlobalToast, type ToastSeverity } from '@/composables/useGlobalToast';
 import { useEvictOldestEntries } from "@/composables/core/stores/utils/useEvictOldestEntries";
+import { purgeUncloneableProperties } from "@/composables/core/stores/utils/purgeUncloneable";
 import type {
     ChannelId,
     ClearMessageParams,
@@ -344,13 +345,13 @@ export const useMessageStore = createSharedComposable(() => {
 
     async function updateMessageStore(ms: IMessageStore | undefined) {
         if (!ms) return;
+        const o = ms.get();
         try {
-            const o = ms.get();
             await useIndexedDB().updateStore(IDB_MESSAGE_STORE, o);
         } catch (e: any) {
             toast('error', e.message);
+            purgeUncloneableProperties(ms);
         }
-        messageStore.value = ms;
         return ms;
     }
 

@@ -18,6 +18,7 @@ import { createSharedComposable, watchThrottled } from '@vueuse/core'
 import { toRaw, isReactive, ref } from 'vue'
 import { useGlobalToast, type ToastSeverity } from '@/composables/useGlobalToast';
 import { useEvictOldestEntries } from "@/composables/core/stores/utils/useEvictOldestEntries.ts";
+import { purgeUncloneableProperties } from "@/composables/core/stores/utils/purgeUncloneable";
 import {
     type ChangeRegistry,
     type ConfigChangeKey,
@@ -773,6 +774,7 @@ export const useDeviceStore = createSharedComposable(() => {
             await useIndexedDB().updateStore(IDB_DEVICE_STORE, o);
         } catch (e: any) {
             toast('error', e.message);
+            purgeUncloneableProperties(dev);
         }
         device.value = dev;
         return dev;

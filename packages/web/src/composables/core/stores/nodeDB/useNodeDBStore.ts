@@ -13,7 +13,7 @@ import {
 } from '@vueuse/core'
 import { ref, isReactive, toRaw, type DebuggerEvent, isProxy } from 'vue'
 import { useGlobalToast, type ToastSeverity } from '@/composables/useGlobalToast';
-import { purgeUncloneableProperties } from "../utils/purgeUncloneable";
+import { purgeUncloneableProperties } from "@/composables/core/stores/utils/purgeUncloneable";
 
 const NODE_RETENTION_DAYS = 14; // Remove nodes not heard from in 14 days
 
