@@ -1,7 +1,6 @@
 <template>
   <aside class="dashboard-sidebar relative flex flex-col" id="side-bar">
     <Button
-      id="test"
       severity="secondary"
       variant="outlined"
       @click="$emit('eventToggleSidebar')"
@@ -24,11 +23,8 @@
       </div>
     </div>
     <div class="sidebar-entries whitespace-nowrap">
-      <PanelMenu
-        :model="devicePanelItems"
-        class="w-full gap-2!"
-        pt:panel:class="dashboard-panelmenu"
-      >
+      <!-- Nav panel -->
+      <PanelMenu :model="navPanelItems" class="w-full gap-2!" pt:panel:class="dashboard-panelmenu">
         <template #item="{ item }">
           <router-link v-if="item.to" :to="item.to" class="flex items-center py-1 group w-full">
             <component :is="item.myIcon" />
@@ -45,6 +41,42 @@
           <button v-else type="button" class="flex items-center py-1 group w-full">
             <component :is="item.myIcon" />
             <span v-if="isSideBarVisible" class="ml-2">{{ item.label }}</span>
+            <Badge
+              v-if="item.badge"
+              :severity="item.severity"
+              size="small"
+              class="ml-auto"
+              :value="item.badge"
+            />
+          </button>
+        </template>
+      </PanelMenu>
+      <!-- Channel panel -->
+      <p v-if="isSideBarVisible && isChatView" class="py-4 logo-text">Channels</p>
+      <PanelMenu
+        v-if="isChatView"
+        :model="channelPanelItems"
+        class="w-full gap-2!"
+        pt:panel:class="dashboard-panelmenu"
+      >
+        <template #item="{ item }">
+          <router-link v-if="item.to" :to="item.to" class="flex items-center py-1 group w-full">
+            <MessagesSquare />
+            <span v-if="isSideBarVisible" class="ml-2">{{ item.label }}</span>
+            <span v-else class="ml-2">{{ item.id }}</span>
+            <Badge
+              v-if="item.badge"
+              :severity="item.severity"
+              size="small"
+              class="ml-auto"
+              :value="item.badge"
+            />
+          </router-link>
+
+          <button v-else type="button" class="flex items-center py-1 group w-full">
+            <MessagesSquare />
+            <span v-if="isSideBarVisible" class="ml-2">{{ item.label }}</span>
+            <span v-else class="ml-2">{{ item.id }}</span>
             <Badge
               v-if="item.badge"
               :severity="item.severity"
@@ -98,7 +130,17 @@
 </template>
 
 <script setup lang="ts">
-import { MessageSquareText, Map, Settings, Users, Sun, Moon, SunMoon, Menu } from 'lucide-vue-next';
+import {
+  MessageSquareText,
+  MessagesSquare,
+  Map,
+  Settings,
+  Users,
+  Sun,
+  Moon,
+  SunMoon,
+  Menu,
+} from 'lucide-vue-next';
 import { computed, watchEffect } from 'vue';
 import { useConnectionStore } from '@/composables/core/stores/connection/useConnectionStore';
 import { ConnectionStatus } from '@/composables/core/stores/connection/types';
@@ -108,23 +150,33 @@ import { useColorMode, useCycleList } from '@vueuse/core';
 import DeviceInfo from '@/components/Dashboard/DeviceInfo.vue';
 import type { FunctionalComponent } from 'vue';
 import type { LucideProps } from 'lucide-vue-next';
+import { Protobuf, Types } from '@meshtastic/core';
+import { useRoute, type RouteLocationNormalized } from 'vue-router';
 
-const emit = defineEmits<{
-  (e: 'eventToggleSidebar'): void;
-}>();
-
-type DevicePanelItem = {
+type NavPanelItem = {
   label: string;
   myIcon: FunctionalComponent<LucideProps>;
   badge?: number;
   severity?: 'info' | 'warn' | 'success' | 'danger' | 'secondary';
-  to?: any;
+  to?: string;
 };
 
+type ChannelPanelItem = {
+  id: string | number;
+  label: string;
+  badge?: number;
+  severity?: 'info' | 'warn' | 'success' | 'danger' | 'secondary';
+  to?: string;
+};
+
+const emit = defineEmits<{
+  (e: 'eventToggleSidebar'): void;
+}>();
 const props = defineProps<{
   isSideBarVisible: boolean;
 }>();
 
+const route = useRoute() as RouteLocationNormalized;
 const connectionStore = useConnectionStore();
 const deviceStore = useDeviceStore();
 const nodeDBStore = useNodeDBStore();
@@ -164,13 +216,13 @@ const nodeCount = computed(() => {
   return undefined;
 });
 
-const devicePanelItems = computed<DevicePanelItem[]>(() => [
+const navPanelItems = computed<NavPanelItem[]>(() => [
   {
     label: 'Messages',
     myIcon: MessageSquareText,
     badge: 2,
     severity: 'info',
-    to: '/messages',
+    to: '/chat',
   },
   {
     label: 'Map',
@@ -185,7 +237,7 @@ const devicePanelItems = computed<DevicePanelItem[]>(() => [
     myIcon: Users,
     badge: nodeCount.value,
     severity: 'secondary',
-    to: '/dashboard',
+    to: '/nodes',
   },
 ]);
 
@@ -226,6 +278,26 @@ const commitHash = computed(() => {
       ?.toUpperCase()
       .slice(0, 7) || 'Unkown'
   );
+});
+
+const isChatView = computed(() => route.matched.some((r) => r.meta?.viewChat));
+const channelPanelItems = computed<ChannelPanelItem[]>(() => {
+  const chList: ChannelPanelItem[] = [];
+  if (device.value) {
+    for (const [k, v] of Object.entries(device.value.channels) as [
+      k: string,
+      v: Protobuf.Channel.Channel,
+    ][]) {
+      if (v.role !== Protobuf.Channel.Channel_Role.DISABLED) {
+        chList.push({
+          id: v.index,
+          label: v.settings?.name || 'Unknown',
+          to: `/chat/broadcast/${v.index}`,
+        });
+      }
+    }
+  }
+  return chList;
 });
 </script>
 
