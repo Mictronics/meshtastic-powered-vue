@@ -172,12 +172,7 @@ export const useConnectionStore = createSharedComposable(() => {
         try {
             await useIndexedDB().updateStore(IDB_CONNECTION_STORE, persistedProps);
         } catch (e: any) {
-            useGlobalToast().add({
-                severity: 'error',
-                summary: 'Connection Database Error',
-                detail: e.message,
-                life: 6000
-            });
+            toast('error', e.message);
         }
 
         return conn;
