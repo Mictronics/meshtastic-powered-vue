@@ -107,7 +107,7 @@ async function onConnect(id: number) {
         life: 2000,
       });
       const redirect = route.query.redirect as string | undefined;
-      router.push(redirect ?? { name: 'dashboard.home', params: {}, query: {} });
+      router.push(redirect ?? { name: 'nodes.view', params: {}, query: {} });
       //router.push({ name: 'dashboard.home', params: {}, query: {} });
     } else {
       useGlobalToast().add({
