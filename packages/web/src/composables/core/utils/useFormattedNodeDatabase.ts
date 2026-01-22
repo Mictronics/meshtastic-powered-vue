@@ -54,6 +54,7 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
                 role: Protobuf.Config.Config_DeviceConfig_Role[node.user?.role ?? 0]?.replaceAll('_', ' '),
                 publicKey: formatPublicKey(node.user?.publicKey),
                 isPublicKeyVerified: node.isKeyManuallyVerified,
+                unreadCount: 0,
                 deviceMetrics: formatDeviceMetrics(node.deviceMetrics),
                 environmentMetrics: formatEnvironmentMetrics(node.environmentMetrics),
                 powerMetrics: formatPowerMetrics(node.powerMetrics),
