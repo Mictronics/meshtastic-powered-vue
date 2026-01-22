@@ -155,7 +155,7 @@ import { useColorMode, useCycleList } from '@vueuse/core';
 import DeviceInfo from '@/components/Dashboard/DeviceInfo.vue';
 import type { FunctionalComponent } from 'vue';
 import type { LucideProps } from 'lucide-vue-next';
-import { Protobuf, Types } from '@meshtastic/core';
+import { Protobuf } from '@meshtastic/core';
 import { useRoute, type RouteLocationNormalized } from 'vue-router';
 
 type NavPanelItem = {
