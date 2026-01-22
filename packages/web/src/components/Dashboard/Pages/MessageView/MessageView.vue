@@ -12,32 +12,34 @@
           @scroll="onScroll"
         >
           <template v-slot:item="{ item }">
-            <SectionDivider
-              v-if="item.isDivider"
-              :title="item.label"
-              class="text-surface-600 text-[10px] font-bold px-3 rounded-full uppercase tracking-wider py-1"
-            />
-            <div v-else class="flex w-full p-3 px-4 justify-start" style="height: 52px">
-              <div :class="['flex max-w-[80%]', 'flex-row']">
-                <div
-                  class="p-1 rounded-2xl shadow-sm wrap-break-words relative bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-400 rounded-bl-none"
-                >
-                  <p class="whitespace-pre-wrap pr-2">{{ item.text }}</p>
-                  <div class="flex items-center justify-start gap-1 mt-1 opacity-70">
-                    <span class="text-[10px]">{{ item.time }}</span>
+            <div :key="item.messageId">
+              <SectionDivider
+                v-if="item.isDivider"
+                :title="item.label"
+                class="text-surface-600 text-[10px] font-bold px-3 rounded-full uppercase tracking-wider py-1"
+              />
+              <div v-else class="flex w-full p-3 px-4 justify-start" style="height: 52px">
+                <div class="flex max-w-[80%] flex-row">
+                  <div
+                    class="p-1 rounded-2xl shadow-sm wrap-break-words relative bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-400 rounded-bl-none"
+                  >
+                    <p class="whitespace-pre-wrap pr-2">{{ item.message }}</p>
+                    <div class="flex items-center justify-start gap-1 mt-1 opacity-70">
+                      <span class="text-[10px]">{{ item.date }}</span>
 
-                    <div v-if="item.self" class="items-center">
-                      <Check v-if="item.status === 'sent'" :size="15" />
-                      <Check
-                        v-else-if="item.status === 'delivered'"
-                        :size="15"
-                        class="text-lime-500"
-                      />
-                      <CheckCheck
-                        v-else-if="item.status === 'read'"
-                        :size="15"
-                        class="text-sky-500"
-                      />
+                      <div v-if="item.self" class="items-center">
+                        <Check v-if="item.status === 'sent'" :size="15" />
+                        <Check
+                          v-else-if="item.status === 'delivered'"
+                          :size="15"
+                          class="text-lime-500"
+                        />
+                        <CheckCheck
+                          v-else-if="item.status === 'read'"
+                          :size="15"
+                          class="text-sky-500"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -52,7 +54,8 @@
             rounded
             raised
             @click="scrollToBottom"
-            class="absolute bottom-4 right-8 z-10 shadow-lg animate-bounce"
+            class="absolute bottom-4 z-10 shadow-lg animate-bounce"
+            style="right: 18em !important"
             severity="secondary"
           >
             <CircleArrowDown :size="20" />
@@ -77,11 +80,10 @@
           :itemSize="52"
           showSpacer
           :scrollHeight="vsNodeHeight"
-          @scroll=""
           class="h-full"
         >
           <template v-slot:item="{ item }">
-            <div class="flex px-1 w-full" style="height: 52px">
+            <div class="flex px-1 w-full" style="height: 52px" :key="item.nodeNumber">
               <router-link
                 :to="'/chat/direct/' + item.nodeNumber"
                 class="flex gap-1 items-center py-1 group w-full rounded-md"
@@ -95,11 +97,11 @@
                   {{ item.longName }}
                 </span>
                 <Badge
-                  v-if="item.badge"
-                  :severity="item.severity"
+                  v-if="item.unreadCount"
+                  severity="info"
                   size="small"
                   class="ml-auto"
-                  :value="item.badge"
+                  :value="item.unreadCount"
                 />
               </router-link>
             </div>
@@ -168,14 +170,35 @@
 
 <script setup lang="ts">
 import { CircleArrowDown, Smile, Check, CheckCheck, Send, Search } from 'lucide-vue-next';
-import { ref, nextTick, onMounted, computed, onBeforeUnmount } from 'vue';
+import {
+  ref,
+  nextTick,
+  onMounted,
+  computed,
+  onBeforeUnmount,
+  type ComponentPublicInstance,
+  watch,
+} from 'vue';
+import { computedWithControl, refDebounced } from '@vueuse/core';
 import { Picker, EmojiIndex } from 'emoji-mart-vue-fast/src';
 import { useFormattedNodeDatabase } from '@/composables/core/utils/useFormattedNodeDatabase';
+import { useDeviceStore } from '@/composables/core/stores/device/useDeviceStore';
+import { useMessageStore } from '@/composables/core/stores/message/useMessageStore';
 import SectionDivider from '@/components/Dashboard/Pages/SectionDivider.vue';
 import NodeAvatar from '@/components/Dashboard/NodeAvatar.vue';
 import 'emoji-mart-vue-fast/css/emoji-mart.css';
 import data from 'emoji-mart-vue-fast/data/all.json';
-import * as _ from 'lodash-es';
+import { orderBy } from 'lodash-es';
+import { MessageType } from '@/composables/core/stores/message/useMessageStore';
+import type { Message } from '@/composables/core/stores/message/types';
+
+type MessageWithDivider =
+  | Message
+  | {
+      isDivider: boolean;
+      label?: string;
+      messageId: string;
+    };
 
 // via router
 const props = defineProps<{
@@ -183,71 +206,113 @@ const props = defineProps<{
   id: String; // channel or node id
 }>();
 
+const deviceStore = useDeviceStore();
+const messageStore = useMessageStore();
 const nodeDatabase = useFormattedNodeDatabase().nodeDatabase;
 let emojiIndex = new EmojiIndex(data);
 const textValue = ref('');
 const popOver = ref();
 const scroller = ref();
-const inputRef = ref(null);
+const inputRef = ref<ComponentPublicInstance | null>(null);
 const showScrollButton = ref(false);
 const searchQuery = ref('');
+const debouncedQuery = refDebounced(searchQuery, 150);
+const numericChatId = computed(() => Number(props.id) || 0);
+const chatType = computed(() =>
+  props.type === 'direct' ? MessageType.Direct : MessageType.Broadcast
+);
 
-const filteredNodes = computed(() => {
-  let nodes = Object.values(nodeDatabase.value);
-  // Apply deep search with Fuse-like behavior (fuzzy searching over multiple fields)
-  if (searchQuery.value.trim()) {
-    nodes = _.filter(nodes, (node: any) => {
-      return _.some(node, (value) => {
-        return value && value.toString().toLowerCase().includes(searchQuery.value.toLowerCase());
-      });
-    });
-  }
-  return nodes;
+const device = computed(() => {
+  return deviceStore.device.value;
 });
 
-const messages = ref([
-  { id: 1, text: 'Old message', sender: 'Alice', time: '2026-01-14T10:00:00', self: false },
-  { id: 2, text: 'Hello today!', sender: 'Me', time: '2026-01-15T09:00:00', self: true },
-]);
-
-const groupedMessages = computed(() => {
-  const grouped = [];
-  let lastDate = null;
-
-  messages.value.forEach((msg) => {
-    const date = new Date(msg.time).toDateString();
-
-    if (date !== lastDate) {
-      // Insert a special "divider" object
-      grouped.push({
-        isDivider: true,
-        id: `divider-${date}`,
-        label: date === new Date().toDateString() ? 'Today' : date,
-      });
-      lastDate = date;
+const groupedMessages = computedWithControl(
+  [messageStore.messageStore, numericChatId, chatType],
+  () => {
+    const grouped: MessageWithDivider[] = [];
+    let lastDate: string = '';
+    let messages: Message[] = [];
+    switch (chatType.value) {
+      case MessageType.Broadcast:
+        messages =
+          messageStore.messageStore.value?.getMessages({
+            type: MessageType.Broadcast,
+            channelId: numericChatId.value,
+          }) || [];
+        break;
+      case MessageType.Direct:
+        messages =
+          messageStore.messageStore.value?.getMessages({
+            type: MessageType.Direct,
+            nodeA: device.value?.myNodeNum || 0,
+            nodeB: numericChatId.value,
+          }) || [];
+        break;
+      default:
+        return messages;
     }
-    grouped.push({ ...msg, isDivider: false });
-  });
+    if (messages) {
+      messages.forEach((msg) => {
+        const date = new Date(msg.date).toLocaleDateString();
+        if (date !== lastDate) {
+          // Insert a date divider
+          grouped.push({
+            isDivider: true,
+            messageId: `divider-${date}`,
+            label: date === new Date().toLocaleDateString() ? 'Today' : date,
+          });
+          lastDate = date;
+        }
+        grouped.push({ ...msg, isDivider: false });
+      });
+      return grouped;
+    }
+    return [];
+  },
+  { deep: true }
+);
 
-  return grouped;
-});
+const filteredNodes = computedWithControl(
+  [deviceStore.device, nodeDatabase, debouncedQuery, numericChatId],
+  () => {
+    let nodes = Object.values(nodeDatabase.value);
+    const q = debouncedQuery.value.trim().toLowerCase();
+    if (q) {
+      nodes = nodes.filter((node) =>
+        Object.values(node).some((v) => v?.toString().toLowerCase().includes(q))
+      );
+    }
+    nodes = nodes.map((node) => ({
+      ...node,
+      unreadCount: device.value?.getUnreadCount(node.nodeNumber) ?? 0,
+    }));
+    nodes = orderBy(nodes, ['unreadCount', 'isFavorite'], ['desc', 'desc']);
+    const id = numericChatId.value;
+    nodes.sort((a, b) => (a.nodeNumber === id ? -1 : b.nodeNumber === id ? 1 : 0));
+    return nodes;
+  },
+  { deep: false }
+);
 
 const showEmojiPicker = (event: any) => {
   popOver.value.show(event);
 };
+
 const hideEmojiPicker = (event: any) => {
   popOver.value.hide(event);
 };
-const onSelectEmoji = (emoji: any) => {
-  const input = inputRef.value?.$el;
-  const start = input.selectionStart;
-  const end = input.selectionEnd;
+
+const onSelectEmoji = (emoji: { native: string }) => {
+  const inputEl = (inputRef.value as any)?.$el as HTMLInputElement | undefined;
+  if (!inputEl) return;
+  const start = inputEl.selectionStart ?? inputEl.value.length;
+  const end = inputEl.selectionEnd ?? start;
   textValue.value =
     textValue.value.substring(0, start) + emoji.native + textValue.value.substring(end);
   setTimeout(() => {
-    input.focus();
+    inputEl.focus();
     const newCursorPos = start + emoji.native.length;
-    input.setSelectionRange(newCursorPos, newCursorPos);
+    inputEl.setSelectionRange(newCursorPos, newCursorPos);
   }, 0);
 };
 
@@ -269,33 +334,12 @@ function startAutoHideEmojiPicker() {
 const sendMessage = () => {
   if (!textValue.value.trim()) return;
 
-  const id = Date.now();
-  const newMessage = {
-    id,
-    text: textValue.value,
-    sender: 'Me',
-    self: true,
-    status: 'sent', // Starts as sent
-    time: new Date().toISOString(),
-  };
-
-  messages.value.push(newMessage);
-
-  // Simulate "Delivered" after 1 second
-  setTimeout(() => {
-    const msg = messages.value.find((m) => m.id === id);
-    if (msg) msg.status = 'delivered';
-  }, 1000);
-
-  // Simulate "Read" after 3 seconds
-  setTimeout(() => {
-    const msg = messages.value.find((m) => m.id === id);
-    if (msg) msg.status = 'read';
-  }, 3000);
   textValue.value = '';
 
   nextTick(() => {
     scrollToBottom();
+    const inputEl = (inputRef.value as any)?.$el as HTMLInputElement | undefined;
+    if (inputEl) inputEl.focus();
   });
 };
 
@@ -308,7 +352,8 @@ const onScroll = (event: any) => {
 
 const scrollToBottom = () => {
   if (scroller.value) {
-    scroller.value.scrollToIndex(messages.value.length - 1, 'smooth');
+    const idx = Math.max(0, groupedMessages.value.length - 1);
+    scroller.value.scrollToIndex(idx, 'smooth');
   }
 };
 
@@ -330,4 +375,13 @@ onBeforeUnmount(() => {
   window.removeEventListener('resize', onResize);
   if (leaveTimer !== undefined) clearTimeout(leaveTimer);
 });
+
+watch(
+  [() => numericChatId.value, () => chatType.value],
+  async () => {
+    await nextTick();
+    nextTick(() => setTimeout(scrollToBottom, 50));
+  },
+  { immediate: true }
+);
 </script>
