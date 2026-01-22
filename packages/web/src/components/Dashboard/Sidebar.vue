@@ -157,6 +157,7 @@ import type { FunctionalComponent } from 'vue';
 import type { LucideProps } from 'lucide-vue-next';
 import { Protobuf } from '@meshtastic/core';
 import { useRoute, type RouteLocationNormalized } from 'vue-router';
+import { computedWithControl } from '@vueuse/core';
 
 type NavPanelItem = {
   label: string;
@@ -222,11 +223,19 @@ const nodeCount = computed(() => {
   return undefined;
 });
 
+const unreadMessageCount = computedWithControl(
+  device,
+  () => {
+    return device.value?.getAllUnreadCount();
+  },
+  { deep: true }
+);
+
 const navPanelItems = computed<NavPanelItem[]>(() => [
   {
     label: 'Messages',
     myIcon: MessageSquareText,
-    badge: 2,
+    badge: unreadMessageCount.value,
     severity: 'info',
     to: '/chat',
   },
