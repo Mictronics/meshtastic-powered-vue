@@ -111,17 +111,13 @@ export const useConnection = createGlobalState(() => {
         const connectionId = runtime.connectionId;
         const conn = connections.value.get(connectionId);
         runtime.isConfigured = false;
-
-        // 1. Stop heartbeat
         stopHeartbeat();
 
-        // 2. Unsubscribe config listener
         if (runtime.unsubConfigComplete) {
             runtime.unsubConfigComplete();
             runtime.unsubConfigComplete = undefined;
         }
 
-        // 3. Bluetooth cleanup
         if (
             conn?.type === ConnectionType.Bluetooth &&
             runtime.transport as BluetoothDevice
@@ -139,7 +135,6 @@ export const useConnection = createGlobalState(() => {
             }
         }
 
-        // 4. Serial cleanup
         if (
             conn?.type === ConnectionType.Serial &&
             runtime.transport &&
@@ -152,7 +147,6 @@ export const useConnection = createGlobalState(() => {
             }
         }
 
-        // 5. MeshDevice cleanup
         if (conn?.meshDeviceId) {
             const device = await useDeviceStore().getDevice(conn.meshDeviceId);
             if (device?.connection) {
@@ -165,10 +159,8 @@ export const useConnection = createGlobalState(() => {
             device?.setConnectionPhase(ConnectionPhase.Disconnected);
         }
 
-        // 6. Reset connection state
         setStatus(connectionId, ConnectionStatus.Disconnected);
 
-        // 7. Reset runtime
         runtime.connectionId = null;
         runtime.transport = undefined;
 
