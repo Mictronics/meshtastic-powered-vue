@@ -21,6 +21,7 @@ export type FormattedNode = {
     role?: string;
     publicKey?: string;
     isPublicKeyVerified: boolean;
+    unreadCount: number;
     deviceMetrics?: FormattedDeviceMetrics;
     environmentMetrics?: FormattedEnvironmentMetrics;
     powerMetrics?: FormattedPowerMetrics;
