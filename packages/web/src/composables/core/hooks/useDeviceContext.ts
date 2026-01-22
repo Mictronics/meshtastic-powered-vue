@@ -9,7 +9,7 @@ export type DeviceContext = {
 export const useDeviceContext = createSharedComposable(() => {
   const CurrentDeviceContext = ref<DeviceContext>({ deviceId: 0 });
 
-  watch(() => useAppStore().appData.selectedDeviceId, (n) => {
+  watch(() => useAppStore().appData.recentDeviceId, (n) => {
     CurrentDeviceContext.value = { deviceId: n };
   })
 

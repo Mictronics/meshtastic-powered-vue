@@ -345,7 +345,7 @@ export const useConnection = createGlobalState(() => {
         const nodeDB = await useNodeDBStore().addNodeDB(deviceId);
         const messageStore = await useMessageStore().addMessageStore(deviceId);
         const meshDevice = new MeshDevice(transport, deviceId);
-        useAppStore().appData.selectedDeviceId = deviceId;
+        useAppStore().appData.recentDeviceId = deviceId;
         if (device) device.addConnection(meshDevice); // This stores meshDevice in Device.connection
 
         if (device && meshDevice && messageStore && nodeDB)

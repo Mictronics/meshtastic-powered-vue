@@ -10,7 +10,7 @@ import type { SortState, ButtonKey } from "@/components/Dashboard/Pages/NodeView
 /* https://stackoverflow.com/a/76247596/3731501 */
 
 export interface IApp {
-    selectedDeviceId: number;
+    recentDeviceId: number;
     rasterSources: RasterSource[];
     isSideBarVisible: boolean;
     sortState: Partial<Record<ButtonKey, SortState>>;
@@ -18,7 +18,7 @@ export interface IApp {
 
 export const useAppStore = createSharedComposable(() => {
     const appData = reactive<IApp>({
-        selectedDeviceId: 0,
+        recentDeviceId: 0,
         rasterSources: [],
         isSideBarVisible: true,
         sortState: {},
@@ -36,8 +36,8 @@ export const useAppStore = createSharedComposable(() => {
      * writing values immediately back into database.
      */
     async function init() {
-        useIndexedDB().get(IDB_APP_STORE, 'selectedDeviceId').then((v) => {
-            appData.selectedDeviceId = v || 0;
+        useIndexedDB().get(IDB_APP_STORE, 'recentDeviceId').then((v) => {
+            appData.recentDeviceId = v || 0;
             ignorePrevAsyncUpdates();
         });
         useIndexedDB().get(IDB_APP_STORE, 'rasterSources').then((v) => {
