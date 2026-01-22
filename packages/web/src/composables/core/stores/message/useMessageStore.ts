@@ -300,8 +300,9 @@ export const useMessageStore = createSharedComposable(() => {
                 messageStore.value = new MessageStore(id, msObj);
                 return messageStore.value;
             }
-        } catch (e: any) {
-            toast('error', e.message);
+        } catch (e: unknown) {
+            const msg = e instanceof Error ? e.message : String(e);
+            toast('error', msg);
         }
         // Not in database, create new one.
         return undefined;
@@ -336,8 +337,9 @@ export const useMessageStore = createSharedComposable(() => {
                     ms.id = key;
                 }
             }
-        } catch (e: any) {
-            toast('error', e.message);
+        } catch (e: unknown) {
+            const msg = e instanceof Error ? e.message : String(e);
+            toast('error', msg);
         }
         messageStore.value = ms;
         return ms;
@@ -361,42 +363,53 @@ export const useMessageStore = createSharedComposable(() => {
             if (messageStore.value?.id === id) {
                 messageStore.value = undefined;
             }
-        } catch (e: any) {
-            toast('error', e.message);
+        } catch (e: unknown) {
+            const msg = e instanceof Error ? e.message : String(e);
+            toast('error', msg);
         }
     }
 
     async function cleanMessageStore(id: number, myNodeNum: number) {
         try {
-            const ms = await useIndexedDB().getAllFromStore(IDB_MESSAGE_STORE);
-            if (messageStore.value) {
-                for (const [otherId, oldStore] of ms) {
-                    if (otherId === id || oldStore.myNodeNum !== myNodeNum) {
-                        continue;
+            const ms: Map<string | number, IMessageStore> = await useIndexedDB().getAllFromStore(IDB_MESSAGE_STORE);
+            if (!messageStore.value) return;
+
+            const idsToDelete: Array<number | string> = [];
+            for (const [otherKey, oldStore] of ms.entries()) {
+                const otherIdNum = typeof otherKey === 'string' ? Number(otherKey) : otherKey;
+                if (otherIdNum === id || oldStore.myNodeNum !== myNodeNum) continue;
+                // Adopt broadcast conversations
+                if (oldStore.messages?.broadcast instanceof Map) {
+                    for (const [channelId, logMap] of oldStore.messages.broadcast.entries()) {
+                        messageStore.value.messages.broadcast[channelId as ChannelId] = logMap;
                     }
-                    // Adopt broadcast conversations (reuses inner Map references)
-                    for (const [channelId, logMap] of oldStore.messages.broadcast) {
-                        messageStore.value.messages.broadcast[(channelId as ChannelId)] = logMap;
-                    }
-                    // Adopt direct conversations
-                    for (const [conversationId, logMap] of oldStore.messages.direct) {
+                }
+                // Adopt direct conversations
+                if (oldStore.messages?.direct instanceof Map) {
+                    for (const [conversationId, logMap] of oldStore.messages.direct.entries()) {
                         messageStore.value.messages.direct[conversationId] = logMap;
                     }
-                    // Adopt drafts
-                    for (const [destination, draftText] of oldStore.drafts) {
+                }
+                // Adopt drafts
+                if (oldStore.drafts instanceof Map) {
+                    for (const [destination, draftText] of oldStore.drafts.entries()) {
                         messageStore.value.drafts[destination] = draftText;
                     }
-                    // Drop old store
-                    deleteMessageStore(otherId);
                 }
+                idsToDelete.push(otherKey);
             }
-            // Trim device store from the front (assuming oldest entries are at the start)
-            while (ms.length > MESSAGESTORE_RETENTION_NUM) {
-                const first: IMessageStore = ms.shift();
-                deleteMessageStore(first.id);
+            // Delete after iteration
+            for (const key of idsToDelete) {
+                await deleteMessageStore(typeof key === 'string' ? Number(key) : key);
             }
-        } catch (e: any) {
-            toast('error', e.message);
+            const storesArray = Array.from(ms.values());
+            while (storesArray.length > MESSAGESTORE_RETENTION_NUM) {
+                const first = storesArray.shift()!;
+                await deleteMessageStore(first.id);
+            }
+        } catch (e: unknown) {
+            const msg = e instanceof Error ? e.message : String(e);
+            toast('error', msg);
         }
     }
 
