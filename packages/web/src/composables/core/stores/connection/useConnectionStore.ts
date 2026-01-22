@@ -168,7 +168,7 @@ export const useConnectionStore = createSharedComposable(() => {
         }
 
         // Only persist non-runtime fields
-        const { status, error, meshDeviceId, ...persistedProps } = (conn as any).get();
+        const { status, error, ...persistedProps } = (conn as any).get();
         try {
             await useIndexedDB().updateStore(IDB_CONNECTION_STORE, persistedProps);
         } catch (e: any) {
