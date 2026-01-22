@@ -173,7 +173,7 @@
 <script setup lang="ts">
 import { Search, Star, StarOff, Trash2, Eye, EyeOff } from 'lucide-vue-next';
 import { ref, computed, onMounted, onUnmounted, onBeforeUnmount } from 'vue';
-import { formatTimeAgoIntl } from '@vueuse/core';
+import { formatTimeAgoIntl, refDebounced } from '@vueuse/core';
 import { numberToHexUnpadded } from '@noble/curves/utils.js';
 import type { FormattedNode } from '@/composables/core/utils/types';
 import { useFormattedNodeDatabase } from '@/composables/core/utils/useFormattedNodeDatabase';
@@ -190,11 +190,12 @@ import MetricsGrid from '@/components/Dashboard/Pages/NodeView/MetricsGrid.vue';
 import { useFavoriteNode } from '@/composables/core/hooks/useFavoriteNode';
 import { useIgnoreNode } from '@/composables/core/hooks/useIgnoreNode';
 import { type SortDir } from '@/components/Dashboard/Pages/NodeView/types';
-import * as _ from 'lodash-es';
+import { orderBy, filter, some } from 'lodash-es';
 import { useDeleteNode } from '@/composables/core/hooks/useDeleteNode';
 
 const nodeDatabase = useFormattedNodeDatabase().nodeDatabase;
 const searchQuery = ref('');
+const debouncedQuery = refDebounced(searchQuery, 150);
 const showDrawer = ref(false);
 const selectedNode = ref<FormattedNode>();
 const windowWidth = ref(window.innerWidth);
@@ -367,10 +368,10 @@ const onSortToggle = (keys: string[], dir: SortDir[]) => {
 const filteredNodes = computed(() => {
   let nodes = Object.values(nodeDatabase.value);
   // Apply deep search with Fuse-like behavior (fuzzy searching over multiple fields)
-  if (searchQuery.value.trim()) {
-    nodes = _.filter(nodes, (node: any) => {
-      return _.some(node, (value) => {
-        return value && value.toString().toLowerCase().includes(searchQuery.value.toLowerCase());
+  if (debouncedQuery.value.trim()) {
+    nodes = filter(nodes, (node: any) => {
+      return some(node, (value) => {
+        return value && value.toString().toLowerCase().includes(debouncedQuery.value.toLowerCase());
       });
     });
   }
@@ -379,7 +380,7 @@ const filteredNodes = computed(() => {
 
 const sortedFilteredNodes = computed(() => {
   let nodes = filteredNodes.value;
-  return _.orderBy(nodes, sortKey.value, sortDir.value);
+  return orderBy(nodes, sortKey.value, sortDir.value);
 });
 
 const chunkedNodes = computed(() => {
