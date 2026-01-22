@@ -108,7 +108,6 @@ async function onConnect(id: number) {
       });
       const redirect = route.query.redirect as string | undefined;
       router.push(redirect ?? { name: 'nodes.view', params: {}, query: {} });
-      //router.push({ name: 'dashboard.home', params: {}, query: {} });
     } else {
       useGlobalToast().add({
         severity: 'error',
