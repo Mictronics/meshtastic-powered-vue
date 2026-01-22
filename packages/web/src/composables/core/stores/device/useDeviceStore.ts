@@ -679,8 +679,7 @@ class Device implements IDevice {
 
 export const useDeviceStore = createSharedComposable(() => {
     const device = ref<IDevice>();
-    // TODO Replace with Vueuse useArrayUnique if we need all devices from database in memory
-    // Use custom function for id check.
+
 
     watchThrottled(device, (updated) => {
         // Write new value back into IndexedDB. Throttled to avoid writes on any change.
