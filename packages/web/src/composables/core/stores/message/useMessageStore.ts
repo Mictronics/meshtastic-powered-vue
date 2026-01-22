@@ -414,7 +414,7 @@ export const useMessageStore = createSharedComposable(() => {
     }
 
     return {
-        messageStores: messageStore,
+        messageStore,
         addMessageStore,
         getMessageStore,
         updateMessageStore,
