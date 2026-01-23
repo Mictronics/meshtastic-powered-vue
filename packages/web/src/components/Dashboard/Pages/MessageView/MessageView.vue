@@ -352,14 +352,13 @@ const sendMessage = () => {
 };
 
 const maybeResetUnread = () => {
-  if (chatType.value !== MessageType.Direct) return;
   if (!isAtBottom.value) return;
-
-  const nodeNumber = numericChatId.value;
-  if (!nodeNumber) return;
+  // Broadcast channel index or node number
+  const num = numericChatId.value;
+  if (!num) return;
 
   setTimeout(() => {
-    device.value?.resetUnread(nodeNumber);
+    device.value?.resetUnread(num);
   }, 3000);
 };
 
