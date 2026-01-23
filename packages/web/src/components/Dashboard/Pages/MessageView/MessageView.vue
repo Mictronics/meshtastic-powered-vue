@@ -193,6 +193,7 @@ const inputRef = ref<ComponentPublicInstance | null>(null);
 const showScrollButton = ref(false);
 const searchQuery = ref('');
 const debouncedQuery = refDebounced(searchQuery, 150);
+const isAtBottom = ref(true);
 const numericChatId = computed(() => Number(props.id) || 0);
 const chatType = computed(() =>
   props.type === 'direct' ? MessageType.Direct : MessageType.Broadcast
@@ -280,7 +281,7 @@ const groupedMessages = computedWithControl(
 );
 
 const filteredNodes = computedWithControl(
-  [deviceStore.device, nodeDatabase, debouncedQuery, numericChatId],
+  [deviceStore.device, debouncedQuery, numericChatId],
   () => {
     let nodes = Object.values(nodeDatabase.value);
     const q = debouncedQuery.value.trim().toLowerCase();
@@ -298,7 +299,7 @@ const filteredNodes = computedWithControl(
     nodes.sort((a, b) => (a.nodeNumber === id ? -1 : b.nodeNumber === id ? 1 : 0));
     return nodes;
   },
-  { deep: false }
+  { deep: true }
 );
 
 const showEmojiPicker = (event: any) => {
@@ -324,19 +325,19 @@ const onSelectEmoji = (emoji: { native: string }) => {
 };
 
 let leaveTimer: number | undefined;
-function stopAutoHideEmojiPicker() {
+const stopAutoHideEmojiPicker = () => {
   if (leaveTimer !== undefined) {
     clearTimeout(leaveTimer);
     leaveTimer = undefined;
   }
-}
+};
 
-function startAutoHideEmojiPicker() {
+const startAutoHideEmojiPicker = () => {
   leaveTimer = window.setTimeout(() => {
     leaveTimer = undefined;
     popOver.value.hide();
   }, 1500);
-}
+};
 
 const sendMessage = () => {
   if (!textValue.value.trim()) return;
@@ -350,11 +351,29 @@ const sendMessage = () => {
   });
 };
 
+const maybeResetUnread = () => {
+  if (chatType.value !== MessageType.Direct) return;
+  if (!isAtBottom.value) return;
+
+  const nodeNumber = numericChatId.value;
+  if (!nodeNumber) return;
+
+  setTimeout(() => {
+    device.value?.resetUnread(nodeNumber);
+  }, 3000);
+};
+
 const onScroll = (event: any) => {
   const threshold = 200;
-  const isAtBottom =
+  const atBottom =
     event.target.scrollHeight - event.target.scrollTop - event.target.clientHeight < threshold;
-  showScrollButton.value = !isAtBottom;
+
+  isAtBottom.value = atBottom;
+  showScrollButton.value = !atBottom;
+
+  if (atBottom) {
+    maybeResetUnread();
+  }
 };
 
 const scrollToBottom = () => {
@@ -387,7 +406,13 @@ watch(
   [() => numericChatId.value, () => chatType.value],
   async () => {
     await nextTick();
-    nextTick(() => setTimeout(scrollToBottom, 50));
+    nextTick(() => {
+      setTimeout(() => {
+        scrollToBottom();
+        isAtBottom.value = true;
+        maybeResetUnread();
+      }, 50);
+    });
   },
   { immediate: true }
 );
