@@ -8,7 +8,10 @@
             <Star fill="orange" strokeWidth="0" :size="15" />
             Default
           </Chip>
-          <Chip v-if="isConnected()" class="connection-item-chip dark:text-slate-400">
+          <Chip
+            v-if="isConnected()"
+            class="connection-item-chip bg-lime-400 dark:text-slate-400"
+          >
             <Link :size="15" />
             Connected
           </Chip>
