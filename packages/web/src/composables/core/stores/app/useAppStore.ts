@@ -14,6 +14,7 @@ export interface IApp {
     rasterSources: RasterSource[];
     isSideBarVisible: boolean;
     sortState: Partial<Record<ButtonKey, SortState>>;
+    lastReadPerChat: Record<string, number>;
 }
 
 export const useAppStore = createSharedComposable(() => {
@@ -22,6 +23,7 @@ export const useAppStore = createSharedComposable(() => {
         rasterSources: [],
         isSideBarVisible: true,
         sortState: {},
+        lastReadPerChat: {},
     });
 
     const { ignorePrevAsyncUpdates } = watchIgnorable(appData, (n) => {
@@ -52,6 +54,10 @@ export const useAppStore = createSharedComposable(() => {
             appData.isSideBarVisible = v;
             ignorePrevAsyncUpdates();
         });
+        useIndexedDB().get(IDB_APP_STORE, 'lastReadPerChat').then((v) => {
+            appData.lastReadPerChat = v || {};
+            ignorePrevAsyncUpdates();
+        });
     }
 
     function addRasterSource(source: RasterSource) {
@@ -62,11 +68,25 @@ export const useAppStore = createSharedComposable(() => {
         appData.rasterSources.splice(index, 1);
     };
 
+    function makeChatKey(type: 'direct' | 'broadcast', id: number) {
+        return `${type}:${id}`;
+    }
+
+    function getLastRead(type: 'direct' | 'broadcast', id: number): number | undefined {
+        return appData.lastReadPerChat[makeChatKey(type, id)];
+    }
+
+    function setLastRead(type: 'direct' | 'broadcast', id: number, ts: number) {
+        appData.lastReadPerChat[makeChatKey(type, id)] = ts;
+    }
+
     init();
 
     return {
         appData,
         addRasterSource,
-        removeRasterSource
+        removeRasterSource,
+        getLastRead,
+        setLastRead,
     }
 });
