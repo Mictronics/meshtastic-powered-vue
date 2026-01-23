@@ -15,7 +15,6 @@ import type {
     ConversationId,
     GetMessagesParams,
     Message,
-    MessageId,
     MessageLogMap,
     NodeNum,
     SetMessageStateParams,
