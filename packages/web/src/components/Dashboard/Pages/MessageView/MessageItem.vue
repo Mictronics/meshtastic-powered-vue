@@ -3,7 +3,11 @@
     <SectionDivider
       v-if="message.groupedType === 'divider'"
       :title="message.label"
-      class="text-surface-600 text-[10px] font-bold px-3 rounded-full uppercase tracking-wider py-1"
+      :class="[
+        message.variant === 'unread'
+          ? 'unread-divider'
+          : 'font-bold px-3 rounded-full uppercase tracking-wider py-1',
+      ]"
     />
     <div v-else class="flex w-full p-3 px-4 justify-start gap-3" style="height: 52px">
       <NodeAvatar
@@ -55,3 +59,20 @@ const formattedDate = computed(() => {
   });
 });
 </script>
+<style lang="css" scoped>
+.unread-divider {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.unread-divider::before,
+.unread-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--color-sky-300) !important;
+}
+
+.dark .unread-divider::before,
+.dark .unread-divider::after {
+  border-bottom: 1px solid var(--color-sky-700) !important;
+}
+</style>
