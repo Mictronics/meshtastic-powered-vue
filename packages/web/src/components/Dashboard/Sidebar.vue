@@ -296,32 +296,36 @@ const commitHash = computed(() => {
 });
 
 const isChatView = computed(() => route.matched.some((r) => r.meta?.viewChat));
-const channelPanelItems = computed<ChannelPanelItem[]>(() => {
-  const chList: ChannelPanelItem[] = [];
-  const activeChannel = route.params.id;
+const channelPanelItems = computedWithControl(
+  device,
+  () => {
+    const chList: ChannelPanelItem[] = [];
+    const activeChannel = route.params.id;
 
-  if (!device.value) return chList;
+    if (!device.value) return chList;
 
-  for (const [, v] of Object.entries(device.value.channels) as [
-    string,
-    Protobuf.Channel.Channel,
-  ][]) {
-    if (v.role === Protobuf.Channel.Channel_Role.DISABLED) continue;
+    for (const [, v] of Object.entries(device.value.channels) as [
+      string,
+      Protobuf.Channel.Channel,
+    ][]) {
+      if (v.role === Protobuf.Channel.Channel_Role.DISABLED) continue;
 
-    const unreadCount = device.value.getUnreadCount(v.index);
+      const unreadCount = device.value.getUnreadCount(v.index);
 
-    chList.push({
-      id: v.index,
-      label: v.settings?.name || 'Unknown',
-      to: `/chat/broadcast/${v.index}`,
-      active: activeChannel === v.index.toString(),
-      badge: unreadCount > 0 ? unreadCount : undefined,
-      severity: unreadCount > 0 ? 'info' : undefined,
-    });
-  }
+      chList.push({
+        id: v.index,
+        label: v.settings?.name || 'Unknown',
+        to: `/chat/broadcast/${v.index}`,
+        active: activeChannel === v.index.toString(),
+        badge: unreadCount > 0 ? unreadCount : undefined,
+        severity: unreadCount > 0 ? 'info' : undefined,
+      });
+    }
 
-  return chList;
-});
+    return chList;
+  },
+  { deep: true }
+);
 </script>
 
 <style lang="css" scoped>
