@@ -147,7 +147,7 @@ import {
   type ComponentPublicInstance,
   watch,
 } from 'vue';
-import { computedWithControl, refDebounced } from '@vueuse/core';
+import { computedWithControl, refDebounced, useDebounceFn } from '@vueuse/core';
 import { Picker, EmojiIndex } from 'emoji-mart-vue-fast/src';
 import { useFormattedNodeDatabase } from '@/composables/core/utils/useFormattedNodeDatabase';
 import { useDeviceStore } from '@/composables/core/stores/device/useDeviceStore';
@@ -380,7 +380,6 @@ const updateLastRead = () => {
   const lastMsg = groupedMessages.value.filter((m) => m.groupedType === 'message').at(-1);
 
   if (!lastMsg) return;
-
   appStore.setLastRead(
     chatType.value === MessageType.Direct ? 'direct' : 'broadcast',
     numericChatId.value,
@@ -388,13 +387,11 @@ const updateLastRead = () => {
   );
 };
 
-const maybeResetUnread = () => {
+const maybeResetUnread = useDebounceFn(() => {
   if (!isAtBottom.value) return;
-  setTimeout(() => {
-    device.value?.resetUnread(numericChatId.value);
-    updateLastRead();
-  }, 3000);
-};
+  device.value?.resetUnread(numericChatId.value);
+  updateLastRead();
+}, 3000);
 
 const onScroll = (event: any) => {
   const threshold = 200;
