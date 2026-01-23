@@ -152,6 +152,7 @@ import { Picker, EmojiIndex } from 'emoji-mart-vue-fast/src';
 import { useFormattedNodeDatabase } from '@/composables/core/utils/useFormattedNodeDatabase';
 import { useDeviceStore } from '@/composables/core/stores/device/useDeviceStore';
 import { useMessageStore } from '@/composables/core/stores/message/useMessageStore';
+import { useAppStore } from '@/composables/core/stores/app/useAppStore';
 import NodeAvatar from '@/components/Dashboard/NodeAvatar.vue';
 import 'emoji-mart-vue-fast/css/emoji-mart.css';
 import data from 'emoji-mart-vue-fast/data/all.json';
@@ -164,6 +165,7 @@ type DividerMessage = {
   groupedType: 'divider';
   label: string;
   messageId: string;
+  variant?: 'date' | 'unread';
 };
 
 type ChatMessage = Message & {
@@ -184,6 +186,7 @@ const props = defineProps<{
 
 const deviceStore = useDeviceStore();
 const messageStore = useMessageStore();
+const appStore = useAppStore();
 const nodeDatabase = useFormattedNodeDatabase().nodeDatabase;
 let emojiIndex = new EmojiIndex(data);
 const textValue = ref('');
@@ -194,6 +197,13 @@ const showScrollButton = ref(false);
 const searchQuery = ref('');
 const debouncedQuery = refDebounced(searchQuery, 150);
 const isAtBottom = ref(true);
+const lastReadTimestamp = computed(() =>
+  appStore.getLastRead(
+    chatType.value === MessageType.Direct ? 'direct' : 'broadcast',
+    numericChatId.value
+  )
+);
+
 const numericChatId = computed(() => Number(props.id) || 0);
 const chatType = computed(() =>
   props.type === 'direct' ? MessageType.Direct : MessageType.Broadcast
@@ -216,11 +226,12 @@ const getNodeMeta = (from: number) => {
 };
 
 const groupedMessages = computedWithControl(
-  [messageStore.messageStore, numericChatId, chatType],
+  [messageStore.messageStore, numericChatId, chatType, lastReadTimestamp],
   () => {
     const grouped: MessageWithDivider[] = [];
     let lastDate: string = '';
     let messages: Message[] = [];
+
     switch (chatType.value) {
       case MessageType.Broadcast:
         messages =
@@ -229,6 +240,7 @@ const groupedMessages = computedWithControl(
             channelId: numericChatId.value,
           }) || [];
         break;
+
       case MessageType.Direct:
         messages =
           messageStore.messageStore.value?.getMessages({
@@ -237,45 +249,56 @@ const groupedMessages = computedWithControl(
             nodeB: numericChatId.value,
           }) || [];
         break;
+
       default:
-        return messages;
+        return [];
     }
-    if (messages) {
-      messages.forEach((msg) => {
-        const date = new Date(msg.date).toLocaleDateString(undefined, {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        });
 
-        if (date !== lastDate) {
-          grouped.push({
-            groupedType: 'divider',
-            messageId: `divider-${date}`,
-            label:
-              date ===
-              new Date().toLocaleDateString(undefined, {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })
-                ? 'Today'
-                : date,
-          });
-          lastDate = date;
-        }
+    let unreadDividerInserted = false;
+    const lastRead = lastReadTimestamp.value;
 
-        grouped.push({
-          ...msg,
-          groupedType: 'message',
-          ...getNodeMeta(msg.from),
-        });
+    messages.forEach((msg) => {
+      const date = new Date(msg.date).toLocaleDateString(undefined, {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
       });
-      return grouped;
-    }
-    return [];
+
+      // Insert date divider
+      if (date !== lastDate) {
+        grouped.push({
+          groupedType: 'divider',
+          messageId: `divider-${date}`,
+          label:
+            date ===
+            new Date().toLocaleDateString(undefined, {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })
+              ? 'Today'
+              : date,
+        });
+        lastDate = date;
+      }
+
+      // Insert UNREAD divider once
+      if (!unreadDividerInserted && lastRead !== undefined && msg.date > lastRead) {
+        grouped.push({
+          groupedType: 'divider',
+          messageId: `unread-${msg.date}`,
+          label: 'New messages',
+          variant: 'unread',
+        });
+        unreadDividerInserted = true;
+      }
+
+      grouped.push({ ...msg, groupedType: 'message', ...getNodeMeta(msg.from) });
+    });
+
+    return grouped;
   },
   { deep: true }
 );
@@ -351,14 +374,25 @@ const sendMessage = () => {
   });
 };
 
+const updateLastRead = () => {
+  if (!isAtBottom.value) return;
+
+  const lastMsg = groupedMessages.value.filter((m) => m.groupedType === 'message').at(-1);
+
+  if (!lastMsg) return;
+
+  appStore.setLastRead(
+    chatType.value === MessageType.Direct ? 'direct' : 'broadcast',
+    numericChatId.value,
+    lastMsg.date
+  );
+};
+
 const maybeResetUnread = () => {
   if (!isAtBottom.value) return;
-  // Broadcast channel index or node number
-  const num = numericChatId.value;
-  if (!num) return;
-
   setTimeout(() => {
-    device.value?.resetUnread(num);
+    device.value?.resetUnread(numericChatId.value);
+    updateLastRead();
   }, 3000);
 };
 
