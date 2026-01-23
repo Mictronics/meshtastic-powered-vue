@@ -12,39 +12,7 @@
           @scroll="onScroll"
         >
           <template v-slot:item="{ item }">
-            <div :key="item.messageId">
-              <SectionDivider
-                v-if="item.isDivider"
-                :title="item.label"
-                class="text-surface-600 text-[10px] font-bold px-3 rounded-full uppercase tracking-wider py-1"
-              />
-              <div v-else class="flex w-full p-3 px-4 justify-start" style="height: 52px">
-                <div class="flex max-w-[80%] flex-row">
-                  <div
-                    class="p-1 rounded-2xl shadow-sm wrap-break-words relative bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-400 rounded-bl-none"
-                  >
-                    <p class="whitespace-pre-wrap pr-2">{{ item.message }}</p>
-                    <div class="flex items-center justify-start gap-1 mt-1 opacity-70">
-                      <span class="text-[10px]">{{ item.date }}</span>
-
-                      <div v-if="item.self" class="items-center">
-                        <Check v-if="item.status === 'sent'" :size="15" />
-                        <Check
-                          v-else-if="item.status === 'delivered'"
-                          :size="15"
-                          class="text-lime-500"
-                        />
-                        <CheckCheck
-                          v-else-if="item.status === 'read'"
-                          :size="15"
-                          class="text-sky-500"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <MessageItem :message="item" />
           </template>
         </VirtualScroller>
 
@@ -169,7 +137,7 @@
 </template>
 
 <script setup lang="ts">
-import { CircleArrowDown, Smile, Check, CheckCheck, Send, Search } from 'lucide-vue-next';
+import { CircleArrowDown, Smile, Send, Search } from 'lucide-vue-next';
 import {
   ref,
   nextTick,
@@ -184,21 +152,29 @@ import { Picker, EmojiIndex } from 'emoji-mart-vue-fast/src';
 import { useFormattedNodeDatabase } from '@/composables/core/utils/useFormattedNodeDatabase';
 import { useDeviceStore } from '@/composables/core/stores/device/useDeviceStore';
 import { useMessageStore } from '@/composables/core/stores/message/useMessageStore';
-import SectionDivider from '@/components/Dashboard/Pages/SectionDivider.vue';
 import NodeAvatar from '@/components/Dashboard/NodeAvatar.vue';
 import 'emoji-mart-vue-fast/css/emoji-mart.css';
 import data from 'emoji-mart-vue-fast/data/all.json';
 import { orderBy } from 'lodash-es';
 import { MessageType } from '@/composables/core/stores/message/useMessageStore';
 import type { Message } from '@/composables/core/stores/message/types';
+import MessageItem from './MessageItem.vue';
 
-type MessageWithDivider =
-  | Message
-  | {
-      isDivider: boolean;
-      label?: string;
-      messageId: string;
-    };
+type DividerMessage = {
+  groupedType: 'divider';
+  label: string;
+  messageId: string;
+};
+
+type ChatMessage = Message & {
+  groupedType: 'message';
+  shortName?: string;
+  longName?: string;
+  isFavorite?: boolean;
+  nodeNumber?: number;
+};
+
+export type MessageWithDivider = DividerMessage | ChatMessage;
 
 // via router
 const props = defineProps<{
@@ -225,6 +201,18 @@ const chatType = computed(() =>
 const device = computed(() => {
   return deviceStore.device.value;
 });
+
+const getNodeMeta = (from: number) => {
+  const node = nodeDatabase.value[from];
+  if (!node) return {};
+
+  return {
+    shortName: node.shortName,
+    longName: node.longName,
+    isFavorite: node.isFavorite,
+    nodeNumber: node.nodeNumber,
+  };
+};
 
 const groupedMessages = computedWithControl(
   [messageStore.messageStore, numericChatId, chatType],
@@ -253,17 +241,36 @@ const groupedMessages = computedWithControl(
     }
     if (messages) {
       messages.forEach((msg) => {
-        const date = new Date(msg.date).toLocaleDateString();
+        const date = new Date(msg.date).toLocaleDateString(undefined, {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        });
+
         if (date !== lastDate) {
-          // Insert a date divider
           grouped.push({
-            isDivider: true,
+            groupedType: 'divider',
             messageId: `divider-${date}`,
-            label: date === new Date().toLocaleDateString() ? 'Today' : date,
+            label:
+              date ===
+              new Date().toLocaleDateString(undefined, {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })
+                ? 'Today'
+                : date,
           });
           lastDate = date;
         }
-        grouped.push({ ...msg, isDivider: false });
+
+        grouped.push({
+          ...msg,
+          groupedType: 'message',
+          ...getNodeMeta(msg.from),
+        });
       });
       return grouped;
     }
