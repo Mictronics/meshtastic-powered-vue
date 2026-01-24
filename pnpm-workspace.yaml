@@ -1,5 +1,13 @@
-minimumReleaseAge: 2880 # package dependency library must be at least 2 days old
+packages:
+  - packages/*
+
+minimumReleaseAge: 2880
+
 minimumReleaseAgeExclude:
   - '@meshtastic/*'
-packages:
-  - 'packages/*'
+
+onlyBuiltDependencies:
+  - '@bufbuild/buf'
+  - core-js
+  - esbuild
+  - vue-demi

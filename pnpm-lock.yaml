@@ -9,13 +9,13 @@ importers:
   .:
     dependencies:
       '@bufbuild/buf':
-        specifier: ^1.63.0
-        version: 1.63.0
+        specifier: ^1.64.0
+        version: 1.64.0
       '@bufbuild/protobuf':
-        specifier: ^2.10.2
-        version: 2.10.2
+        specifier: ^2.11.0
+        version: 2.11.0
       '@meshtastic/protobufs':
-        specifier: npm:@jsr/meshtastic__protobufs@^2.7.12-1
+        specifier: npm:@jsr/meshtastic__protobufs@2.7.12-1
         version: '@jsr/meshtastic__protobufs@2.7.12-1'
       biome:
         specifier: ^0.3.3
@@ -113,6 +113,9 @@ importers:
       base64-js:
         specifier: ^1.5.1
         version: 1.5.1
+      emoji-mart-vue-fast:
+        specifier: ^15.0.5
+        version: 15.0.5(vue@3.5.26(typescript@5.9.3))
       humanize-duration:
         specifier: ^3.33.2
         version: 3.33.2
@@ -329,6 +332,10 @@ packages:
     peerDependencies:
       '@babel/core': ^7.0.0-0
 
+  '@babel/runtime@7.28.6':
+    resolution: {integrity: sha512-05WQkdpL9COIMz4LjTxGpPNCdlpyimKppYNoJ5Di5EUObifl8t4tuLuUBBZEpoLYOmfvIWrsp9fCl0HoPRVTdA==}
+    engines: {node: '>=6.9.0'}
+
   '@babel/template@7.27.2':
     resolution: {integrity: sha512-LPDZ85aEJyYSd18/DkjNh4/y1ntkE5KwUHWTiqgRxruuZL2F1yuHligVHLvcHY2vMHXttKFpJn6LwfI7cw7ODw==}
     engines: {node: '>=6.9.0'}
@@ -341,58 +348,58 @@ packages:
     resolution: {integrity: sha512-qQ5m48eI/MFLQ5PxQj4PFaprjyCTLI37ElWMmNs0K8Lk3dVeOdNpB3ks8jc7yM5CDmVC73eMVk/trk3fgmrUpA==}
     engines: {node: '>=6.9.0'}
 
-  '@bufbuild/buf-darwin-arm64@1.63.0':
-    resolution: {integrity: sha512-Jpbz2mnNO+23E3TmDgLdbYuF+ozqsKu/ASvD37RjDgp9HtqQT+ciJMYOzqd/HdrGiM9tWYN1vhjl/gP/Y23lIw==}
+  '@bufbuild/buf-darwin-arm64@1.64.0':
+    resolution: {integrity: sha512-wv4WJ/ho9Jt4b/3SuwrzCa7r68yvOSMhnpztPivu75CMF+btZijWYjc/Wt6JkOYbGmsXAlSzyANXZaQM9KCm8g==}
     engines: {node: '>=12'}
     cpu: [arm64]
     os: [darwin]
 
-  '@bufbuild/buf-darwin-x64@1.63.0':
-    resolution: {integrity: sha512-HkVMm2cOBnTtT+AZFAQAUyrwcXtnvaBtVCW0ltBi5PzLp6CNgmkH97OAROKWiNPWrXJh5thdhdZBNjGPyTfX3w==}
+  '@bufbuild/buf-darwin-x64@1.64.0':
+    resolution: {integrity: sha512-2idJ/x94DzsYbiuLticvevXNiTXeCv/WjO7NYcwo8WXOIBHdGKK6nfoEAa4DMSo2qv/u3O2Q9sublQ+LYmITkw==}
     engines: {node: '>=12'}
     cpu: [x64]
     os: [darwin]
 
-  '@bufbuild/buf-linux-aarch64@1.63.0':
-    resolution: {integrity: sha512-vFeFKzC+PZSngct0bP3ASGCus7qhBPFxSfz6Hi+3a2zAajn857iJC3iPiX0tRlRIUTOHuj5NmOYxg9dhev0vDw==}
+  '@bufbuild/buf-linux-aarch64@1.64.0':
+    resolution: {integrity: sha512-954Tg1LKjPHNOuOBJH57SDnvHYBFf3NSWccu8bqBcXcRpdebnRiNCDWPGDhXqXXPfLnAbTYMyOdh+D4KsYsygw==}
     engines: {node: '>=12'}
     cpu: [arm64]
     os: [linux]
 
-  '@bufbuild/buf-linux-armv7@1.63.0':
-    resolution: {integrity: sha512-XbrRiOfeY3d/GmR+WNnkcDo480V+cz/ecfj/Ay/JO/ZLe7quEQqHmJ6dMcIQN8QNFPZBKv0IVyhhljh8+0/gkA==}
+  '@bufbuild/buf-linux-armv7@1.64.0':
+    resolution: {integrity: sha512-RDPQK+qMXuA2TV8jvzrGUFR1m+cJ32crxPHXgqmHSd+/LneUdNB/U0euhm94rNP8Xr3EbcMTBQ0kwajF4ZeeKg==}
     engines: {node: '>=12'}
     cpu: [arm]
     os: [linux]
 
-  '@bufbuild/buf-linux-x64@1.63.0':
-    resolution: {integrity: sha512-78TsMWxQ7Rn4FJPN4QZZDM3NTS1U5ZCcwLYJmwOLJbHyfYnFiC1e91yL6sVfYrWXF1Pt9xJZU50yhmJZ+9AtmA==}
+  '@bufbuild/buf-linux-x64@1.64.0':
+    resolution: {integrity: sha512-PONSa1DorjkMASu9EYtd6ckgMQC5MSHi9aY5CqWwV5hl262A43k2qt3EbYCClyGdNjC+Vu8Av9Blfd91Yg5kRw==}
     engines: {node: '>=12'}
     cpu: [x64]
     os: [linux]
 
-  '@bufbuild/buf-win32-arm64@1.63.0':
-    resolution: {integrity: sha512-sMZ63kK+MuxZVBFAh95Woly9QmeApohgQoWvO9ZppTzNXya7Kznz5lqa0B7f3zfDxgy2/DmOXILOMn3n8GoAww==}
+  '@bufbuild/buf-win32-arm64@1.64.0':
+    resolution: {integrity: sha512-nBEr7udVctBq0TIoCWkoI1BCcwDynKW9u1bX27/0QUnIySm9bgS5AeMyhuWsXKka+kHjR/fMf3tHlP2a5o85ag==}
     engines: {node: '>=12'}
     cpu: [arm64]
     os: [win32]
 
-  '@bufbuild/buf-win32-x64@1.63.0':
-    resolution: {integrity: sha512-ooY4o3XPpvJ6BEOWB18pc52beeB9NdRRHMINuZ1oef3HNsFqtbv7DrPX9vm/mmOkzbTQDa8m7M8bjWjBO9ynkg==}
+  '@bufbuild/buf-win32-x64@1.64.0':
+    resolution: {integrity: sha512-5dwpWxLRCLKQ3xsrmRs8lGO2lL6mVCKRlgvGDj5PCMy9+BmqmwHtPAYMj+nUtqQqUNnax4oADeIfliMmeUXd7g==}
     engines: {node: '>=12'}
     cpu: [x64]
     os: [win32]
 
-  '@bufbuild/buf@1.63.0':
-    resolution: {integrity: sha512-SvYWiCs9J8tX8qIh1haNJEwM0MmyauSFDDksHL4wtPjeXcEj+SMvWudIn8KdWoiFbNDY98phn4sqZQ4F6uViPQ==}
+  '@bufbuild/buf@1.64.0':
+    resolution: {integrity: sha512-MC9Zj+pUQsKLEQrsBPmV3CuECYUSD2n82WUcLMu6f49LwSMtKg887B5vPADsf2yMM+6N1LjYHHLb3fN4R1ZGyg==}
     engines: {node: '>=12'}
     hasBin: true
 
   '@bufbuild/protobuf@1.10.1':
     resolution: {integrity: sha512-wJ8ReQbHxsAfXhrf9ixl0aYbZorRuOWpBNzm8pL8ftmSxQx/wnJD5Eg861NwJU/czy2VXFIebCeZnZrI9rktIQ==}
 
-  '@bufbuild/protobuf@2.10.2':
-    resolution: {integrity: sha512-uFsRXwIGyu+r6AMdz+XijIIZJYpoWeYzILt5yZ2d3mCjQrWUTVpVD9WL/jZAbvp+Ed04rOhrsk7FiTcEDseB5A==}
+  '@bufbuild/protobuf@2.11.0':
+    resolution: {integrity: sha512-sBXGT13cpmPR5BMgHE6UEEfEaShh5Ror6rfN3yEK5si7QVrtZg8LEPQb0VVhiLRUslD2yLnXtnRzG035J/mZXQ==}
 
   '@bufbuild/protoc-gen-es@1.10.1':
     resolution: {integrity: sha512-YADugbvibIdZSb0NGf5OF87IyKTuMvMFZ7vMHgm6pL1SCfDwJ/ZRianTdrPG9hq/gOipK+NwHmXBViyS3J7nxA==}
@@ -1298,6 +1305,9 @@ packages:
     resolution: {integrity: sha512-Kb2wC0fvsWfQrgk8HU5lW6U/Lcs8+9aaYcy4ZFc6DDlo4nZ7n70dEgE5rtR0oG6ufKDUnrwfWL1mXR5ljDatrQ==}
     deprecated: core-js@<3.23.3 is no longer maintained and not recommended for usage due to the number of issues. Because of the V8 engine whims, feature detection in old core-js versions could cause a slowdown up to 100x even if nothing is polyfilled. Some versions have web compatibility issues. Please, upgrade your dependencies to the actual version of core-js.
 
+  core-js@3.48.0:
+    resolution: {integrity: sha512-zpEHTy1fjTMZCKLHUZoVeylt9XrzaIN2rbPXEt0k+q7JE5CkCZdo6bNq55bn24a69CH7ErAVLKijxJja4fw+UQ==}
+
   core-util-is@1.0.2:
     resolution: {integrity: sha512-3lqz5YjWTYnW6dlDa5TLaTCcShfar1e40rmcJVwCBJC6mWlFuj0eCHIElmG1g5kyuJ/GD+8Wn4FFCcz4gJPfaQ==}
 
@@ -1369,6 +1379,11 @@ packages:
 
   electron-to-chromium@1.5.267:
     resolution: {integrity: sha512-0Drusm6MVRXSOJpGbaSVgcQsuB4hEkMpHXaVstcPmhu5LIedxs1xNK/nIxmQIU/RPC0+1/o0AVZfBTkTNJOdUw==}
+
+  emoji-mart-vue-fast@15.0.5:
+    resolution: {integrity: sha512-wnxLor8ggpqshoOPwIc33MdOC3A1XFeDLgUwYLPtNPL8VeAtXJAVrnFq1CN5PeCYAFoLo4IufHQZ9CfHD4IZiw==}
+    peerDependencies:
+      vue: '>2.0.0'
 
   enhanced-resolve@5.18.4:
     resolution: {integrity: sha512-LgQMM4WXU3QI+SYgEc2liRgznaD5ojbmY3sb8LxyguVkIg5FxdpTkvk72te2R38/TGKxH634oLxXRGY6d7AP+Q==}
@@ -1827,8 +1842,8 @@ packages:
   lodash@3.10.1:
     resolution: {integrity: sha512-9mDDwqVIma6OZX79ZlDACZl8sBm0TEnkf99zV3iMA4GzkIT/9hiqP5mY0HoT1iNLCrKc/R1HByV+yJfRWVJryQ==}
 
-  lodash@4.17.21:
-    resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
+  lodash@4.17.23:
+    resolution: {integrity: sha512-LgVTMpQtIopCi79SJeDiP0TfWi5CNEc/L/aRdTh3yIvmZXTnheWpKjSZhnvMl8iXbC1tFg9gdHHDMLoV7CnG+w==}
 
   lru-cache@11.2.4:
     resolution: {integrity: sha512-B5Y16Jr9LB9dHVkh6ZevG+vAbOsNOYCX+sXvFWFu7B3Iz5mijW3zdbMyhsh8ANd2mSWBYdJgnqi+mL7/LrOPYg==}
@@ -2631,6 +2646,8 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@babel/runtime@7.28.6': {}
+
   '@babel/template@7.27.2':
     dependencies:
       '@babel/code-frame': 7.27.1
@@ -2654,40 +2671,40 @@ snapshots:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.28.5
 
-  '@bufbuild/buf-darwin-arm64@1.63.0':
+  '@bufbuild/buf-darwin-arm64@1.64.0':
     optional: true
 
-  '@bufbuild/buf-darwin-x64@1.63.0':
+  '@bufbuild/buf-darwin-x64@1.64.0':
     optional: true
 
-  '@bufbuild/buf-linux-aarch64@1.63.0':
+  '@bufbuild/buf-linux-aarch64@1.64.0':
     optional: true
 
-  '@bufbuild/buf-linux-armv7@1.63.0':
+  '@bufbuild/buf-linux-armv7@1.64.0':
     optional: true
 
-  '@bufbuild/buf-linux-x64@1.63.0':
+  '@bufbuild/buf-linux-x64@1.64.0':
     optional: true
 
-  '@bufbuild/buf-win32-arm64@1.63.0':
+  '@bufbuild/buf-win32-arm64@1.64.0':
     optional: true
 
-  '@bufbuild/buf-win32-x64@1.63.0':
+  '@bufbuild/buf-win32-x64@1.64.0':
     optional: true
 
-  '@bufbuild/buf@1.63.0':
+  '@bufbuild/buf@1.64.0':
     optionalDependencies:
-      '@bufbuild/buf-darwin-arm64': 1.63.0
-      '@bufbuild/buf-darwin-x64': 1.63.0
-      '@bufbuild/buf-linux-aarch64': 1.63.0
-      '@bufbuild/buf-linux-armv7': 1.63.0
-      '@bufbuild/buf-linux-x64': 1.63.0
-      '@bufbuild/buf-win32-arm64': 1.63.0
-      '@bufbuild/buf-win32-x64': 1.63.0
+      '@bufbuild/buf-darwin-arm64': 1.64.0
+      '@bufbuild/buf-darwin-x64': 1.64.0
+      '@bufbuild/buf-linux-aarch64': 1.64.0
+      '@bufbuild/buf-linux-armv7': 1.64.0
+      '@bufbuild/buf-linux-x64': 1.64.0
+      '@bufbuild/buf-win32-arm64': 1.64.0
+      '@bufbuild/buf-win32-x64': 1.64.0
 
   '@bufbuild/protobuf@1.10.1': {}
 
-  '@bufbuild/protobuf@2.10.2': {}
+  '@bufbuild/protobuf@2.11.0': {}
 
   '@bufbuild/protoc-gen-es@1.10.1(@bufbuild/protobuf@1.10.1)':
     dependencies:
@@ -2867,7 +2884,7 @@ snapshots:
 
   '@jsr/meshtastic__protobufs@2.7.12-1':
     dependencies:
-      '@bufbuild/protobuf': 2.10.2
+      '@bufbuild/protobuf': 2.11.0
 
   '@noble/curves@2.0.1':
     dependencies:
@@ -3501,6 +3518,8 @@ snapshots:
 
   core-js@2.6.12: {}
 
+  core-js@3.48.0: {}
+
   core-util-is@1.0.2: {}
 
   crc@4.3.2: {}
@@ -3542,7 +3561,7 @@ snapshots:
     dependencies:
       core-js: 2.6.12
       kaiser: 0.0.4
-      lodash: 4.17.21
+      lodash: 4.17.23
       regenerator-runtime: 0.9.6
 
   ecc-jsbn@0.1.2:
@@ -3553,6 +3572,12 @@ snapshots:
   editor@1.0.0: {}
 
   electron-to-chromium@1.5.267: {}
+
+  emoji-mart-vue-fast@15.0.5(vue@3.5.26(typescript@5.9.3)):
+    dependencies:
+      '@babel/runtime': 7.28.6
+      core-js: 3.48.0
+      vue: 3.5.26(typescript@5.9.3)
 
   enhanced-resolve@5.18.4:
     dependencies:
@@ -4006,7 +4031,7 @@ snapshots:
 
   lodash@3.10.1: {}
 
-  lodash@4.17.21: {}
+  lodash@4.17.23: {}
 
   lru-cache@11.2.4: {}
 
@@ -4221,7 +4246,7 @@ snapshots:
   request-promise@3.0.0:
     dependencies:
       bluebird: 3.7.2
-      lodash: 4.17.21
+      lodash: 4.17.23
       request: 2.88.2
 
   request@2.88.2:
