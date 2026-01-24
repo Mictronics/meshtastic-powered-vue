@@ -11,7 +11,7 @@ import NodeCards from '@/components/Dashboard/Pages/NodeView/NodeCards.vue'
 import MessageView from '@/components/Dashboard/Pages/MessageView/MessageView.vue'
 
 function chatProps(route: RouteLocationNormalizedLoaded) {
-  return { type: String(route.params.type), id: Number(route.params.id) }
+  return { type: String(route.params.type), id: String(route.params.id) }
 }
 
 function validateChatRoute(
