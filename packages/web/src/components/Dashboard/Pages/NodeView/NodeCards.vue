@@ -4,11 +4,27 @@
       <div class="relative mr-4">
         <InputText
           v-model="searchQuery"
+          @keydown.esc="searchQuery = ''"
           placeholder="Search nodes..."
-          class="w-full pr-10 rounded-xl! border-slate-200! dark:border-slate-600! translate-x-4 bg-white dark:bg-slate-800"
+          class="w-full pr-16 rounded-xl! border-slate-200! dark:border-slate-600! translate-x-4 bg-white dark:bg-slate-800"
           size="small"
         />
-        <Search class="absolute right-1 top-1/2 -translate-y-1/2 text-slate-400" :size="20" />
+
+        <!-- Search icon -->
+        <Search
+          class="absolute right-9 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+          :size="18"
+        />
+
+        <!-- Clear button -->
+        <button
+          v-if="searchQuery"
+          type="button"
+          @click="searchQuery = ''"
+          class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition"
+        >
+          <X :size="16" />
+        </button>
       </div>
       <SortButtonGroup @sort-toggle="onSortToggle" />
     </div>
@@ -191,7 +207,7 @@
 </template>
 
 <script setup lang="ts">
-import { Search, Star, StarOff, Trash2, Eye, EyeOff, CircleArrowUp } from 'lucide-vue-next';
+import { Search, Star, StarOff, Trash2, Eye, EyeOff, CircleArrowUp, X } from 'lucide-vue-next';
 import { ref, computed, onMounted, onUnmounted, onBeforeUnmount } from 'vue';
 import { formatTimeAgoIntl, refDebounced } from '@vueuse/core';
 import { numberToHexUnpadded } from '@noble/curves/utils.js';
