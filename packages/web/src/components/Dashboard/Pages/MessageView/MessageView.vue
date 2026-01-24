@@ -173,12 +173,6 @@ const getNodeMeta = (from: number) => {
   };
 };
 
-const getUnreadDividerIndex = () => {
-  return groupedMessages.value.findIndex(
-    (m) => m.groupedType === 'divider' && m.variant === 'unread'
-  );
-};
-
 const groupedMessages = computedWithControl(
   [messageStore, numericChatId, chatType, lastReadTimestamp],
   () => {
@@ -313,7 +307,9 @@ const onScroll = (event: any) => {
 const scrollToUnread = (behavior: 'auto' | 'smooth' = 'auto') => {
   if (!scroller.value) return;
 
-  const unreadIdx = getUnreadDividerIndex();
+  const unreadIdx = groupedMessages.value.findIndex(
+    (m) => m.groupedType === 'divider' && m.variant === 'unread'
+  );
   if (unreadIdx === -1) return false;
 
   scroller.value.scrollToIndex(Math.max(unreadIdx - 1, 0), behavior);
