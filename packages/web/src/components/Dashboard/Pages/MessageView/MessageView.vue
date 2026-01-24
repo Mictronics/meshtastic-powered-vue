@@ -21,7 +21,7 @@
             v-if="showScrollButton"
             rounded
             raised
-            @click="scrollToBottom"
+            @click="scrollToBottom('smooth')"
             class="absolute bottom-4 z-10 shadow-lg animate-bounce"
             style="right: 18em !important"
             severity="secondary"
@@ -225,6 +225,12 @@ const getNodeMeta = (from: number) => {
   };
 };
 
+const getUnreadDividerIndex = () => {
+  return groupedMessages.value.findIndex(
+    (m) => m.groupedType === 'divider' && m.variant === 'unread'
+  );
+};
+
 const groupedMessages = computedWithControl(
   [messageStore.messageStore, numericChatId, chatType, lastReadTimestamp],
   () => {
@@ -368,7 +374,7 @@ const sendMessage = () => {
   textValue.value = '';
 
   nextTick(() => {
-    scrollToBottom();
+    scrollToBottom('smooth');
     const inputEl = (inputRef.value as any)?.$el as HTMLInputElement | undefined;
     if (inputEl) inputEl.focus();
   });
@@ -395,8 +401,8 @@ const maybeResetUnread = useDebounceFn(() => {
 
 const onScroll = (event: any) => {
   const threshold = 200;
-  const atBottom =
-    event.target.scrollHeight - event.target.scrollTop - event.target.clientHeight < threshold;
+  const { scrollTop, scrollHeight, clientHeight } = event.target;
+  const atBottom = scrollHeight - scrollTop - clientHeight < threshold;
 
   isAtBottom.value = atBottom;
   showScrollButton.value = !atBottom;
@@ -406,11 +412,32 @@ const onScroll = (event: any) => {
   }
 };
 
-const scrollToBottom = () => {
-  if (scroller.value) {
-    const idx = Math.max(0, groupedMessages.value.length - 1);
-    scroller.value.scrollToIndex(idx, 'smooth');
-  }
+const scrollToUnread = (behavior: 'auto' | 'smooth' = 'auto') => {
+  if (!scroller.value) return;
+
+  const unreadIdx = getUnreadDividerIndex();
+  if (unreadIdx === -1) return false;
+
+  scroller.value.scrollToIndex(Math.max(unreadIdx - 1, 0), behavior);
+  return true;
+};
+
+const scrollToBottom = (behavior: 'auto' | 'smooth' = 'auto') => {
+  if (!scroller.value) return;
+
+  const lastIdx = Math.max(0, groupedMessages.value.length - 1);
+  scroller.value.scrollToIndex(lastIdx, behavior);
+};
+
+const scrollOnEntry = () => {
+  nextTick(() => {
+    requestAnimationFrame(() => {
+      const didScrollToUnread = scrollToUnread('auto');
+      if (!didScrollToUnread) {
+        scrollToBottom('auto');
+      }
+    });
+  });
 };
 
 const vsHeight = ref('0px');
@@ -419,7 +446,7 @@ onMounted(() => {
   vsHeight.value = `${window.innerHeight - 95}px`;
   vsNodeHeight.value = `${window.innerHeight - 135}px`;
   window.addEventListener('resize', onResize);
-  setTimeout(scrollToBottom, 300);
+  scrollOnEntry();
 });
 
 const onResize = () => {
@@ -434,15 +461,8 @@ onBeforeUnmount(() => {
 
 watch(
   [() => numericChatId.value, () => chatType.value],
-  async () => {
-    await nextTick();
-    nextTick(() => {
-      setTimeout(() => {
-        scrollToBottom();
-        isAtBottom.value = true;
-        maybeResetUnread();
-      }, 50);
-    });
+  () => {
+    scrollOnEntry();
   },
   { immediate: true }
 );
