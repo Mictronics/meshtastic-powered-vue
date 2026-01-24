@@ -136,6 +136,8 @@ const showScrollButton = ref(false);
 const searchQuery = ref('');
 const debouncedQuery = refDebounced(searchQuery, 150);
 const isAtBottom = ref(true);
+const sticky = ref(true);
+const SCROLL_THRESHOLD = 52;
 const lastReadTimestamp = computed(() =>
   appStore.getLastRead(
     chatType.value === MessageType.Direct ? 'direct' : 'broadcast',
@@ -299,12 +301,13 @@ const maybeResetUnread = useDebounceFn(() => {
 const onScroll = (event: any) => {
   const threshold = 200;
   const { scrollTop, scrollHeight, clientHeight } = event.target;
-  const atBottom = scrollHeight - scrollTop - clientHeight < threshold;
+  const distanceToBottom = scrollHeight - scrollTop - clientHeight;
 
-  isAtBottom.value = atBottom;
-  showScrollButton.value = !atBottom;
+  isAtBottom.value = distanceToBottom < threshold;
+  sticky.value = distanceToBottom <= SCROLL_THRESHOLD;
+  showScrollButton.value = !isAtBottom.value;
 
-  if (atBottom) {
+  if (isAtBottom.value) {
     maybeResetUnread();
   }
 };
@@ -319,12 +322,12 @@ const scrollToUnread = (behavior: 'auto' | 'smooth' = 'auto') => {
   return true;
 };
 
-const scrollToBottom = (behavior: 'auto' | 'smooth' = 'auto') => {
+const scrollToBottom = useDebounceFn((behavior: 'auto' | 'smooth' = 'auto') => {
   if (!scroller.value) return;
 
   const lastIdx = Math.max(0, groupedMessages.value.length - 1);
   scroller.value.scrollToIndex(lastIdx, behavior);
-};
+}, 300);
 
 const scrollOnEntry = () => {
   nextTick(() => {
@@ -361,6 +364,18 @@ watch(
     scrollOnEntry();
   },
   { immediate: true }
+);
+
+watch(
+  groupedMessages,
+  (newVal, oldVal) => {
+    if (!oldVal?.length) return;
+
+    if (sticky.value) {
+      scrollToBottom('auto');
+    }
+  },
+  { deep: true }
 );
 
 const sendMessage = async (message: string) => {
@@ -412,5 +427,7 @@ const sendMessage = async (message: string) => {
       });
     }
   }
+  sticky.value = true;
+  scrollToBottom('smooth');
 };
 </script>
