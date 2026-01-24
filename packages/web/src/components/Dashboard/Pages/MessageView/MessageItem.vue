@@ -24,13 +24,23 @@
             <span class="text-[10px]">
               {{ message.longName ?? 'Unknown' }} on {{ formattedDate }}
             </span>
-            <!--
-            <div v-if="message.self" class="items-center">
-              <Check v-if="message.status === 'sent'" :size="15" />
-              <Check v-else-if="message.status === 'delivered'" :size="15" class="text-lime-500" />
-              <CheckCheck v-else-if="message.status === 'read'" :size="15" class="text-sky-500" />
+            <div v-if="message.isSelf" class="items-center">
+              <Check
+                v-if="message.state === MessageState.Waiting"
+                :size="15"
+                class="text-sky-400"
+              />
+              <CloudAlert
+                v-else-if="message.state === MessageState.Failed"
+                :size="15"
+                class="text-red-400"
+              />
+              <CheckCheck
+                v-else-if="message.state === MessageState.Ack"
+                :size="15"
+                class="text-lime-400"
+              />
             </div>
-            -->
           </div>
         </div>
       </div>
@@ -39,10 +49,11 @@
 </template>
 <script setup lang="ts">
 import { computed } from 'vue';
-import { Check, CheckCheck } from 'lucide-vue-next';
+import { Check, CheckCheck, CloudAlert } from 'lucide-vue-next';
 import SectionDivider from '@/components/Dashboard/Pages/SectionDivider.vue';
 import NodeAvatar from '@/components/Dashboard/NodeAvatar.vue';
 import type { MessageWithDivider } from './MessageView.vue';
+import { MessageState } from '@/composables/core/stores/message/useMessageStore';
 
 const props = defineProps<{
   message: MessageWithDivider;
