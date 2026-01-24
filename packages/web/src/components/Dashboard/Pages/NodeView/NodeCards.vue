@@ -14,7 +14,13 @@
     </div>
 
     <div class="mx-auto">
-      <VirtualScroller :items="chunkedNodes" :itemSize="155" :scrollHeight="virtualScrollerHeight">
+      <VirtualScroller
+        ref="scroller"
+        :items="chunkedNodes"
+        :itemSize="155"
+        :scrollHeight="virtualScrollerHeight"
+        @scroll="onScroll"
+      >
         <template #item="{ item: rowNodes }">
           <div
             class="grid gap-4 p-2 w-full"
@@ -68,6 +74,20 @@
           </div>
         </template>
       </VirtualScroller>
+
+      <transition name="fade">
+        <Button
+          v-if="showScrollButton"
+          rounded
+          raised
+          @click="scrollToTop('smooth')"
+          class="absolute bottom-4 z-10 shadow-lg animate-bounce"
+          style="right: 4em !important"
+          severity="secondary"
+        >
+          <CircleArrowUp :size="20" />
+        </Button>
+      </transition>
     </div>
 
     <Drawer
@@ -171,7 +191,7 @@
 </template>
 
 <script setup lang="ts">
-import { Search, Star, StarOff, Trash2, Eye, EyeOff } from 'lucide-vue-next';
+import { Search, Star, StarOff, Trash2, Eye, EyeOff, CircleArrowUp } from 'lucide-vue-next';
 import { ref, computed, onMounted, onUnmounted, onBeforeUnmount } from 'vue';
 import { formatTimeAgoIntl, refDebounced } from '@vueuse/core';
 import { numberToHexUnpadded } from '@noble/curves/utils.js';
@@ -199,6 +219,8 @@ const debouncedQuery = refDebounced(searchQuery, 150);
 const showDrawer = ref(false);
 const selectedNode = ref<FormattedNode>();
 const windowWidth = ref(window.innerWidth);
+const showScrollButton = ref(false);
+const scroller = ref();
 
 const nodeInfoItems = computed(() => {
   const n = selectedNode.value;
@@ -445,6 +467,18 @@ const onResize = () => {
 onBeforeUnmount(() => {
   window.removeEventListener('resize', onResize);
 });
+
+const scrollToTop = (behavior: 'auto' | 'smooth' = 'auto') => {
+  if (!scroller.value) return;
+  scroller.value.scrollToIndex(0, behavior);
+};
+
+const onScroll = (event: any) => {
+  const threshold = 200;
+  const { scrollTop } = event.target;
+
+  showScrollButton.value = scrollTop > threshold;
+};
 </script>
 
 <style scoped lang="css"></style>
