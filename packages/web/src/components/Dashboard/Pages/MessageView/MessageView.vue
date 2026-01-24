@@ -123,8 +123,8 @@ export type MessageWithDivider = DividerMessage | ChatMessage;
 
 // via router
 const props = defineProps<{
-  type: String; // broadcast or direct
-  id: String; // channel or node id
+  type: string; // broadcast or direct
+  id: string; // channel or node id
 }>();
 
 const todayLabel = new Date().toLocaleDateString(undefined, {

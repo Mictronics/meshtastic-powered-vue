@@ -313,7 +313,7 @@ class NodeDB implements INodeDB {
         const existing = toRaw(this.nodeMap[packet.from]);
         if (!existing || packet.data.$typeName !== 'meshtastic.Telemetry') return;
         // Merge with existing node data if it exists
-        let merged = Object.assign({}, existing);
+        const merged = Object.assign({}, existing);
         let metrics;
         const val = packet.data.variant.value;
         switch (packet.data.variant.case) {

@@ -88,7 +88,7 @@ const emit = defineEmits<{
 }>();
 
 const messageStore = useMessageStore().messageStore.value;
-let emojiIndex = new EmojiIndex(data);
+const emojiIndex = new EmojiIndex(data);
 const popOver = ref();
 const inputRef = ref<ComponentPublicInstance | null>(null);
 

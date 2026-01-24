@@ -417,7 +417,7 @@ const filteredNodes = computed(() => {
 });
 
 const sortedFilteredNodes = computed(() => {
-  let nodes = filteredNodes.value;
+  const nodes = filteredNodes.value;
   return orderBy(nodes, sortKey.value, sortDir.value);
 });
 
