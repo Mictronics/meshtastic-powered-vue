@@ -127,6 +127,13 @@ const props = defineProps<{
   id: String; // channel or node id
 }>();
 
+const todayLabel = new Date().toLocaleDateString(undefined, {
+  weekday: 'long',
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+
 const deviceStore = useDeviceStore();
 const messageStore = useMessageStore().messageStore;
 const appStore = useAppStore();
@@ -217,16 +224,7 @@ const groupedMessages = computedWithControl(
         grouped.push({
           groupedType: 'divider',
           messageId: `divider-${date}`,
-          label:
-            date ===
-            new Date().toLocaleDateString(undefined, {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-            })
-              ? 'Today'
-              : date,
+          label: date === todayLabel ? 'Today' : date,
         });
         lastDate = date;
       }
