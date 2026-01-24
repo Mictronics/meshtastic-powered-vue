@@ -367,6 +367,27 @@ watch(groupedMessages, (newVal, oldVal) => {
   }
 });
 
+const setMessageStateSafe = (messageId: number, newState: MessageState, channelValue: number) => {
+  if (!messageStore.value) return;
+
+  if (chatType.value === MessageType.Broadcast) {
+    messageStore.value.setMessageState({
+      type: MessageType.Broadcast,
+      channelId: channelValue,
+      messageId,
+      newState,
+    });
+  } else {
+    messageStore.value.setMessageState({
+      type: MessageType.Direct,
+      nodeA: device.value?.myNodeNum || 0,
+      nodeB: numericChatId.value,
+      messageId,
+      newState,
+    });
+  }
+};
+
 const sendMessage = async (message: string) => {
   const toValue: Types.Destination =
     chatType.value === MessageType.Direct ? numericChatId.value : 'broadcast';
@@ -377,44 +398,14 @@ const sendMessage = async (message: string) => {
   try {
     messageId = await device.value?.connection?.sendText(message, toValue, true, channelValue);
     if (messageId !== undefined) {
-      if (chatType.value === MessageType.Broadcast) {
-        messageStore.value?.setMessageState({
-          type: MessageType.Broadcast,
-          channelId: channelValue,
-          messageId,
-          newState: MessageState.Ack,
-        });
-      } else {
-        messageStore.value?.setMessageState({
-          type: MessageType.Direct,
-          nodeA: device.value?.myNodeNum || 0,
-          nodeB: numericChatId.value,
-          messageId,
-          newState: MessageState.Ack,
-        });
-      }
+      setMessageStateSafe(messageId, MessageState.Ack, channelValue);
     } else {
-      console.warn('sendText completed but messageId is undefined');
+      console.warn('sendMessage completed but messageId is undefined');
     }
   } catch (e: unknown) {
     console.error('Failed to send message:', e);
     const failedId = messageId ?? useRandomId();
-    if (chatType.value === MessageType.Broadcast) {
-      messageStore.value?.setMessageState({
-        type: MessageType.Broadcast,
-        channelId: channelValue,
-        messageId: failedId,
-        newState: MessageState.Failed,
-      });
-    } else {
-      messageStore.value?.setMessageState({
-        type: MessageType.Direct,
-        nodeA: device.value?.myNodeNum || 0,
-        nodeB: numericChatId.value,
-        messageId: failedId,
-        newState: MessageState.Failed,
-      });
-    }
+    setMessageStateSafe(failedId, MessageState.Failed, channelValue);
   }
   sticky.value = true;
   scrollToBottom('smooth');
