@@ -78,88 +78,30 @@
       </div>
     </div>
     <!-- Message input -->
-    <div
-      class="p-2 bg-slate-50/50 dark:bg-slate-900 border-t border-slate-200! dark:border-slate-600!"
-    >
-      <div class="flex gap-2">
-        <div class="flex items-center w-full relative">
-          <Button
-            severity="secondary"
-            text
-            class="absolute right-2 hover:bg-transparent! transition-colors"
-            @click="showEmojiPicker"
-            @mouseenter="showEmojiPicker"
-            @mouseleave="startAutoHideEmojiPicker"
-            aria-label="Select Emoji"
-          >
-            <Smile :size="25" class="text-slate-400" />
-          </Button>
-
-          <InputText
-            ref="inputRef"
-            v-model="textValue"
-            placeholder="Type a message..."
-            class="grow rounded-full dark:bg-slate-800"
-            @keyup.enter="sendMessage"
-            :maxlength="200"
-          />
-        </div>
-
-        <Button
-          severity="info"
-          size="small"
-          rounded
-          @click="sendMessage"
-          :disabled="!textValue.trim()"
-        >
-          <Send :size="24" />
-        </Button>
-      </div>
-
-      <Popover
-        ref="popOver"
-        class="p-0 border-none shadow-2xl bg-slate-50/50 dark:bg-slate-900"
-        pt:content:style="padding:0;"
-        @mouseenter="stopAutoHideEmojiPicker"
-        @mouseleave="hideEmojiPicker"
-      >
-        <Picker
-          :data="emojiIndex"
-          set="twitter"
-          @select="onSelectEmoji"
-          :emojiSize="35"
-          :showPreview="false"
-          class="border-none"
-        />
-      </Popover>
-    </div>
+    <MessageInput
+      :max-bytes="200"
+      :to="chatType === MessageType.Direct ? numericChatId : MessageType.Broadcast"
+      @event-send-message="sendMessage"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { CircleArrowDown, Smile, Send, Search } from 'lucide-vue-next';
-import {
-  ref,
-  nextTick,
-  onMounted,
-  computed,
-  onBeforeUnmount,
-  type ComponentPublicInstance,
-  watch,
-} from 'vue';
+import { CircleArrowDown, Search } from 'lucide-vue-next';
+import { ref, nextTick, onMounted, computed, onBeforeUnmount, watch } from 'vue';
 import { computedWithControl, refDebounced, useDebounceFn } from '@vueuse/core';
-import { Picker, EmojiIndex } from 'emoji-mart-vue-fast/src';
 import { useFormattedNodeDatabase } from '@/composables/core/utils/useFormattedNodeDatabase';
 import { useDeviceStore } from '@/composables/core/stores/device/useDeviceStore';
 import { useMessageStore } from '@/composables/core/stores/message/useMessageStore';
 import { useAppStore } from '@/composables/core/stores/app/useAppStore';
 import NodeAvatar from '@/components/Dashboard/NodeAvatar.vue';
-import 'emoji-mart-vue-fast/css/emoji-mart.css';
-import data from 'emoji-mart-vue-fast/data/all.json';
+import { Types } from '@meshtastic/core';
 import { orderBy } from 'lodash-es';
-import { MessageType } from '@/composables/core/stores/message/useMessageStore';
+import { MessageType, MessageState } from '@/composables/core/stores/message/useMessageStore';
 import type { Message } from '@/composables/core/stores/message/types';
 import MessageItem from './MessageItem.vue';
+import MessageInput from './MessageInput.vue';
+import { useRandomId } from '@/composables/core/useRandomId';
 
 type DividerMessage = {
   groupedType: 'divider';
@@ -174,6 +116,7 @@ type ChatMessage = Message & {
   longName?: string;
   isFavorite?: boolean;
   nodeNumber?: number;
+  isSelf?: boolean;
 };
 
 export type MessageWithDivider = DividerMessage | ChatMessage;
@@ -185,14 +128,10 @@ const props = defineProps<{
 }>();
 
 const deviceStore = useDeviceStore();
-const messageStore = useMessageStore();
+const messageStore = useMessageStore().messageStore;
 const appStore = useAppStore();
 const nodeDatabase = useFormattedNodeDatabase().nodeDatabase;
-let emojiIndex = new EmojiIndex(data);
-const textValue = ref('');
-const popOver = ref();
 const scroller = ref();
-const inputRef = ref<ComponentPublicInstance | null>(null);
 const showScrollButton = ref(false);
 const searchQuery = ref('');
 const debouncedQuery = refDebounced(searchQuery, 150);
@@ -232,7 +171,7 @@ const getUnreadDividerIndex = () => {
 };
 
 const groupedMessages = computedWithControl(
-  [messageStore.messageStore, numericChatId, chatType, lastReadTimestamp],
+  [messageStore, numericChatId, chatType, lastReadTimestamp],
   () => {
     const grouped: MessageWithDivider[] = [];
     let lastDate: string = '';
@@ -241,7 +180,7 @@ const groupedMessages = computedWithControl(
     switch (chatType.value) {
       case MessageType.Broadcast:
         messages =
-          messageStore.messageStore.value?.getMessages({
+          messageStore.value?.getMessages({
             type: MessageType.Broadcast,
             channelId: numericChatId.value,
           }) || [];
@@ -249,7 +188,7 @@ const groupedMessages = computedWithControl(
 
       case MessageType.Direct:
         messages =
-          messageStore.messageStore.value?.getMessages({
+          messageStore.value?.getMessages({
             type: MessageType.Direct,
             nodeA: device.value?.myNodeNum || 0,
             nodeB: numericChatId.value,
@@ -301,7 +240,14 @@ const groupedMessages = computedWithControl(
         unreadDividerInserted = true;
       }
 
-      grouped.push({ ...msg, groupedType: 'message', ...getNodeMeta(msg.from) });
+      const myNodeNum = device.value?.myNodeNum ?? 0;
+
+      grouped.push({
+        ...msg,
+        groupedType: 'message',
+        ...getNodeMeta(msg.from),
+        isSelf: msg.from === myNodeNum,
+      });
     });
 
     return grouped;
@@ -330,55 +276,6 @@ const filteredNodes = computedWithControl(
   },
   { deep: true }
 );
-
-const showEmojiPicker = (event: any) => {
-  popOver.value.show(event);
-};
-
-const hideEmojiPicker = (event: any) => {
-  popOver.value.hide(event);
-};
-
-const onSelectEmoji = (emoji: { native: string }) => {
-  const inputEl = (inputRef.value as any)?.$el as HTMLInputElement | undefined;
-  if (!inputEl) return;
-  const start = inputEl.selectionStart ?? inputEl.value.length;
-  const end = inputEl.selectionEnd ?? start;
-  textValue.value =
-    textValue.value.substring(0, start) + emoji.native + textValue.value.substring(end);
-  setTimeout(() => {
-    inputEl.focus();
-    const newCursorPos = start + emoji.native.length;
-    inputEl.setSelectionRange(newCursorPos, newCursorPos);
-  }, 0);
-};
-
-let leaveTimer: number | undefined;
-const stopAutoHideEmojiPicker = () => {
-  if (leaveTimer !== undefined) {
-    clearTimeout(leaveTimer);
-    leaveTimer = undefined;
-  }
-};
-
-const startAutoHideEmojiPicker = () => {
-  leaveTimer = window.setTimeout(() => {
-    leaveTimer = undefined;
-    popOver.value.hide();
-  }, 1500);
-};
-
-const sendMessage = () => {
-  if (!textValue.value.trim()) return;
-
-  textValue.value = '';
-
-  nextTick(() => {
-    scrollToBottom('smooth');
-    const inputEl = (inputRef.value as any)?.$el as HTMLInputElement | undefined;
-    if (inputEl) inputEl.focus();
-  });
-};
 
 const updateLastRead = () => {
   if (!isAtBottom.value) return;
@@ -456,7 +353,6 @@ const onResize = () => {
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', onResize);
-  if (leaveTimer !== undefined) clearTimeout(leaveTimer);
 });
 
 watch(
@@ -466,4 +362,55 @@ watch(
   },
   { immediate: true }
 );
+
+const sendMessage = async (message: string) => {
+  const toValue: Types.Destination =
+    chatType.value === MessageType.Direct ? numericChatId.value : 'broadcast';
+  const channelValue =
+    chatType.value === MessageType.Direct ? Types.ChannelNumber.Primary : numericChatId.value;
+
+  let messageId: number | undefined;
+  try {
+    messageId = await device.value?.connection?.sendText(message, toValue, true, channelValue);
+    if (messageId !== undefined) {
+      if (chatType.value === MessageType.Broadcast) {
+        messageStore.value?.setMessageState({
+          type: MessageType.Broadcast,
+          channelId: channelValue,
+          messageId,
+          newState: MessageState.Ack,
+        });
+      } else {
+        messageStore.value?.setMessageState({
+          type: MessageType.Direct,
+          nodeA: device.value?.myNodeNum || 0,
+          nodeB: numericChatId.value,
+          messageId,
+          newState: MessageState.Ack,
+        });
+      }
+    } else {
+      console.warn('sendText completed but messageId is undefined');
+    }
+  } catch (e: unknown) {
+    console.error('Failed to send message:', e);
+    const failedId = messageId ?? useRandomId();
+    if (chatType.value === MessageType.Broadcast) {
+      messageStore.value?.setMessageState({
+        type: MessageType.Broadcast,
+        channelId: channelValue,
+        messageId: failedId,
+        newState: MessageState.Failed,
+      });
+    } else {
+      messageStore.value?.setMessageState({
+        type: MessageType.Direct,
+        nodeA: device.value?.myNodeNum || 0,
+        nodeB: numericChatId.value,
+        messageId: failedId,
+        newState: MessageState.Failed,
+      });
+    }
+  }
+};
 </script>
