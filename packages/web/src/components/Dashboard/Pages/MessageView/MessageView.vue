@@ -336,20 +336,19 @@ const scrollOnEntry = () => {
 
 const vsHeight = ref('0px');
 const vsNodeHeight = ref('0px');
-onMounted(() => {
-  vsHeight.value = `${window.innerHeight - 95}px`;
-  vsNodeHeight.value = `${window.innerHeight - 135}px`;
-  window.addEventListener('resize', onResize);
-  scrollOnEntry();
-});
-
-const onResize = () => {
+const updateHeights = () => {
   vsHeight.value = `${window.innerHeight - 95}px`;
   vsNodeHeight.value = `${window.innerHeight - 135}px`;
 };
 
+onMounted(() => {
+  updateHeights();
+  window.addEventListener('resize', updateHeights);
+  scrollOnEntry();
+});
+
 onBeforeUnmount(() => {
-  window.removeEventListener('resize', onResize);
+  window.removeEventListener('resize', updateHeights);
 });
 
 watch(
@@ -360,17 +359,13 @@ watch(
   { immediate: true }
 );
 
-watch(
-  groupedMessages,
-  (newVal, oldVal) => {
-    if (!oldVal?.length) return;
+watch(groupedMessages, (newVal, oldVal) => {
+  if (!oldVal?.length) return;
 
-    if (sticky.value) {
-      scrollToBottom('auto');
-    }
-  },
-  { deep: true }
-);
+  if (sticky.value) {
+    scrollToBottom('auto');
+  }
+});
 
 const sendMessage = async (message: string) => {
   const toValue: Types.Destination =
