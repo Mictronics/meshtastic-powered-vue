@@ -1,29 +1,5 @@
 <template>
   <div class="flex gap-2 items-center">
-    <Lock
-      v-if="node.encryptionStatus === EncryptionStatus.Encrypted"
-      :size="20"
-      class="encryption-lock-icon"
-      v-tooltip.right="tooltipPreset('Encrypted')"
-    />
-    <LockOpen
-      v-else-if="node.encryptionStatus === EncryptionStatus.NotEncrypted"
-      :size="20"
-      class="encryption-unlock-icon"
-      v-tooltip.right="tooltipPreset('Not encrypted')"
-    />
-    <KeyRound
-      v-else
-      :size="20"
-      class="encryption-key-icon"
-      v-tooltip.right="tooltipPreset('Encryption key error')"
-    />
-    <MessageSquareOff
-      v-if="node.isUnmessagable"
-      :size="20"
-      class="unmessagable-icon"
-      v-tooltip.right="tooltipPreset('Unmessagable')"
-    />
     <ThermometerSun
       v-if="!!node.environmentMetrics"
       :size="20"
@@ -66,6 +42,30 @@
       class="feature-icon"
       v-tooltip.right="tooltipPreset('Local Stats')"
     />
+    <MessageSquareOff
+      v-if="node.isUnmessagable"
+      :size="20"
+      class="alert-icon"
+      v-tooltip.right="tooltipPreset('Unmessagable')"
+    />
+    <Lock
+      v-if="node.encryptionStatus === EncryptionStatus.Encrypted"
+      :size="20"
+      class="valid-icon"
+      v-tooltip.right="tooltipPreset('Encrypted')"
+    />
+    <LockOpen
+      v-else-if="node.encryptionStatus === EncryptionStatus.NotEncrypted"
+      :size="20"
+      class="warn-icon"
+      v-tooltip.right="tooltipPreset('Not encrypted')"
+    />
+    <KeyRound
+      v-else
+      :size="20"
+      class="alert-icon"
+      v-tooltip.right="tooltipPreset('Encryption key error')"
+    />
   </div>
 </template>
 
@@ -101,23 +101,21 @@ const tooltipPreset = (value: string) => ({
 </script>
 
 <style lang="css" scoped>
-.encryption-lock-icon {
-  color: oklch(76.8% 0.233 130.85);
+.valid-icon {
+  color: var(--color-lime-500);
+  opacity: 50%;
 }
 
-.encryption-unlock-icon {
-  color: oklch(79.5% 0.184 86.047);
+.warn-icon {
+  color: var(--color-yellow-500);
 }
 
-.encryption-key-icon {
-  color: oklch(70.4% 0.191 22.216);
-}
-
-.unmessagable-icon {
-  color: oklch(70.4% 0.191 22.216);
+.alert-icon {
+  color: var(--color-red-400);
 }
 
 .feature-icon {
-  color: oklch(55.4% 0.046 257.417);
+  color: var(--color-slate-500);
+  opacity: 50%;
 }
 </style>

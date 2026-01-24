@@ -50,11 +50,11 @@ const getBatteryStatus = (level: number): BatteryStatus => {
 const statusConfigMap: Record<BatteryStatus, StatusConfig> = {
   [BatteryStatus.PluggedIn]: {
     icon: BatteryCharging,
-    class: 'text-sky-500',
+    class: 'text-sky-500/50',
   },
   [BatteryStatus.Full]: {
     icon: BatteryFull,
-    class: 'text-lime-500',
+    class: 'text-lime-500/50',
   },
   [BatteryStatus.Medium]: {
     icon: BatteryMedium,
