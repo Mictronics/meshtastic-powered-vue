@@ -6,6 +6,8 @@
     "types": ["@types/w3c-web-serial", "@types/web-bluetooth"],
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "lib": ["ESNext", "DOM"],
+    "composite": true,
+    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     }
