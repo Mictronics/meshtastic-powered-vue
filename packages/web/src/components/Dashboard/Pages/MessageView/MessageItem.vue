@@ -17,9 +17,9 @@
       />
       <div class="flex max-w-[80%] flex-row">
         <div
-          class="p-1 rounded-2xl shadow-sm wrap-break-words relative dark:bg-slate-800 text-slate-800 dark:text-slate-400 rounded-bl-none"
+          class="p-1 rounded-2xl shadow-sm relative dark:bg-slate-800 text-slate-800 dark:text-slate-400 rounded-bl-none"
         >
-          <p class="whitespace-pre-wrap pr-2">{{ message.message }}</p>
+          <p class="pr-2">{{ message.message }}</p>
           <div class="flex items-center justify-start gap-1 mt-1 opacity-70">
             <span class="text-[10px]">
               {{ message.longName ?? 'Unknown' }} on {{ formattedDate }}
