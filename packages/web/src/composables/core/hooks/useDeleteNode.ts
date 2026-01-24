@@ -15,25 +15,17 @@ export const useDeleteNode = () => {
         if (!node) {
             return;
         }
+        device?.connection?.removeNodeByNum(nodeNumber).then(() => {
+            formattedNodeDatabase.deleteNode(nodeNumber);
+            nodeDatabase?.removeNode(nodeNumber);
 
-        device?.sendAdminMessage(
-            create(Protobuf.Admin.AdminMessageSchema, {
-                payloadVariant: {
-                    case: 'removeByNodenum',
-                    value: nodeNumber,
-                },
-            }),
-        );
-
-        formattedNodeDatabase.deleteNode(nodeNumber);
-        nodeDatabase?.removeNode(nodeNumber);
-
-        useGlobalToast().add({
-            severity: 'info',
-            summary: node?.user?.longName,
-            detail: 'Node deleted.',
-            life: 3000
-        });
+            useGlobalToast().add({
+                severity: 'info',
+                summary: node?.user?.longName,
+                detail: 'Node deleted.',
+                life: 3000
+            });
+        })
     }
 
     return {
