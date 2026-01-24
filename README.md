@@ -26,8 +26,8 @@ You'll need to have [pnpm](https://pnpm.io/) installed to work with this monorep
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/meshtastic/meshtastic-web.git
-   cd meshtastic-web
+   git clone https://github.com/Mictronics/meshtastic-powered-vue.git
+   cd meshtastic-powered-vue
    ```
 2. **Install dependencies for all packages:**
    ```bash
@@ -38,4 +38,23 @@ You'll need to have [pnpm](https://pnpm.io/) installed to work with this monorep
 3. **Install the Buf CLI**
     Required for building `packages/protobufs`
     [Install the Buf CLI](https://buf.build/docs/cli/installation/#install-the-buf-cli)
+4. **Build all packages**
+   ```bash
+   pnpm run build:all
+   ```
+   This command will build all included packages.
 
+### Web application development
+
+1. **Change into the web package**
+   ```bash
+   cd packages/web
+   ```
+2. **Build the web package**
+   ```bash
+   pnpm run build
+   ```
+3. **Run the development server**
+   ```bash
+   pnpm run dev
+   ```

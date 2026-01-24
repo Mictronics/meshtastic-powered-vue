@@ -1,6 +1,10 @@
-# meshtastic-powered-vue
+# Meshtastic powered Vue
 
-This template should help get you started developing with Vue 3 in Vite.
+ Alternative Meshtastic powered web client based on Vue web framework.
+
+## Disclaimer
+
+This monorepo does not represent the official [Meshtastic](https://meshtastic.org) [web interface](https://github.com/meshtastic/meshtastic-web).
 
 ## Recommended IDE Setup
 
@@ -26,23 +30,23 @@ See [Vite Configuration Reference](https://vite.dev/config/).
 ## Project Setup
 
 ```sh
-npm install
+pnpm install
 ```
 
 ### Compile and Hot-Reload for Development
 
 ```sh
-npm run dev
+pnpm run dev
 ```
 
 ### Type-Check, Compile and Minify for Production
 
 ```sh
-npm run build
+pnpm run build
 ```
 
 ### Lint with [ESLint](https://eslint.org/)
 
 ```sh
-npm run lint
+pnpm run lint
 ```
