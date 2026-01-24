@@ -99,7 +99,7 @@ const getStatusAttr = (status?: ConnectionStatus) => {
     case ConnectionStatus.Connected:
     case ConnectionStatus.Configured:
     case ConnectionStatus.Online:
-      return { icon: 'IconLink', color: 'bg-lime-400', label: 'Connected' };
+      return { icon: 'IconLink', color: 'bg-lime-400 dark:bg-lime-700', label: 'Connected' };
     case ConnectionStatus.Connecting:
     case ConnectionStatus.Configuring:
     case ConnectionStatus.Disconnecting:
