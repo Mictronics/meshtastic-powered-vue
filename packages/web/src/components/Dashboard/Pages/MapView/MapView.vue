@@ -15,31 +15,18 @@
     @map:load="onMapLoad"
   >
     <mgl-navigation-control position="top-right" :showCompass="false" />
-    <mgl-marker
-      v-for="node in positionedNodes"
-      :key="node.nodeNumber"
-      :coordinates="[node.lng, node.lat]"
-      anchor="bottom"
-    >
-      <template v-slot:marker>
-        <NodeAvatar
-          :nodeNumber="node.nodeNumber"
-          :shortName="node.shortName"
-          :isFavorite="node.isFavorite"
-        />
-      </template>
-    </mgl-marker>
+    <MapMarker v-for="node in positionedNodes" :key="node.nodeNumber" :node="node" />
   </mgl-map>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue';
-import { MglMap, MglNavigationControl, MglMarker } from '@indoorequal/vue-maplibre-gl';
+import { MglMap, MglNavigationControl } from '@indoorequal/vue-maplibre-gl';
 import { useAppStore } from '@/composables/core/stores/app/useAppStore';
 import { useEventListener, useThrottleFn, useColorMode } from '@vueuse/core';
 import type { LngLatLike } from 'maplibre-gl';
 import { useFormattedNodeDatabase } from '@/composables/core/utils/useFormattedNodeDatabase';
-import NodeAvatar from '@/components/Dashboard/NodeAvatar.vue';
+import MapMarker from './MapMarker.vue';
 
 const appStore = useAppStore();
 const nodeDatabase = useFormattedNodeDatabase().nodeDatabase;
@@ -97,13 +84,9 @@ const updateHeight = useThrottleFn(() => {
 useEventListener(window, 'resize', updateHeight);
 
 const positionedNodes = computed(() =>
-  Object.values(nodeDatabase.value)
-    .filter((node) => node.position?.latitudeI && node.position?.longitudeI)
-    .map((node) => ({
-      ...node,
-      lng: node.position?.longitudeI!,
-      lat: node.position?.latitudeI!,
-    }))
+  Object.values(nodeDatabase.value).filter(
+    (node) => node.position?.latitudeI && node.position?.longitudeI
+  )
 );
 </script>
 
