@@ -223,11 +223,11 @@ import ConfirmDialog from '@/components/Connection/ConfirmDialog.vue';
 import NodeFeatures from '@/components/Dashboard/Pages/NodeView/NodeFeatures.vue';
 import SectionDivider from '@/components/Dashboard/Pages/SectionDivider.vue';
 import MetricsGrid from '@/components/Dashboard/Pages/NodeView/MetricsGrid.vue';
-import { useFavoriteNode } from '@/composables/core/hooks/useFavoriteNode';
-import { useIgnoreNode } from '@/composables/core/hooks/useIgnoreNode';
+import { useFavoriteNode } from '@/composables/core/utils/useFavoriteNode';
+import { useIgnoreNode } from '@/composables/core/utils/useIgnoreNode';
 import { type SortDir } from '@/components/Dashboard/Pages/NodeView/types';
 import { orderBy, filter, some } from 'lodash-es';
-import { useDeleteNode } from '@/composables/core/hooks/useDeleteNode';
+import { useDeleteNode } from '@/composables/core/utils/useDeleteNode';
 
 const nodeDatabase = useFormattedNodeDatabase().nodeDatabase;
 const searchQuery = ref('');

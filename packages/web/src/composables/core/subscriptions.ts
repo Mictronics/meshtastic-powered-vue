@@ -1,4 +1,4 @@
-import PacketToMessageDTO from "@/composables/core/dto/PacketToMessageDTO.ts";
+import PacketToMessageDTO from "@/composables/core/PacketToMessageDTO";
 import { useNewNodeNum } from "@/composables/core/utils/useNewNodeNum";
 import { type IDevice } from '@/composables/core/stores/device/useDeviceStore'
 import { type IMessageStore, MessageType } from '@/composables/core/stores/message/useMessageStore'
