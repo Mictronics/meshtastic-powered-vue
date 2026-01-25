@@ -6,6 +6,7 @@ import { reactive, toRaw } from 'vue';
 import { createSharedComposable, watchIgnorable } from "@vueuse/core";
 import type { RasterSource } from "./types.ts";
 import type { SortState, ButtonKey } from "@/components/Dashboard/Pages/NodeView/types.ts";
+import type { LngLatLike } from "maplibre-gl";
 
 /* https://stackoverflow.com/a/76247596/3731501 */
 
@@ -15,6 +16,8 @@ export interface IApp {
     isSideBarVisible: boolean;
     sortState: Partial<Record<ButtonKey, SortState>>;
     lastReadPerChat: Record<string, number>;
+    mapZoom: number;
+    mapCenter: LngLatLike;
 }
 
 export const useAppStore = createSharedComposable(() => {
@@ -24,6 +27,8 @@ export const useAppStore = createSharedComposable(() => {
         isSideBarVisible: true,
         sortState: {},
         lastReadPerChat: {},
+        mapZoom: 6,
+        mapCenter: { lon: 10.447694, lat: 51.163361 },
     });
 
     const { ignorePrevAsyncUpdates } = watchIgnorable(appData, (n) => {
@@ -56,6 +61,14 @@ export const useAppStore = createSharedComposable(() => {
         });
         useIndexedDB().get(IDB_APP_STORE, 'lastReadPerChat').then((v) => {
             appData.lastReadPerChat = v || {};
+            ignorePrevAsyncUpdates();
+        });
+        useIndexedDB().get(IDB_APP_STORE, 'mapZoom').then((v) => {
+            appData.mapZoom = v || {};
+            ignorePrevAsyncUpdates();
+        });
+        useIndexedDB().get(IDB_APP_STORE, 'mapCenter').then((v) => {
+            appData.mapCenter = v || {};
             ignorePrevAsyncUpdates();
         });
     }
