@@ -1,8 +1,8 @@
 <template>
   <mgl-map
-    :map-style="style"
-    :height="mapHeight"
     ref="mapRef"
+    :height="mapHeight"
+    :map-style="style"
     :attributionControl="false"
     :renderWorldCopies="false"
     :maxPitch="0"
@@ -19,18 +19,41 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { MglMap, MglNavigationControl } from '@indoorequal/vue-maplibre-gl';
 import { useAppStore } from '@/composables/core/stores/app/useAppStore';
-import { useEventListener, useThrottleFn } from '@vueuse/core';
+import { useEventListener, useThrottleFn, useColorMode } from '@vueuse/core';
 import type { LngLatLike } from 'maplibre-gl';
 
 const appStore = useAppStore();
-const style =
-  'https://raw.githubusercontent.com/hc-oss/maplibre-gl-styles/master/styles/osm-mapnik/v8/default.json';
+const colorMode = useColorMode({
+  storageKey: 'vueuse-color-scheme',
+});
+const LIGHT_STYLE = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
+const DARK_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
+const style = computed(() => {
+  if (colorMode.value === 'dark') return DARK_STYLE;
+  if (colorMode.value === 'light') return LIGHT_STYLE;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? DARK_STYLE : LIGHT_STYLE;
+});
 const zoom = ref(6);
 const center = ref<LngLatLike>({ lng: 10.447694, lat: 51.163361 });
 const mapHeight = ref(`${window.innerHeight - 25}px`);
+const mapRef = ref<any>();
+
+watch(style, () => {
+  // Preserve map state when theme changes
+  const map = mapRef.value?.map;
+  if (!map) return;
+
+  const zoom = map.getZoom();
+  const center = map.getCenter();
+
+  map.once('styledata', () => {
+    map.setZoom(zoom);
+    map.setCenter(center);
+  });
+});
 
 const onMapLoad = (e: any) => {
   const map = e.map;
