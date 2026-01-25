@@ -27,7 +27,6 @@
 
 <script setup lang="ts">
 import { useAppStore } from '@/composables/core/stores/app/useAppStore';
-import Header from '@/components/Dashboard/Header.vue';
 import Sidebar from '@/components/Dashboard/Sidebar.vue';
 
 function onToggleSidebar() {
