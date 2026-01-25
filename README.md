@@ -58,3 +58,6 @@ You'll need to have [pnpm](https://pnpm.io/) installed to work with this monorep
    ```bash
    pnpm run dev
    ```
+## Demo
+
+A first [demo](https://www.mictronics.de/webclient/), based on release v0.5.1, is available for testing.
