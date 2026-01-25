@@ -15,7 +15,13 @@
     @map:load="onMapLoad"
   >
     <mgl-navigation-control position="top-right" :showCompass="false" />
-    <MapMarker v-for="node in positionedNodes" :key="node.nodeNumber" :node="node" />
+    <MapMarker
+      v-for="node in positionedNodes"
+      :key="node.nodeNumber"
+      :node="node"
+      :selected="selectedNodeNumber === node.nodeNumber"
+      @select="selectedNodeNumber = $event"
+    />
   </mgl-map>
 </template>
 
@@ -44,6 +50,7 @@ const zoom = ref(6);
 const center = ref<LngLatLike>({ lng: 10.447694, lat: 51.163361 });
 const mapHeight = ref(`${window.innerHeight - 25}px`);
 const mapRef = ref<any>();
+const selectedNodeNumber = ref<number | null>(null);
 
 watch(style, () => {
   // Preserve map state when theme changes
