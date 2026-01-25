@@ -15,6 +15,7 @@
     "lint": "eslint . --fix --cache"
   },
   "dependencies": {
+    "@indoorequal/vue-maplibre-gl": "^8.4.2",
     "@meshtastic/core": "link:../core",
     "@meshtastic/protobufs": "link:../protobufs",
     "@meshtastic/transport-http": "link:../transport-http",
@@ -35,6 +36,7 @@
     "idb": "^8.0.3",
     "lodash-es": "^4.17.22",
     "lucide-vue-next": "^0.562.0",
+    "maplibre-gl": "^5.16.0",
     "primevue": "^4.5.4",
     "proj4": "^2.20.2",
     "rfc4648": "^1.5.4",
