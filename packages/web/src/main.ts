@@ -30,8 +30,6 @@ import ConfirmDialog from 'primevue/confirmdialog';
 import Badge from 'primevue/badge';
 import PanelMenu from 'primevue/panelmenu';
 import Avatar from 'primevue/avatar';
-import DataTable from 'primevue/datatable';
-import Column from 'primevue/column';
 import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
 import Drawer from 'primevue/drawer';
