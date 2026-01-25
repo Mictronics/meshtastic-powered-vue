@@ -242,6 +242,7 @@ const navPanelItems = computed<NavPanelItem[]>(() => [
   {
     label: 'Map',
     myIcon: Map,
+    to: '/map',
   },
   {
     label: 'Settings',

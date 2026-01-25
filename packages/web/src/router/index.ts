@@ -9,6 +9,7 @@ import ConnectionsView from '@/views/ConnectionsView.vue'
 import Dashboard from '@/views/Dashboard.vue'
 import NodeCards from '@/components/Dashboard/Pages/NodeView/NodeCards.vue'
 import MessageView from '@/components/Dashboard/Pages/MessageView/MessageView.vue'
+import MapView from '@/components/Dashboard/Pages/MapView/MapView.vue'
 
 function chatProps(route: RouteLocationNormalizedLoaded) {
   return { type: String(route.params.type), id: String(route.params.id) }
@@ -77,6 +78,19 @@ const router = createRouter({
       name: 'connections',
       component: ConnectionsView,
       meta: { viewConnections: true }
+    },
+    {
+      path: '/map',
+      name: 'map',
+      component: Dashboard,
+      children: [
+        {
+          path: '',
+          name: 'map.view',
+          component: MapView,
+          meta: { viewMap: true }
+        },
+      ],
     },
   ],
 })
