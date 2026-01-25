@@ -252,7 +252,7 @@ const groupedMessages = computedWithControl(
 const filteredNodes = computedWithControl(
   [deviceStore.device, debouncedQuery, numericChatId],
   () => {
-    let nodes = Object.values(nodeDatabase.value);
+    let nodes = Object.values(nodeDatabase.value).filter((node) => !node.isUnmessagable);
     const q = debouncedQuery.value.trim().toLowerCase();
     if (q) {
       nodes = nodes.filter((node) =>
