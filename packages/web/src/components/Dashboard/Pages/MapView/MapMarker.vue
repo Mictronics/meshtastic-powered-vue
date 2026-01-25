@@ -1,13 +1,18 @@
 <template>
   <mgl-marker :coordinates="[lng, lat]" anchor="center">
     <template v-slot:marker>
-      <NodeAvatar
-        :nodeNumber="node.nodeNumber"
-        :shortName="node.shortName"
-        :isFavorite="node.isFavorite"
+      <div
+        class="transition-transform duration-200"
+        :style="{ transform: `scale(${scale})` }"
         @click="togglePopover"
-        :class="{ 'ring-2 ring-sky-400 dark:ring-sky-600 rounded-full': selected }"
-      />
+      >
+        <NodeAvatar
+          :nodeNumber="node.nodeNumber"
+          :shortName="node.shortName"
+          :isFavorite="node.isFavorite"
+          :class="{ 'ring-2 ring-sky-400 dark:ring-sky-600 rounded-full': selected }"
+        />
+      </div>
       <Popover
         ref="popup"
         class="rounded-xl! border-slate-200! dark:border-slate-600! bg-white dark:bg-slate-800"
@@ -30,6 +35,7 @@ import { useTimeAgoIntl } from '@vueuse/core';
 const props = defineProps<{
   node: FormattedNode;
   selected?: boolean;
+  zoom: number;
 }>();
 
 const emit = defineEmits<{
@@ -45,6 +51,7 @@ const lastSeenMs = computed(() => {
   return p.timestamp + p.timestampMillisAdjust;
 });
 const timeAgo = useTimeAgoIntl(lastSeenMs);
+const scale = computed(() => Math.min(1, Math.max(0.6, props.zoom / 9)));
 
 const popup = ref<any>();
 const togglePopover = (event: MouseEvent) => {

@@ -19,6 +19,7 @@
       v-for="node in positionedNodes"
       :key="node.nodeNumber"
       :node="node"
+      :zoom="zoom"
       :selected="selectedNodeNumber === node.nodeNumber"
       @select="selectedNodeNumber = $event"
     />
