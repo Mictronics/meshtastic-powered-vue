@@ -15,15 +15,7 @@
     @map:load="onMapLoad"
   >
     <mgl-navigation-control position="top-right" :showCompass="false" />
-    <MapMarker
-      v-for="node in positionedNodes"
-      v-if="zoom > CLUSTER_MAX_ZOOM"
-      :key="node.nodeNumber"
-      :node="node"
-      :zoom="zoom"
-      :selected="selectedNodeNumber === node.nodeNumber"
-      @select="selectedNodeNumber = $event"
-    />
+
     <mgl-geo-json-source
       source-id="nodes"
       :data="geoJsonNodes"
@@ -60,7 +52,32 @@
           'text-color': '#ffffff',
         }"
       />
+      <mgl-circle-layer
+        layer-id="node-markers"
+        :filter="['!', ['has', 'point_count']]"
+        :minzoom="CLUSTER_MAX_ZOOM"
+        :paint="{
+          'circle-radius': ['interpolate', ['linear'], ['zoom'], 6, 6, 12, 12],
+          'circle-color': [
+            'case',
+            ['boolean', ['feature-state', 'selected'], false],
+            '#38bdf8',
+            '#111827',
+          ],
+          'circle-stroke-color': '#fff',
+          'circle-stroke-width': 1,
+        }"
+      />
     </mgl-geo-json-source>
+    <mgl-popup
+      v-if="popupNode"
+      :coordinates="[popupNode.position?.longitudeI || 0, popupNode.position?.latitudeI || 0]"
+      :close-on-click="true"
+      @close="popupNode = null"
+      :offset="10"
+    >
+      <MapPopover :node="popupNode" />
+    </mgl-popup>
   </mgl-map>
 </template>
 
@@ -72,13 +89,15 @@ import {
   MglGeoJsonSource,
   MglCircleLayer,
   MglSymbolLayer,
+  MglPopup,
 } from '@indoorequal/vue-maplibre-gl';
 import type { FeatureCollection, Feature, Point } from 'geojson';
 import { useAppStore } from '@/composables/core/stores/app/useAppStore';
 import { useEventListener, useThrottleFn, useColorMode } from '@vueuse/core';
 import type { LngLatLike } from 'maplibre-gl';
 import { useFormattedNodeDatabase } from '@/composables/core/utils/useFormattedNodeDatabase';
-import MapMarker from './MapMarker.vue';
+import type { FormattedNode } from '@/composables/core/utils/types';
+import MapPopover from './MapPopover.vue';
 
 const appStore = useAppStore();
 const nodeDatabase = useFormattedNodeDatabase().nodeDatabase;
@@ -98,6 +117,7 @@ const center = ref<LngLatLike>({ lng: 10.447694, lat: 51.163361 });
 const mapHeight = ref(`${window.innerHeight - 25}px`);
 const mapRef = ref<any>();
 const selectedNodeNumber = ref<number | null>(null);
+const popupNode = ref<FormattedNode | null>(null);
 
 const geoJsonNodes = computed<FeatureCollection<Point>>(() => ({
   type: 'FeatureCollection',
@@ -106,6 +126,7 @@ const geoJsonNodes = computed<FeatureCollection<Point>>(() => ({
     .map(
       (node): Feature<Point> => ({
         type: 'Feature',
+        id: node.nodeNumber,
         geometry: {
           type: 'Point',
           coordinates: [node.position!.longitudeI!, node.position!.latitudeI!],
@@ -131,6 +152,30 @@ watch(style, () => {
   });
 });
 
+watch(selectedNodeNumber, (next, prev) => {
+  const map = mapRef.value?.map;
+  if (!map) return;
+
+  if (prev != null) {
+    map.setFeatureState({ source: 'nodes', id: prev }, { selected: false });
+  }
+
+  if (next != null) {
+    map.setFeatureState({ source: 'nodes', id: next }, { selected: true });
+  }
+});
+
+watch(popupNode, (node) => {
+  if (!node) return;
+
+  const map = mapRef.value.map;
+
+  map.flyTo({
+    center: [node.position!.longitudeI!, node.position!.latitudeI!],
+    duration: 300,
+  });
+});
+
 const onMapLoad = (e: any) => {
   const map = e.map;
   zoom.value = appStore.appData.mapZoom;
@@ -147,6 +192,16 @@ const onMapLoad = (e: any) => {
       center: features[0].geometry.coordinates,
       zoom,
     });
+  });
+
+  map.on('click', 'node-markers', (e: any) => {
+    const features = map.queryRenderedFeatures(e.point, {
+      layers: ['node-markers'],
+    });
+    const nodeNumber = features[0].properties.nodeNumber;
+
+    selectedNodeNumber.value = nodeNumber;
+    popupNode.value = nodeDatabase.value[nodeNumber] || null;
   });
 };
 
@@ -167,14 +222,25 @@ const updateHeight = useThrottleFn(() => {
 }, 100);
 
 useEventListener(window, 'resize', updateHeight);
-
-const positionedNodes = computed(() =>
-  Object.values(nodeDatabase.value).filter(
-    (node) => node.position?.latitudeI && node.position?.longitudeI
-  )
-);
 </script>
 
 <style lang="css">
 @import 'maplibre-gl/dist/maplibre-gl.css';
+
+.maplibregl-popup-content {
+  background: unset;
+  border-radius: unset;
+  box-shadow: unset;
+  padding: unset;
+  pointer-events: auto;
+  position: relative;
+}
+
+.maplibregl-popup-tip {
+  border-top-color: unset !important;
+  border-bottom-color: unset !important;
+  border-left-color: unset !important;
+  border-right-color: unset !important;
+  border: 0;
+}
 </style>
