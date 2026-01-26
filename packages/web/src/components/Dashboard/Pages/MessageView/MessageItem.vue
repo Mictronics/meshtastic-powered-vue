@@ -9,17 +9,17 @@
           : 'font-bold px-3 rounded-full uppercase tracking-wider py-1',
       ]"
     />
-    <div v-else class="flex w-full p-3 px-4 justify-start gap-3" style="height: 52px">
+    <div v-else class="flex w-full p-3 justify-start gap-3" style="height: 52px">
       <NodeAvatar
         :isFavorite="message.isFavorite"
         :nodeNumber="message.nodeNumber"
         :shortName="message.shortName"
       />
-      <div class="flex max-w-[80%] flex-row">
+      <div class="flex flex-row">
         <div
           class="p-1 rounded-2xl shadow-sm relative dark:bg-slate-800 text-slate-800 dark:text-slate-400 rounded-bl-none"
         >
-          <p class="pr-2">{{ message.message }}</p>
+          <p class="truncate">{{ message.message }}</p>
           <div class="flex items-center justify-start gap-1 mt-1 opacity-70">
             <span class="text-[10px]">
               {{ message.longName ?? 'Unknown' }} on {{ formattedDate }}
