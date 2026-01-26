@@ -67,18 +67,16 @@
                   {{ node.longName }}
                 </h3>
                 <div class="space-y-1">
-                  <div class="flex justify-between text-xs">
-                    <span class="text-slate-500 flex items-center gap-1">
+                  <div class="flex justify-between text-xs text-slate-500">
+                    <span>
                       {{ node.hwModel }}
                     </span>
-                    <span class="text-slate-500 flex items-center gap-1">
+                    <span>
                       {{ node.snr }}
                     </span>
                   </div>
-                  <div class="flex justify-between text-xs">
-                    <span class="text-slate-500 flex items-center gap-1">
-                      {{ node.hopsAway }} {{ formatLastHeard(node.lastHeard) }}
-                    </span>
+                  <div class="flex justify-between text-xs text-slate-500">
+                    <span>{{ node.hopsAway }} {{ formatLastHeard(node.lastHeard) }}</span>
                     <BatteryStatus
                       v-if="!!node.deviceMetrics"
                       :batteryLevel="node.deviceMetrics.batteryLevel"
@@ -208,7 +206,7 @@
 
 <script setup lang="ts">
 import { Search, Star, StarOff, Trash2, Eye, EyeOff, CircleArrowUp, X } from 'lucide-vue-next';
-import { ref, computed, onMounted, onUnmounted, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted, onUnmounted, onBeforeUnmount, type Ref } from 'vue';
 import { formatTimeAgoIntl, refDebounced } from '@vueuse/core';
 import { numberToHexUnpadded } from '@noble/curves/utils.js';
 import type { FormattedNode } from '@/composables/core/utils/types';
