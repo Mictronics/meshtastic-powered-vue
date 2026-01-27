@@ -57,15 +57,43 @@
         :filter="['!', ['has', 'point_count']]"
         :minzoom="CLUSTER_MAX_ZOOM"
         :paint="{
-          'circle-radius': ['interpolate', ['linear'], ['zoom'], 6, 6, 12, 12],
-          'circle-color': [
+          'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 20, 8, 22, 12, 24, 16, 26],
+          'circle-color': ['get', 'markerColor'],
+          'circle-stroke-color': [
             'case',
             ['boolean', ['feature-state', 'selected'], false],
-            '#38bdf8',
-            '#111827',
+            '#00bcff',
+            ['boolean', ['get', 'isFavorite'], false],
+            '#f59e0b',
+            'rgba(0,0,0,0)',
           ],
-          'circle-stroke-color': '#fff',
-          'circle-stroke-width': 1,
+          'circle-stroke-width': [
+            'case',
+            ['boolean', ['feature-state', 'selected'], false],
+            2,
+            ['boolean', ['get', 'isFavorite'], false],
+            1.5,
+            1,
+          ],
+          'circle-stroke-opacity': 0.75,
+          'circle-blur': 0.1,
+        }"
+      />
+      <mgl-symbol-layer
+        layer-id="node-labels"
+        :filter="['!', ['has', 'point_count']]"
+        :minzoom="CLUSTER_MAX_ZOOM"
+        :layout="{
+          'text-field': ['get', 'shortName'],
+          'text-size': ['interpolate', ['linear'], ['zoom'], 5, 8, 8, 10, 12, 12, 16, 14],
+          'text-offset': [0, 0],
+          'text-anchor': 'center',
+          'text-allow-overlap': true,
+          'text-letter-spacing': 0.15,
+          'text-font': ['Inter'],
+        }"
+        :paint="{
+          'text-color': ['get', 'textColor'],
         }"
       />
     </mgl-geo-json-source>
@@ -73,7 +101,7 @@
       v-if="popupNode"
       :coordinates="[popupNode.position?.longitudeI || 0, popupNode.position?.latitudeI || 0]"
       :close-on-click="true"
-      @close="popupNode = null"
+      @close="resetSelection"
       :offset="10"
     >
       <MapPopover :node="popupNode" />
@@ -98,8 +126,10 @@ import type { LngLatLike } from 'maplibre-gl';
 import { useFormattedNodeDatabase } from '@/composables/core/utils/useFormattedNodeDatabase';
 import type { FormattedNode } from '@/composables/core/utils/types';
 import MapPopover from './MapPopover.vue';
+import { useColor } from '@/composables/core/utils/useColor';
 
 const appStore = useAppStore();
+const color = useColor();
 const nodeDatabase = useFormattedNodeDatabase().nodeDatabase;
 const colorMode = useColorMode({
   storageKey: 'vueuse-color-scheme',
@@ -119,6 +149,11 @@ const mapRef = ref<any>();
 const selectedNodeNumber = ref<number | null>(null);
 const popupNode = ref<FormattedNode | null>(null);
 
+const resetSelection = () => {
+  popupNode.value = null;
+  selectedNodeNumber.value = null;
+};
+
 const geoJsonNodes = computed<FeatureCollection<Point>>(() => ({
   type: 'FeatureCollection',
   features: Object.values(nodeDatabase.value)
@@ -133,10 +168,37 @@ const geoJsonNodes = computed<FeatureCollection<Point>>(() => ({
         },
         properties: {
           nodeNumber: node.nodeNumber,
+          markerColor: avatarColor(node.nodeNumber).background,
+          textColor: avatarColor(node.nodeNumber).text,
+          shortName: node.shortName,
+          isFavorite: node.isFavorite,
         },
       })
     ),
 }));
+
+const darken = (value: number, factor: number) => Math.max(0, Math.round(value * (1 - factor)));
+
+const avatarColor = (nodeNumber: number) => {
+  const bgColor = color.getColorFromNodeNum(nodeNumber || 0);
+  const isLight = color.isLightColor(bgColor);
+
+  // Darken amount in dark mode
+  const darkenFactor = colorMode.value === 'dark' ? 0.3 : 0;
+
+  const r = darken(bgColor.r, darkenFactor);
+  const g = darken(bgColor.g, darkenFactor);
+  const b = darken(bgColor.b, darkenFactor);
+
+  const textColor = isLight
+    ? `rgba(${darken(0, darkenFactor)}, ${darken(0, darkenFactor)}, ${darken(0, darkenFactor)}, 1)`
+    : `rgba(${darken(255, darkenFactor)}, ${darken(255, darkenFactor)}, ${darken(255, darkenFactor)}, 1)`;
+
+  return {
+    background: `rgba(${r}, ${g}, ${b}, 1)`,
+    text: textColor,
+  };
+};
 
 watch(style, () => {
   // Preserve map state when theme changes
