@@ -242,10 +242,6 @@ const isSerialSupported = ref(connectionApi.isSerialSupported());
 const connectionStatus = ref(ConnectionStatus.Disconnected);
 const connectionType = ref(ConnectionType.Http);
 const selectedTab = ref<string | number>('http');
-const newConnection = ref<INewConnection>({
-  name: '',
-  type: ConnectionType.Unknown,
-});
 
 let usbVendorId = 0;
 let usbProductId = 0;
@@ -255,10 +251,10 @@ const connectionUrl = computed(() => httpType.value + domainOrIp.value);
 
 const rules = computed(() => ({
   connectionName: { required },
-  connectionUrl: {
-    required,
-    urlOrIp: or(useUrlValidator, ipAddress),
-  },
+  connectionUrl:
+    connectionType.value === ConnectionType.Http
+      ? { required, urlOrIp: or(useUrlValidator, ipAddress) }
+      : {},
 }));
 
 const v$ = useVuelidate(rules, { connectionName, connectionUrl });
