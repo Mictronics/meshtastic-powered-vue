@@ -8,7 +8,9 @@
 
     <div class="flex justify-between">
       <NodeFeatures v-if="node" :node="node" />
-      <MessageSquare :size="15" />
+      <router-link :to="'/chat/direct/' + node?.nodeNumber">
+        <MessageSquare :size="15" class="my-1 text-slate-800 dark:text-slate-400" />
+      </router-link>
     </div>
 
     <div class="space-y-1">
