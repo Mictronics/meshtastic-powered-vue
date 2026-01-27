@@ -13,6 +13,7 @@
     @map:zoomend="onZoomEnd"
     @map:dragend="onDragEnd"
     @map:load="onMapLoad"
+    local-ideograph-font-family="Inter"
   >
     <mgl-navigation-control position="top-right" :showCompass="false" />
 
@@ -47,6 +48,7 @@
         :layout="{
           'text-field': '{point_count_abbreviated}',
           'text-size': 12,
+          'text-font': ['Inter'],
         }"
         :paint="{
           'text-color': '#ffffff',
@@ -134,8 +136,8 @@ const nodeDatabase = useFormattedNodeDatabase().nodeDatabase;
 const colorMode = useColorMode({
   storageKey: 'vueuse-color-scheme',
 });
-const LIGHT_STYLE = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
-const DARK_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
+const LIGHT_STYLE = './styles/positron-gl.json';
+const DARK_STYLE = './styles/dark-matter-gl.json';
 const style = computed(() => {
   if (colorMode.value === 'dark') return DARK_STYLE;
   if (colorMode.value === 'light') return LIGHT_STYLE;
