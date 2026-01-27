@@ -99,7 +99,7 @@ const getStatusAttr = (status?: ConnectionStatus) => {
     case ConnectionStatus.Connected:
     case ConnectionStatus.Configured:
     case ConnectionStatus.Online:
-      return { icon: 'IconLink', color: 'bg-lime-400 dark:bg-lime-700', label: 'Connected' };
+      return { icon: 'IconLink', color: 'bg-lime-500 dark:bg-lime-700', label: 'Connected' };
     case ConnectionStatus.Connecting:
     case ConnectionStatus.Configuring:
     case ConnectionStatus.Disconnecting:
@@ -107,7 +107,7 @@ const getStatusAttr = (status?: ConnectionStatus) => {
     case ConnectionStatus.Error:
       return { icon: 'IconUnlink', color: 'bg-red-500', label: 'Error' };
     default:
-      return { icon: 'IconUnlink', color: 'bg-gray-400', label: 'Disconnected' };
+      return { icon: 'IconUnlink', color: 'bg-slate-400', label: 'Disconnected' };
   }
 };
 

@@ -38,7 +38,7 @@
               <CheckCheck
                 v-else-if="message.state === MessageState.Ack"
                 :size="15"
-                class="text-lime-400"
+                class="text-lime-500"
               />
             </div>
           </div>

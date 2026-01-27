@@ -10,7 +10,7 @@
           </Chip>
           <Chip
             v-if="isConnected()"
-            class="connection-item-chip bg-lime-400 dark:bg-lime-700 dark:text-slate-400"
+            class="connection-item-chip bg-lime-500 dark:bg-lime-700 dark:text-slate-400"
           >
             <Link :size="15" />
             Connected
