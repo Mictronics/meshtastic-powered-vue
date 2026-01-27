@@ -97,7 +97,7 @@ const avatarColor = computed(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  fill: oklch(87.9% 0.169 91.605);
+  fill: var(--color-amber-300);
   stroke-width: 0;
 }
 </style>
