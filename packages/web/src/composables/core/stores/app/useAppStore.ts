@@ -12,7 +12,6 @@ import type { LngLatLike } from "maplibre-gl";
 
 export interface IApp {
     recentDeviceId: number;
-    rasterSources: RasterSource[];
     isSideBarVisible: boolean;
     sortState: Partial<Record<ButtonKey, SortState>>;
     lastReadPerChat: Record<string, number>;
@@ -23,7 +22,6 @@ export interface IApp {
 export const useAppStore = createSharedComposable(() => {
     const appData = reactive<IApp>({
         recentDeviceId: 0,
-        rasterSources: [],
         isSideBarVisible: true,
         sortState: {},
         lastReadPerChat: {},
@@ -45,10 +43,6 @@ export const useAppStore = createSharedComposable(() => {
     async function init() {
         useIndexedDB().get(IDB_APP_STORE, 'recentDeviceId').then((v) => {
             appData.recentDeviceId = v || 0;
-            ignorePrevAsyncUpdates();
-        });
-        useIndexedDB().get(IDB_APP_STORE, 'rasterSources').then((v) => {
-            appData.rasterSources = v || [];
             ignorePrevAsyncUpdates();
         });
         useIndexedDB().get(IDB_APP_STORE, 'sortState').then((v) => {
@@ -73,14 +67,6 @@ export const useAppStore = createSharedComposable(() => {
         });
     }
 
-    function addRasterSource(source: RasterSource) {
-        appData.rasterSources.push(source);
-    };
-
-    function removeRasterSource(index: number) {
-        appData.rasterSources.splice(index, 1);
-    };
-
     function makeChatKey(type: 'direct' | 'broadcast', id: number) {
         return `${type}:${id}`;
     }
@@ -97,8 +83,6 @@ export const useAppStore = createSharedComposable(() => {
 
     return {
         appData,
-        addRasterSource,
-        removeRasterSource,
         getLastRead,
         setLastRead,
     }
