@@ -414,7 +414,12 @@ const filteredNodes = computed(() => {
 
 const sortedFilteredNodes = computed(() => {
   const nodes = filteredNodes.value;
-  return orderBy(nodes, sortKey.value, sortDir.value);
+  const sorted = orderBy(nodes, sortKey.value, sortDir.value);
+  // If sorting by isOnline, hide nodes that are explicitly offline, sortDir doesn't matter
+  if (sortKey.value.includes('isOnline')) {
+    return sorted.filter((n: FormattedNode) => n.isOnline !== false);
+  }
+  return sorted;
 });
 
 const chunkedNodes = computed(() => {
