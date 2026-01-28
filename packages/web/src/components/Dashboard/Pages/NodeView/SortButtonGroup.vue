@@ -42,6 +42,7 @@ import {
   ArrowUpWideNarrow,
   Signal,
   Battery,
+  SquareActivity,
 } from 'lucide-vue-next';
 import { watch, computed, ref, onMounted } from 'vue';
 import * as _ from 'lodash-es';
@@ -60,6 +61,7 @@ const buttons: ButtonsMap = {
   numHops: { icon: Rabbit, toolTip: 'Hop Count' },
   numSnr: { icon: Signal, toolTip: 'Signal' },
   batteryLevel: { icon: Battery, toolTip: 'Battery Level' },
+  isOnline: { icon: SquareActivity, toolTip: 'Online' },
 };
 
 const sortState = ref<Partial<Record<ButtonKey, SortState>>>({});
