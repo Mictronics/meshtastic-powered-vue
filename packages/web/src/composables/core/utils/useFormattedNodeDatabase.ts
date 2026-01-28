@@ -31,6 +31,7 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
     watchImmediate(useNodeDBStore().nodeDatabase, (ndb) => {
         if (!ndb?.nodeMap) return;
 
+        const nowSec = Math.floor(Date.now() / 1000);
         for (const node of Object.values(ndb.nodeMap)) {
             if (node.$typeName !== 'meshtastic.NodeInfo') continue;
             const names = formatName(node.num, node.user?.shortName, node.user?.longName);
@@ -42,6 +43,7 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
                 hopsAway: formatHops(node.hopsAway, node.viaMqtt),
                 numHops: node.hopsAway,
                 lastHeard: node.lastHeard,
+                isOnline: !!node.lastHeard && (nowSec - node.lastHeard) <= 2 * 60 * 60,
                 encryptionStatus: formatEncryption(node.user?.publicKey),
                 isFavorite: node.isFavorite,
                 isIgnored: node.isIgnored,
