@@ -291,7 +291,7 @@ class NodeDB implements INodeDB {
         return filter ? all.filter(filter) : all;
     }
 
-    getMyNode() {
+    getMyNode(): NodeInfoExtented | undefined {
         if (this.myNodeNum) {
             return (
                 this.nodeMap[this.myNodeNum] ??

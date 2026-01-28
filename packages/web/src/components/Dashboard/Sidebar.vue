@@ -162,7 +162,7 @@ import { computedWithControl } from '@vueuse/core';
 type NavPanelItem = {
   label: string;
   myIcon: FunctionalComponent<LucideProps>;
-  badge?: number;
+  badge?: number | string;
   severity?: 'info' | 'warn' | 'success' | 'danger' | 'secondary';
   to?: string;
 };
@@ -170,7 +170,7 @@ type NavPanelItem = {
 type ChannelPanelItem = {
   id: string | number;
   label: string;
-  badge?: number;
+  badge?: number | string;
   severity?: 'info' | 'warn' | 'success' | 'danger' | 'secondary';
   to?: string;
   active: boolean;
@@ -214,6 +214,7 @@ const ownNodeId = computed(() => {
 const myNode = computed(() => nodeDBStore.nodeDatabase.value?.getMyNode());
 const batteryLevel = computed(() => myNode.value?.deviceMetrics?.batteryLevel);
 const voltage = computed(() => myNode.value?.deviceMetrics?.voltage);
+const online = computed(() => myNode.value?.localStats?.numOnlineNodes || '-');
 
 const nodeCount = computed(() => {
   const nm = nodeDBStore.nodeDatabase.value?.nodeMap;
@@ -251,7 +252,7 @@ const navPanelItems = computed<NavPanelItem[]>(() => [
   {
     label: 'Nodes',
     myIcon: Users,
-    badge: nodeCount.value,
+    badge: `${online.value} / ${nodeCount.value}`,
     severity: 'secondary',
     to: '/nodes',
   },
