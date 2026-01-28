@@ -10,7 +10,7 @@
           showDelay: 100,
           hideDelay: 500,
           pt: {
-            text: 'bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-400 text-sm',
+            text: 'bg-slate-50 dark:bg-slate-700 text-slate-700 dark:text-slate-400 text-sm',
           },
         }"
       >
