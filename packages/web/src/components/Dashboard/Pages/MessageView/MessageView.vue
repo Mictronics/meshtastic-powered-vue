@@ -68,7 +68,7 @@
                   v-if="item.unreadCount"
                   severity="info"
                   size="small"
-                  class="ml-auto"
+                  class="ml-auto badge-bounce"
                   :value="item.unreadCount"
                 />
               </router-link>
@@ -411,3 +411,30 @@ const sendMessage = async (message: string) => {
   scrollToBottom('smooth');
 };
 </script>
+
+<style lang="css" scoped>
+@keyframes badgeJump {
+  0% {
+    transform: translateY(0);
+  }
+  20% {
+    transform: translateY(-6px);
+  }
+  40% {
+    transform: translateY(0);
+  }
+  60% {
+    transform: translateY(-3px);
+  }
+  80% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.badge-bounce {
+  animation: badgeJump 1.2s ease-in-out infinite;
+}
+</style>
