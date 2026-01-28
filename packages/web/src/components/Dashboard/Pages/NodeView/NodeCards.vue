@@ -10,21 +10,19 @@
           size="small"
         />
 
-        <!-- Search icon -->
-        <Search
-          class="absolute right-9 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
-          :size="18"
-        />
-
-        <!-- Clear button -->
-        <button
-          v-if="searchQuery"
-          type="button"
-          @click="searchQuery = ''"
-          class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition"
-        >
-          <X :size="16" />
-        </button>
+        <div class="flex absolute right-1 top-1/2 -translate-y-1/2">
+          <!-- Clear button -->
+          <button
+            v-if="searchQuery"
+            type="button"
+            @click="searchQuery = ''"
+            class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition"
+          >
+            <X :size="16" />
+          </button>
+          <!-- Search icon -->
+          <Search class="text-slate-400 pointer-events-none" :size="18" />
+        </div>
       </div>
       <SortButtonGroup @sort-toggle="onSortToggle" />
     </div>
