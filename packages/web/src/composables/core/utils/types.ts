@@ -9,6 +9,7 @@ export type FormattedNode = {
     numHops?: number;
     macAddr: string;
     lastHeard: number;
+    isOnline: boolean;
     encryptionStatus: EncryptionStatus;
     isFavorite: boolean;
     isIgnored: boolean;
