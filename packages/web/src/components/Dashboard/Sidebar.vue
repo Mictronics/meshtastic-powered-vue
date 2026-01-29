@@ -262,12 +262,16 @@ const appPanelItems = computed(() => [
   {
     label: 'Color Scheme',
     myIcon: modeIcon.value,
-    command: () => next(),
+    command: (_event?: any) => {
+      next();
+    },
   },
   {
     label: 'Tools',
     myIcon: Wrench,
-    command: openToolsDialog(),
+    command: (_event?: any) => {
+      openToolsDialog();
+    },
   },
 ]);
 
