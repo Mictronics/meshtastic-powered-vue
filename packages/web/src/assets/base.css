@@ -532,6 +532,18 @@
 }
 
 :root {
+  --p-surface-0: #ffffff;
+  --p-surface-50: var(--color-slate-50);
+  --p-surface-100: var(--color-slate-100);
+  --p-surface-200: var(--color-slate-200);
+  --p-surface-300: var(--color-slate-300);
+  --p-surface-400: var(--color-slate-400);
+  --p-surface-500: var(--color-slate-500);
+  --p-surface-600: var(--color-slate-600);
+  --p-surface-700: var(--color-slate-700);
+  --p-surface-800: var(--color-slate-800);
+  --p-surface-900: var(--color-slate-900);
+  --p-surface-950: var(--color-slate-950);
   --p-content-border-radius: 6px;
 }
 
