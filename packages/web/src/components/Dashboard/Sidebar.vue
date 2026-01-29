@@ -144,6 +144,7 @@ import {
   Moon,
   SunMoon,
   Menu,
+  Wrench,
 } from 'lucide-vue-next';
 import { computed, watchEffect } from 'vue';
 import { useConnectionStore } from '@/composables/core/stores/connection/useConnectionStore';
@@ -263,6 +264,11 @@ const appPanelItems = computed(() => [
     myIcon: modeIcon.value,
     command: () => next(),
   },
+  {
+    label: 'Tools',
+    myIcon: Wrench,
+    command: openToolsDialog(),
+  },
 ]);
 
 type Theme = 'auto' | 'light' | 'dark';
@@ -323,6 +329,8 @@ const channelPanelItems = computed(() => {
 
   return chList;
 });
+
+const openToolsDialog = () => {};
 </script>
 
 <style lang="css" scoped>
