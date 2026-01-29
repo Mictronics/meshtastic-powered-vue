@@ -24,9 +24,9 @@
     </div>
     <div class="sidebar-entries whitespace-nowrap">
       <!-- Nav panel -->
-      <PanelMenu :model="navPanelItems" class="w-full gap-2!" pt:panel:class="dashboard-panelmenu">
+      <PanelMenu :model="navPanelItems" class="w-full gap-1!" pt:panel:class="dashboard-panelmenu">
         <template #item="{ item }">
-          <router-link v-if="item.to" :to="item.to" class="flex items-center py-1 group w-full">
+          <router-link v-if="item.to" :to="item.to" class="flex items-center group w-full">
             <component :is="item.myIcon" />
             <span v-if="isSideBarVisible" class="ml-2">{{ item.label }}</span>
             <Badge
@@ -38,7 +38,7 @@
             />
           </router-link>
 
-          <button v-else type="button" class="flex items-center py-1 group w-full">
+          <button v-else type="button" class="flex items-center group w-full">
             <component :is="item.myIcon" />
             <span v-if="isSideBarVisible" class="ml-2">{{ item.label }}</span>
             <Badge
@@ -52,18 +52,18 @@
         </template>
       </PanelMenu>
       <!-- Channel panel -->
-      <p v-if="isSideBarVisible && isChatView" class="py-4 logo-text">Channels</p>
+      <p v-if="isSideBarVisible && isChatView" class="py-2 logo-text">Channels</p>
       <PanelMenu
         v-if="isChatView"
         :model="channelPanelItems"
-        class="w-full gap-2!"
+        class="w-full gap-1!"
         pt:panel:class="dashboard-panelmenu"
       >
         <template #item="{ item }">
           <router-link
             v-if="item.to"
             :to="item.to"
-            class="flex items-center py-1 group w-full rounded-md"
+            class="flex items-center group w-full rounded-md"
             :class="{ 'bg-slate-200 dark:bg-slate-700': item.active }"
           >
             <MessagesSquare />
@@ -78,7 +78,7 @@
             />
           </router-link>
 
-          <button v-else type="button" class="flex items-center py-1 group w-full">
+          <button v-else type="button" class="flex items-center group w-full">
             <MessagesSquare />
             <span v-if="isSideBarVisible" class="ml-2">{{ item.label }}</span>
             <span v-else class="ml-2">{{ item.id }}</span>
@@ -104,7 +104,7 @@
         :battery-level="batteryLevel"
         :voltage="voltage"
       />
-      <PanelMenu :model="appPanelItems" class="w-full gap-2!" pt:panel:class="dashboard-panelmenu">
+      <PanelMenu :model="appPanelItems" class="w-full gap-1!" pt:panel:class="dashboard-panelmenu">
         <template #item="{ item }">
           <a class="flex items-center py-1 cursor-pointer group">
             <component :is="item.myIcon" />
@@ -128,8 +128,7 @@
       <a class="hover:underline text-link" href="https://www.mictronics.de" target="_blank">
         Mictronics
       </a>
-      <p>{{ version }}</p>
-      <p>#{{ commitHash }}</p>
+      <p>{{ version }} #{{ commitHash }}</p>
     </div>
   </aside>
 </template>
