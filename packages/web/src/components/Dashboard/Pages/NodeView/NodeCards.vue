@@ -439,25 +439,25 @@ const openQuickView = (node: FormattedNode) => {
  * Last heard needs a to be updated whenever the data table renders to
  * ensure the time ago string fits the numeric value and sorting order.
  */
-function formatLastHeard(epoch?: number) {
+const formatLastHeard = (epoch?: number) => {
   const date = new Date(0);
   if (epoch === undefined) {
     return 'Unknown';
   }
   date.setUTCSeconds(epoch);
   return formatTimeAgoIntl(date);
-}
+};
 
-function onMarkFavorite(nodeNumber: number, fav: boolean) {
+const onMarkFavorite = (nodeNumber: number, fav: boolean) => {
   useFavoriteNode().updateFavorite(nodeNumber, fav);
-}
+};
 
-function onMarkIgnored(nodeNumber: number, fav: boolean) {
+const onMarkIgnored = (nodeNumber: number, fav: boolean) => {
   useIgnoreNode().updateIgnore(nodeNumber, fav);
-}
+};
 
 const confirmDialogRef = ref<InstanceType<typeof ConfirmDialog> | null>(null);
-async function deleteNode(nodeNumber: number) {
+const deleteNode = async (nodeNumber: number) => {
   const confirmed = await confirmDialogRef.value?.open({
     header: 'Delete Node?',
     message: 'All data linked to this node will be permanently deleted.',
@@ -469,7 +469,7 @@ async function deleteNode(nodeNumber: number) {
     useDeleteNode().deleteNode(nodeNumber);
     showDrawer.value = false;
   }
-}
+};
 
 const virtualScrollerHeight = ref('0px');
 onMounted(() => {

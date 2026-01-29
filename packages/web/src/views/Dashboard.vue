@@ -29,9 +29,9 @@
 import { useAppStore } from '@/composables/core/stores/app/useAppStore';
 import Sidebar from '@/components/Dashboard/Sidebar.vue';
 
-function onToggleSidebar() {
+const onToggleSidebar = () => {
   useAppStore().appData.isSideBarVisible = !useAppStore().appData.isSideBarVisible;
-}
+};
 </script>
 
 <style lang="css" scoped></style>

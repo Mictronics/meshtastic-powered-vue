@@ -259,19 +259,15 @@ const rules = computed(() => ({
 
 const v$ = useVuelidate(rules, { connectionName, connectionUrl });
 
-function open() {
+const open = () => {
   isVisible.value = true;
-}
+};
 
-function close() {
+const close = () => {
   isVisible.value = false;
-}
+};
 
-watch(isVisible, (visible) => {
-  if (!visible) resetForm();
-});
-
-function resetForm() {
+const resetForm = () => {
   connectionName.value = '';
   domainOrIp.value = '';
   httpType.value = 'https://';
@@ -280,9 +276,13 @@ function resetForm() {
   connectionStatus.value = ConnectionStatus.Disconnected;
   serialPort.value = 'No port selected';
   v$.value.$reset();
-}
+};
 
-function addConnection() {
+watch(isVisible, (visible) => {
+  if (!visible) resetForm();
+});
+
+const addConnection = () => {
   v$.value.$touch();
   if (v$.value.$invalid) return;
 
@@ -315,9 +315,9 @@ function addConnection() {
       isVisible.value = false;
       resetForm();
     });
-}
+};
 
-function testConnection() {
+const testConnection = () => {
   isTestPending.value = true;
   connectionStatus.value = ConnectionStatus.Disconnected;
   connectionApi.testHttpConnection(connectionUrl.value).then((result) => {
@@ -328,9 +328,9 @@ function testConnection() {
       connectionStatus.value = ConnectionStatus.Error;
     }
   });
-}
+};
 
-function requestSerialPort() {
+const requestSerialPort = () => {
   connectionApi.requestSerialPortInfo().then((info) => {
     if (info && info.usbVendorId && info.usbProductId) {
       usbVendorId = info.usbVendorId;
@@ -340,9 +340,9 @@ function requestSerialPort() {
       serialPort.value = `USB ${v}:${p}`;
     }
   });
-}
+};
 
-function handleTabChange(value: string | number) {
+const handleTabChange = (value: string | number) => {
   const val = String(value);
   selectedTab.value = val;
   if (val === 'http') {
@@ -352,7 +352,7 @@ function handleTabChange(value: string | number) {
   } else if (val === 'serial') {
     connectionType.value = ConnectionType.Serial;
   }
-}
+};
 
 defineExpose({ open, close });
 </script>

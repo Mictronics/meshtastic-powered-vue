@@ -72,12 +72,12 @@ const sortedConnections = computed(() => {
   return new Map(sortedEntries);
 });
 
-function showAddConnectionDialog() {
+const showAddConnectionDialog = () => {
   addConnectionDialog.value?.open();
-}
+};
 
 const confirmDialogRef = ref<InstanceType<typeof ConfirmDialog> | null>(null);
-async function deleteConnection(id: number) {
+const deleteConnection = async (id: number) => {
   const confirmed = await confirmDialogRef.value?.open({
     header: 'Delete Connection?',
     message: 'All device data linked to this connection will be permanently deleted.',
@@ -88,15 +88,15 @@ async function deleteConnection(id: number) {
   if (confirmed) {
     await useConnection().deleteConnection(id);
   }
-}
+};
 
 const connectionStore = useConnectionStore();
-function setDefaultConnection(id: number, isDefault: boolean) {
+const setDefaultConnection = (id: number, isDefault: boolean) => {
   connectionStore.setDefaultConnection(id, isDefault);
-}
+};
 
 const connection = useConnection();
-async function onConnect(id: number) {
+const onConnect = async (id: number) => {
   try {
     const isConnected = await connection.connect(id);
     if (isConnected) {
@@ -125,9 +125,9 @@ async function onConnect(id: number) {
       life: 5000,
     });
   }
-}
+};
 
-function onDisconnect(id: number) {
+const onDisconnect = (id: number) => {
   connection.disconnect(id);
-}
+};
 </script>
