@@ -131,7 +131,6 @@ export const subscribeAll = (
     (clientNotificationPacket) => {
       console.log("onClientNotificationPacket");
       device.addClientNotification(clientNotificationPacket);
-      device.setDialogOpen("clientNotification", true);
     },
   );
 
@@ -153,7 +152,6 @@ export const subscribeAll = (
             routingPacket.from,
             routingPacket?.data?.variant?.value,
           );
-          device.setDialogOpen("refreshKeys", true);
           break;
         case Protobuf.Mesh.Routing_Error.PKI_UNKNOWN_PUBKEY:
           console.error(`Routing Error: ${routingPacket.data.variant.value}`);
@@ -161,7 +159,6 @@ export const subscribeAll = (
             routingPacket.from,
             routingPacket?.data?.variant?.value,
           );
-          device.setDialogOpen("refreshKeys", true);
           break;
         default: {
           break;

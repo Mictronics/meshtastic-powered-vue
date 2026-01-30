@@ -10,8 +10,6 @@ import {
 } from "@/composables/core/stores/connection/types.ts";
 import {
     type WaypointWithMetadata,
-    type Dialogs,
-    type DialogVariant,
 } from "@/composables/core/stores/device/types.ts";
 import { type MeshDevice, Protobuf, Types } from "@meshtastic/core";
 import { createSharedComposable, watchThrottled } from '@vueuse/core'
@@ -65,7 +63,6 @@ export interface IDevice {
     pendingSettingsChanges: boolean;
     messageDraft: string;
     unreadCounts: { [key: string]: number };
-    dialog: Dialogs;
     clientNotifications: Protobuf.Mesh.ClientNotification[];
 
     set: (obj: Partial<IDevice>) => void;
@@ -98,8 +95,6 @@ export interface IDevice {
         traceroute: Types.PacketMetadata<Protobuf.Mesh.RouteDiscovery>,
     ) => void;
     addMetadata: (metadata: Protobuf.Mesh.DeviceMetadata) => void;
-    setDialogOpen: (dialog: DialogVariant, open: boolean) => void;
-    getDialogOpen: (dialog: DialogVariant) => boolean;
     setMessageDraft: (message: string) => void;
     incrementUnread: (nodeNum: number) => void;
     resetUnread: (nodeNum: number) => void;
@@ -172,7 +167,6 @@ class Device implements IDevice {
     pendingSettingsChanges: boolean;
     messageDraft: string;
     unreadCounts: { [key: string]: number };
-    dialog: Dialogs;
     clientNotifications: Protobuf.Mesh.ClientNotification[];
 
     constructor(id: number, data?: Partial<IDevice>) {
@@ -204,25 +198,6 @@ class Device implements IDevice {
         this.pendingSettingsChanges = false;
         this.messageDraft = '';
         this.unreadCounts = {};
-        this.dialog = {
-            import: false,
-            QR: false,
-            shutdown: false,
-            reboot: false,
-            deviceName: false,
-            nodeRemoval: false,
-            pkiBackup: false,
-            nodeDetails: false,
-            unsafeRoles: false,
-            refreshKeys: false,
-            deleteMessages: false,
-            managedMode: false,
-            clientNotification: false,
-            resetNodeDb: false,
-            clearAllStores: false,
-            factoryResetDevice: false,
-            factoryResetConfig: false,
-        };
         this.clientNotifications = [];
     }
 
@@ -471,14 +446,6 @@ class Device implements IDevice {
         // Enforce retention limit, both in terms of targets (this.traceroutes) and routes per target (routes)
         useEvictOldestEntries(routes, TRACEROUTE_ROUTE_RETENTION_NUM);
         useEvictOldestEntries(this.traceroutes, TRACEROUTE_TARGET_RETENTION_NUM,);
-    };
-
-    setDialogOpen(dialog: DialogVariant, open: boolean) {
-        this.dialog[dialog] = open;
-    };
-
-    getDialogOpen(dialog: DialogVariant) {
-        return this.dialog[dialog];
     };
 
     setMessageDraft(message: string) {
