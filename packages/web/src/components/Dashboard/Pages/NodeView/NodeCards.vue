@@ -215,7 +215,7 @@ import NodeDetailsItem from '@/components/Dashboard/Pages/NodeView/NodeDetailsIt
 import DeviceImage from '@/components/Dashboard/Pages/NodeView/DeviceImage.vue';
 import CoordinateDisplay from '@/components/Dashboard/Pages/NodeView/CoordinateDisplay.vue';
 import SortButtonGroup from '@/components/Dashboard/Pages/NodeView/SortButtonGroup.vue';
-import ConfirmDialog from '@/components/Connection/ConfirmDialog.vue';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import NodeFeatures from '@/components/Dashboard/Pages/NodeView/NodeFeatures.vue';
 import SectionDivider from '@/components/Dashboard/Pages/SectionDivider.vue';
 import MetricsGrid from '@/components/Dashboard/Pages/NodeView/MetricsGrid.vue';
