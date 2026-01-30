@@ -1,6 +1,7 @@
 <template>
   <aside class="dashboard-sidebar relative flex flex-col" id="side-bar">
     <Button
+      aria-label="Toggle sidebar"
       severity="secondary"
       variant="outlined"
       @click="$emit('eventToggleSidebar')"
@@ -106,9 +107,9 @@
       />
       <PanelMenu :model="appPanelItems" class="w-full gap-1!" pt:panel:class="dashboard-panelmenu">
         <template #item="{ item }">
-          <a class="flex items-center py-1 cursor-pointer group">
+          <a class="flex items-center cursor-pointer group">
             <component :is="item.myIcon" />
-            <span v-if="isSideBarVisible" :class="['ml-2']">{{ item.label }}</span>
+            <span v-if="isSideBarVisible" class="ml-2">{{ item.label }}</span>
           </a>
         </template>
       </PanelMenu>
@@ -131,6 +132,9 @@
       <p>{{ version }} #{{ commitHash }}</p>
     </div>
   </aside>
+  <Dialog v-model:visible="visibleToolDialog" modal header="Tools">
+    <ToolsDialog />
+  </Dialog>
 </template>
 
 <script setup lang="ts">
@@ -146,13 +150,14 @@ import {
   Menu,
   Wrench,
 } from 'lucide-vue-next';
-import { computed, watchEffect } from 'vue';
+import { ref, computed, watchEffect } from 'vue';
 import { useConnectionStore } from '@/composables/core/stores/connection/useConnectionStore';
 import { ConnectionStatus } from '@/composables/core/stores/connection/types';
 import { useDeviceStore } from '@/composables/core/stores/device/useDeviceStore';
 import { useNodeDBStore } from '@/composables/core/stores/nodeDB/useNodeDBStore';
 import { useColorMode, useCycleList } from '@vueuse/core';
 import DeviceInfo from '@/components/Dashboard/DeviceInfo.vue';
+import ToolsDialog from './Pages/ToolsDialog.vue';
 import type { FunctionalComponent } from 'vue';
 import type { LucideProps } from 'lucide-vue-next';
 import { Protobuf } from '@meshtastic/core';
@@ -183,7 +188,7 @@ const props = defineProps<{
   isSideBarVisible: boolean;
 }>();
 
-const route = useRoute() as RouteLocationNormalized;
+const route = useRoute();
 const connectionStore = useConnectionStore();
 const deviceStore = useDeviceStore();
 const nodeDBStore = useNodeDBStore();
@@ -215,6 +220,7 @@ const myNode = computed(() => nodeDBStore.nodeDatabase.value?.getMyNode());
 const batteryLevel = computed(() => myNode.value?.deviceMetrics?.batteryLevel);
 const voltage = computed(() => myNode.value?.deviceMetrics?.voltage);
 const online = computed(() => myNode.value?.localStats?.numOnlineNodes || '-');
+const visibleToolDialog = ref(false);
 
 const nodeCount = computed(() => {
   const nm = nodeDBStore.nodeDatabase.value?.nodeMap;
@@ -224,6 +230,7 @@ const nodeCount = computed(() => {
   return undefined;
 });
 
+// Device mutates internally; deep tracking required
 const unreadMessageCount = computedWithControl(
   device,
   () => {
@@ -261,7 +268,7 @@ const navPanelItems = computed<NavPanelItem[]>(() => [
 const appPanelItems = computed(() => [
   {
     label: 'Color Scheme',
-    myIcon: modeIcon.value,
+    myIcon: modeIcon,
     command: (_event?: any) => {
       next();
     },
@@ -270,7 +277,7 @@ const appPanelItems = computed(() => [
     label: 'Tools',
     myIcon: Wrench,
     command: (_event?: any) => {
-      openToolsDialog();
+      visibleToolDialog.value = true;
     },
   },
 ]);
@@ -302,7 +309,7 @@ const commitHash = computed(() => {
   return (
     String(import.meta.env.VITE_COMMIT_HASH)
       ?.toUpperCase()
-      .slice(0, 7) || 'Unkown'
+      .slice(0, 7) || 'Unknown'
   );
 });
 
@@ -313,17 +320,15 @@ const channelPanelItems = computed(() => {
 
   if (!device.value) return chList;
 
-  for (const [, v] of Object.entries(device.value.channels) as [
-    string,
-    Protobuf.Channel.Channel,
-  ][]) {
+  const channels = device.value?.channels ?? {};
+  for (const [, v] of Object.entries(channels) as [string, Protobuf.Channel.Channel][]) {
     if (v.role === Protobuf.Channel.Channel_Role.DISABLED) continue;
 
     const unreadCount = device.value.getUnreadCount(v.index);
 
     chList.push({
       id: v.index,
-      label: v.settings?.name || 'Unknown',
+      label: v.settings?.name || `Channel ${v.index}`,
       to: `/chat/broadcast/${v.index}`,
       active: activeChannel === v.index.toString(),
       badge: unreadCount > 0 ? unreadCount : undefined,
@@ -333,8 +338,6 @@ const channelPanelItems = computed(() => {
 
   return chList;
 });
-
-const openToolsDialog = () => {};
 </script>
 
 <style lang="css" scoped>
