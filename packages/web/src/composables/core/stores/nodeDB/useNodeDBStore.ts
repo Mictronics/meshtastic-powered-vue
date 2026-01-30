@@ -11,7 +11,7 @@ import {
     createSharedComposable,
     watchThrottled,
 } from '@vueuse/core'
-import { ref, isReactive, toRaw, type DebuggerEvent, isProxy } from 'vue'
+import { ref, isReactive, toRaw, isProxy } from 'vue'
 import { useGlobalToast, type ToastSeverity } from '@/composables/useGlobalToast';
 import { purgeUncloneableProperties } from "@/composables/core/stores/utils/purgeUncloneable";
 
@@ -118,7 +118,6 @@ class NodeDB implements INodeDB {
             // apply the nullish-coalescing fallbacks explicitly
             merged.user = next.user ?? existing.user;
             merged.position = next.position ?? existing.position;
-            // TODO Find out why device metrics are frequently still stored as reactive object for random nodes.
             let ndm = next.deviceMetrics;
             let edm = existing.deviceMetrics;
             if (isProxy(ndm)) {
@@ -378,7 +377,6 @@ export const useNodeDBStore = createSharedComposable(() => {
     watchThrottled(nodeDatabase, (updated) => {
         // Write new value back into IndexedDB. Throttled to avoid writes on any change.
         if (isReactive(updated)) {
-            console.log('### 1', toRaw(updated));
             updateNodeDB(toRaw(updated));
         }
     }, {
