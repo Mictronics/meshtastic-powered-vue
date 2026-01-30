@@ -268,7 +268,7 @@ const navPanelItems = computed<NavPanelItem[]>(() => [
 const appPanelItems = computed(() => [
   {
     label: 'Color Scheme',
-    myIcon: modeIcon,
+    myIcon: modeIcon.value,
     command: (_event?: any) => {
       next();
     },
