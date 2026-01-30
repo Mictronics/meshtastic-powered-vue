@@ -52,7 +52,7 @@ import { ref, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import ConnectionItem from './ConnectionItem.vue';
 import AddConnectionDialog from './AddConnectionDialog.vue';
-import ConfirmDialog from './ConfirmDialog.vue';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import { useConnectionStore } from '@/composables/core/stores/connection/useConnectionStore';
 import { useConnection } from '@/composables/core/useConnection';
 import { useGlobalToast } from '@/composables/useGlobalToast';
