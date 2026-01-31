@@ -144,6 +144,21 @@ export const useIndexedDB = createSharedComposable(() => {
         return raw;
     }
 
+    async function clearAllStores(): Promise<void> {
+        const database = await db.value;
+
+        const storeNames = Array.from(database.objectStoreNames);
+        if (!storeNames.length) return;
+
+        const tx = database.transaction(storeNames, 'readwrite');
+
+        for (const name of storeNames) {
+            tx.objectStore(name).clear();
+        }
+
+        await tx.done;
+    }
+
     return {
         put,
         get,
@@ -151,6 +166,7 @@ export const useIndexedDB = createSharedComposable(() => {
         updateStore,
         deleteFromStore,
         getAllFromStore,
-        getFromStore
+        getFromStore,
+        clearAllStores,
     };
 });
