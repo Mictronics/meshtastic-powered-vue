@@ -194,7 +194,14 @@ class NodeDB implements INodeDB {
     };
 
     setNodeError(nodeNum: number, error: NodeErrorType) {
-        this.nodeErrors[nodeNum] = { node: nodeNum, error };
+        let e: NodeErrorType;
+        if (typeof error === 'number') {
+            const enumName = (Protobuf.Mesh as any).Routing_Error?.[error];
+            e = enumName ?? (error as any);
+        } else {
+            e = error;
+        }
+        this.nodeErrors[String(nodeNum)] = { node: nodeNum, error: e };
     }
 
     clearNodeError(nodeNum: number) {
