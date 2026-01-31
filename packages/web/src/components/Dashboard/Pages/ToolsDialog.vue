@@ -1,10 +1,11 @@
 <template>
   <PanelMenu :model="toolsPanelItems" class="w-full gap-1!" pt:panel:class="dashboard-panelmenu">
     <template #item="{ item }">
-      <a class="flex items-center cursor-pointer group">
+      <a v-if="!item.header" class="flex items-center cursor-pointer group">
         <component :is="item.myIcon" />
         <span class="ml-2">{{ item.label }}</span>
       </a>
+      <span v-else>{{ item.label }}</span>
     </template>
   </PanelMenu>
   <ConfirmDialog ref="confirmDialogRef" />
@@ -30,6 +31,7 @@ const visibleQRDialog = ref(false);
 
 type ToolPanelItem = {
   label: string;
+  header?: boolean;
   myIcon?: FunctionalComponent<LucideProps>;
   command?: (_event: any) => void;
 };
@@ -44,6 +46,7 @@ const toolsPanelItems = computed<ToolPanelItem[]>(() => [
   },
   {
     label: 'Device',
+    header: true,
   },
   {
     label: 'Enter DFU',
