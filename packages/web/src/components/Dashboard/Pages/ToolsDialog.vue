@@ -1,11 +1,10 @@
 <template>
   <PanelMenu :model="toolsPanelItems" class="w-full gap-1!" pt:panel:class="dashboard-panelmenu">
     <template #item="{ item }">
-      <a v-if="!item.header" class="flex items-center cursor-pointer group">
+      <a class="flex items-center cursor-pointer group">
         <component :is="item.myIcon" />
         <span class="ml-2">{{ item.label }}</span>
       </a>
-      <span v-else>{{ item.label }}</span>
     </template>
   </PanelMenu>
   <ConfirmDialog ref="confirmDialogRef" />
@@ -15,23 +14,35 @@
 </template>
 
 <script setup lang="ts">
-import { QrCode, HardDriveDownload, RefreshCw, PowerOff, Trash, Factory } from 'lucide-vue-next';
+import {
+  QrCode,
+  HardDriveDownload,
+  RefreshCw,
+  PowerOff,
+  Trash,
+  Factory,
+  Eraser,
+  Unlink,
+} from 'lucide-vue-next';
 import { ref, computed } from 'vue';
 import type { FunctionalComponent } from 'vue';
 import type { LucideProps } from 'lucide-vue-next';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import QRDialog from './QRDialog.vue';
 import { useDeviceStore } from '@/composables/core/stores/device/useDeviceStore';
+import { useMessageStore } from '@/composables/core/stores/message/useMessageStore';
+import { useIndexedDB } from '@/composables/core/stores/indexedDB';
 import { useGlobalToast } from '@/composables/useGlobalToast';
 
 const device = useDeviceStore().device;
+const messages = useMessageStore().messageStore;
+const indexedDB = useIndexedDB();
 const toast = useGlobalToast();
 const confirmDialogRef = ref<InstanceType<typeof ConfirmDialog> | null>(null);
 const visibleQRDialog = ref(false);
 
 type ToolPanelItem = {
   label: string;
-  header?: boolean;
   myIcon?: FunctionalComponent<LucideProps>;
   command?: (_event: any) => void;
 };
@@ -43,10 +54,6 @@ const toolsPanelItems = computed<ToolPanelItem[]>(() => [
     command: (_event?: any) => {
       visibleQRDialog.value = true;
     },
-  },
-  {
-    label: 'Device',
-    header: true,
   },
   {
     label: 'Enter DFU',
@@ -185,6 +192,51 @@ const toolsPanelItems = computed<ToolPanelItem[]>(() => [
             severity: 'info',
             summary: 'Reset',
             detail: 'Factory reset initiated.',
+            life: 3000,
+          });
+        });
+      }
+    },
+  },
+  {
+    label: 'Clear Message Store',
+    myIcon: Eraser,
+    command: async (_event?: any) => {
+      const confirmed = await confirmDialogRef.value?.open({
+        header: 'Clear Message Store?',
+        message: 'This will clear all message from persistent browser storage!',
+        acceptLabel: 'Clear',
+        cancelLabel: 'Cancel',
+      });
+
+      if (confirmed) {
+        messages.value?.deleteAllMessages();
+        toast.add({
+          severity: 'info',
+          summary: 'Clear',
+          detail: 'All messages deleted.',
+          life: 3000,
+        });
+      }
+    },
+  },
+  {
+    label: 'Clear All Stores',
+    myIcon: Eraser,
+    command: async (_event?: any) => {
+      const confirmed = await confirmDialogRef.value?.open({
+        header: 'Clear Database Stores?',
+        message: 'This will clear the entire persistent browser storage!',
+        acceptLabel: 'Clear',
+        cancelLabel: 'Cancel',
+      });
+
+      if (confirmed) {
+        indexedDB.clearAllStores().then(() => {
+          toast.add({
+            severity: 'info',
+            summary: 'Clear',
+            detail: 'All stores deleted.',
             life: 3000,
           });
         });
