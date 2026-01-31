@@ -132,7 +132,7 @@
       <p>{{ version }} #{{ commitHash }}</p>
     </div>
   </aside>
-  <Dialog v-model:visible="visibleToolDialog" modal header="Tools">
+  <Dialog v-model:visible="visibleToolDialog" modal header="Tools" class="min-h-1/2">
     <ToolsDialog />
   </Dialog>
 </template>
@@ -161,7 +161,7 @@ import ToolsDialog from './Pages/ToolsDialog.vue';
 import type { FunctionalComponent } from 'vue';
 import type { LucideProps } from 'lucide-vue-next';
 import { Protobuf } from '@meshtastic/core';
-import { useRoute, type RouteLocationNormalized } from 'vue-router';
+import { useRoute } from 'vue-router';
 import { computedWithControl } from '@vueuse/core';
 
 type NavPanelItem = {
