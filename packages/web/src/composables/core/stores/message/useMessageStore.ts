@@ -274,7 +274,6 @@ export const useMessageStore = createSharedComposable(() => {
     watchThrottled(messageStore, (updated) => {
         // Write new value back into IndexedDB. Throttled to avoid writes on any change.
         if (isReactive(updated)) {
-            console.log('### 4', toRaw(updated));
             updateMessageStore(toRaw(updated));
         }
     }, {

@@ -650,7 +650,6 @@ export const useDeviceStore = createSharedComposable(() => {
     watchThrottled(device, (updated) => {
         // Write new value back into IndexedDB. Throttled to avoid writes on any change.
         if (isReactive(updated)) {
-            console.log('###', toRaw(updated));
             updateDevice(toRaw(updated));
         }
     }, {
