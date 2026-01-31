@@ -17,9 +17,12 @@
       />
       <div class="flex flex-row">
         <div
-          class="p-1 rounded-2xl shadow-sm relative dark:bg-slate-800 text-slate-800 dark:text-slate-400 rounded-bl-none"
+          class="p-1 relative dark:bg-slate-800 text-slate-800 dark:text-slate-400"
+          :class="{ 'rounded-2xl shadow-sm rounded-bl-none': !isEmojiOnly }"
         >
-          <p class="truncate">{{ message.message }}</p>
+          <p class="truncate" :class="{ 'emoji-only': isEmojiOnly }">
+            {{ message.message }}
+          </p>
           <div class="flex items-center justify-start gap-1 mt-1 opacity-70">
             <span class="text-[10px]">
               {{ message.longName ?? 'Unknown' }} on {{ formattedDate }}
@@ -69,7 +72,17 @@ const formattedDate = computed(() => {
     second: '2-digit',
   });
 });
+
+const isEmojiOnly = computed(() => {
+  if (props.message.groupedType !== 'message') return false;
+  const text = props.message.message?.trim();
+  if (!text) return false;
+  // Matches exactly one emoji
+  const emojiRegex = /^(?:\p{Extended_Pictographic}|\p{Emoji_Presentation})(?:\uFE0F)?$/u;
+  return emojiRegex.test(text);
+});
 </script>
+
 <style lang="css" scoped>
 .unread-divider {
   animation: fadeIn 0.4s ease-out;
@@ -85,5 +98,16 @@ const formattedDate = computed(() => {
 .dark .unread-divider::before,
 .dark .unread-divider::after {
   border-bottom: 1px solid var(--color-sky-700) !important;
+}
+
+.emoji-only {
+  font-size: 2rem;
+  line-height: 1;
+  white-space: nowrap;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  overflow: unset !important;
 }
 </style>
