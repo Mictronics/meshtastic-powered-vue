@@ -1,5 +1,5 @@
 <template>
-  <div class="flex gap-4">
+  <div class="flex flex-wrap gap-4">
     <Button
       v-for="btn in buttonState"
       :key="btn.key"
