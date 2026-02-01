@@ -11,15 +11,15 @@ import NodeCards from '@/components/Dashboard/Pages/NodeView/NodeCards.vue'
 import MessageView from '@/components/Dashboard/Pages/MessageView/MessageView.vue'
 import MapView from '@/components/Dashboard/Pages/MapView/MapView.vue'
 
-function chatProps(route: RouteLocationNormalizedLoaded) {
+const chatProps = (route: RouteLocationNormalizedLoaded) => {
   return { type: String(route.params.type), id: String(route.params.id) }
 }
 
-function validateChatRoute(
+const validateChatRoute = (
   to: RouteLocationNormalizedLoaded,
   from: RouteLocationNormalized,
   next: NavigationGuardNext
-): void {
+): void => {
   const type = String(to.params.type)
   const idRaw = String(to.params.id)
   const idNum = Number(idRaw)
