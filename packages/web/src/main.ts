@@ -34,6 +34,11 @@ import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
 import Drawer from 'primevue/drawer';
 import VirtualScroller from 'primevue/virtualscroller';
+import Accordion from 'primevue/accordion';
+import AccordionPanel from 'primevue/accordionpanel';
+import AccordionHeader from 'primevue/accordionheader';
+import AccordionContent from 'primevue/accordioncontent';
+import Fieldset from 'primevue/fieldset';
 
 import Toast from 'primevue/toast';
 import ToastService from 'primevue/toastservice';
@@ -101,7 +106,12 @@ try {
     IconField,
     InputIcon,
     Drawer,
-    VirtualScroller
+    VirtualScroller,
+    Accordion,
+    AccordionPanel,
+    AccordionHeader,
+    AccordionContent,
+    Fieldset
 ].forEach(component => {
     app.component(component.name, component);
 });
