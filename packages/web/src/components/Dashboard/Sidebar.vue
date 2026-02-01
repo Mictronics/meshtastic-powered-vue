@@ -52,6 +52,7 @@
           </button>
         </template>
       </PanelMenu>
+
       <!-- Channel panel -->
       <p v-if="isSideBarVisible && isChatView" class="py-2 logo-text">Channels</p>
       <PanelMenu
@@ -94,6 +95,28 @@
         </template>
       </PanelMenu>
 
+      <!-- Settings panel -->
+      <p v-if="isSideBarVisible && isSettingsView" class="py-2 logo-text">Settings</p>
+      <PanelMenu
+        v-if="isSettingsView"
+        :model="settingsPanelItems"
+        class="w-full gap-1!"
+        pt:panel:class="dashboard-panelmenu"
+      >
+        <template #item="{ item }">
+          <router-link
+            v-if="item.to"
+            :to="item.to"
+            class="flex items-center group w-full rounded-md"
+            :class="{ 'bg-slate-200 dark:bg-slate-700': item.active }"
+          >
+            <component :is="item.myIcon" />
+            <span v-if="isSideBarVisible" class="ml-2">{{ item.label }}</span>
+          </router-link>
+        </template>
+      </PanelMenu>
+
+      <!-- Device info -->
       <DeviceInfo
         :connection-status="connectionStatus"
         :connection-name="connectionName"
@@ -105,6 +128,8 @@
         :battery-level="batteryLevel"
         :voltage="voltage"
       />
+
+      <!-- Application panel -->
       <PanelMenu :model="appPanelItems" class="w-full gap-1!" pt:panel:class="dashboard-panelmenu">
         <template #item="{ item }">
           <a class="flex items-center cursor-pointer group">
@@ -149,6 +174,9 @@ import {
   SunMoon,
   Menu,
   Wrench,
+  RadioTower,
+  Component,
+  Router,
 } from 'lucide-vue-next';
 import { ref, computed, watchEffect, watch } from 'vue';
 import { useConnectionStore } from '@/composables/core/stores/connection/useConnectionStore';
@@ -186,6 +214,7 @@ type ChannelPanelItem = {
 const emit = defineEmits<{
   (e: 'update:isSideBarVisible', value: boolean): void;
 }>();
+
 const props = defineProps<{
   isSideBarVisible: boolean;
 }>();
@@ -258,6 +287,7 @@ const navPanelItems = computed<NavPanelItem[]>(() => [
   {
     label: 'Settings',
     myIcon: Settings,
+    to: '/settings/radio',
   },
   {
     label: 'Nodes',
@@ -349,6 +379,25 @@ watch(
   },
   { immediate: true }
 );
+
+const isSettingsView = computed(() => route.matched.some((r) => r.meta?.viewSettings));
+const settingsPanelItems = computed(() => [
+  {
+    label: 'Radio',
+    myIcon: RadioTower,
+    to: '/settings/radio',
+  },
+  {
+    label: 'Device',
+    myIcon: Router,
+    to: '/settings/device',
+  },
+  {
+    label: 'Modules',
+    myIcon: Component,
+    to: '/settings/modules',
+  },
+]);
 </script>
 
 <style lang="css" scoped>

@@ -10,6 +10,9 @@ import Dashboard from '@/views/Dashboard.vue'
 import NodeCards from '@/components/Dashboard/Pages/NodeView/NodeCards.vue'
 import MessageView from '@/components/Dashboard/Pages/MessageView/MessageView.vue'
 import MapView from '@/components/Dashboard/Pages/MapView/MapView.vue'
+import RadioView from '@/components/Dashboard/Pages/Settings/RadioView.vue'
+import DeviceView from '@/components/Dashboard/Pages/Settings/DeviceView.vue'
+import ModuleView from '@/components/Dashboard/Pages/Settings/ModuleView.vue'
 
 const chatProps = (route: RouteLocationNormalizedLoaded) => {
   return { type: String(route.params.type), id: String(route.params.id) }
@@ -37,6 +40,7 @@ const validateChatRoute = (
   next()
 }
 
+// Meta is used to hide/show submenus in sidebar.
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -92,6 +96,31 @@ const router = createRouter({
         },
       ],
     },
+    {
+      path: '/settings',
+      name: 'settings',
+      component: Dashboard,
+      children: [
+        {
+          path: 'radio',
+          name: 'settings.radio',
+          component: RadioView,
+          meta: { viewSettings: true }
+        },
+        {
+          path: 'device',
+          name: 'settings.device',
+          component: DeviceView,
+          meta: { viewSettings: true }
+        },
+        {
+          path: 'modules',
+          name: 'settings.modules',
+          component: ModuleView,
+          meta: { viewSettings: true }
+        }
+      ]
+    }
   ],
 })
 
