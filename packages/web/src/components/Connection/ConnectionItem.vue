@@ -186,22 +186,22 @@ const op = ref<any>(null);
 let clientX = 0;
 let clientY = 0;
 
-function toggle(event: MouseEvent) {
+const toggle = (event: MouseEvent) => {
   clientX = event.clientX;
   clientY = event.clientY;
   op.value?.toggle(event);
-}
+};
 
-function getEnumKey(enumObj: any, value: number): string | undefined {
+const getEnumKey = (enumObj: any, value: number): string | undefined => {
   return Object.keys(enumObj).find((key) => enumObj[key] === value);
-}
+};
 
-function isConnected(): boolean {
+const isConnected = (): boolean => {
   const status = props.connection.status;
   return status === ConnectionStatus.Connected || status === ConnectionStatus.Configured;
-}
+};
 
-function setPopoverPosition() {
+const setPopoverPosition = () => {
   /* Workaround for bug in Primevue Popover.
    * https://github.com/primefaces/primevue/issues/6616
    */
@@ -210,19 +210,19 @@ function setPopoverPosition() {
     po.style.top = `${clientY}px`;
     po.style.insetInlineStart = `${clientX - 130}px`;
   }
-}
+};
 
-function onSetDefault(value: boolean) {
+const onSetDefault = (value: boolean) => {
   emit('eventConnectionDefault', props.connection.id, value);
   op.value.hide();
-}
+};
 
-function onDelete() {
+const onDelete = () => {
   emit('eventConnectionDelete', props.connection.id);
   op.value.hide();
-}
+};
 
-function formatDate(epoch?: number) {
+const formatDate = (epoch?: number) => {
   const date = new Date(0);
   if (epoch === undefined) {
     date.setUTCSeconds(Math.ceil(Date.now() / 1000));
@@ -230,9 +230,9 @@ function formatDate(epoch?: number) {
     date.setUTCSeconds(epoch);
   }
   return formatTimeAgoIntl(date);
-}
+};
 
-function formatConnectionSubtext(conn: IConnection): string {
+const formatConnectionSubtext = (conn: IConnection): string => {
   if (conn.type === ConnectionType.Http) {
     return conn.url;
   } else if (conn.type === ConnectionType.Bluetooth) {
@@ -243,7 +243,7 @@ function formatConnectionSubtext(conn: IConnection): string {
     return `USB ${v}:${p}`;
   }
   return '?';
-}
+};
 </script>
 
 <style scoped lang="css">

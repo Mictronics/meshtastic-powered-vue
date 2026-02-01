@@ -37,10 +37,11 @@ const props = defineProps<Props>();
 const modes = ['WGS84 DD', 'WGS84 DMS', 'WGS84 DM', 'UTM', 'WebMercator'] as const;
 const modeIndex = ref(0);
 
-function nextMode() {
+const nextMode = () => {
   modeIndex.value = (modeIndex.value + 1) % modes.length;
-}
-function toDMS(value: number) {
+};
+
+const toDMS = (value: number) => {
   const sign = value < 0 ? -1 : 1;
   const abs = Math.abs(value);
   const deg = Math.floor(abs);
@@ -48,27 +49,27 @@ function toDMS(value: number) {
   const min = Math.floor(minFloat);
   const sec = (minFloat - min) * 60;
   return { deg, min, sec, sign };
-}
+};
 
-function toDM(value: number) {
+const toDM = (value: number) => {
   const sign = value < 0 ? -1 : 1;
   const abs = Math.abs(value);
   const deg = Math.floor(abs);
   const min = (abs - deg) * 60;
   return { deg, min, sign };
-}
+};
 
 proj4.defs('EPSG:4326', '+proj=longlat +datum=WGS84 +no_defs');
 proj4.defs('EPSG:3857', '+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs');
 
-function utmEpsg(lat: number, lon: number) {
+const utmEpsg = (lat: number, lon: number) => {
   const zone = Math.floor((lon + 180) / 6) + 1;
   return lat >= 0 ? `EPSG:${32600 + zone}` : `EPSG:${32700 + zone}`;
-}
+};
 
-function utmBand(lat: number) {
+const utmBand = (lat: number) => {
   return 'CDEFGHJKLMNPQRSTUVWX'.charAt(Math.floor((lat + 80) / 8));
-}
+};
 
 const displayValue = computed(() => {
   const lat = props.latitude;
