@@ -4,7 +4,7 @@
     <div class="w-full flex">
       <Sidebar
         :is-side-bar-visible="useAppStore().appData.isSideBarVisible"
-        @event-toggle-sidebar="onToggleSidebar"
+        @update:is-side-bar-visible="onToggleSidebar"
       />
       <div class="w-full h-full border-b border-slate-200 dark:border-slate-600">
         <RouterView />
@@ -29,8 +29,8 @@
 import { useAppStore } from '@/composables/core/stores/app/useAppStore';
 import Sidebar from '@/components/Dashboard/Sidebar.vue';
 
-const onToggleSidebar = () => {
-  useAppStore().appData.isSideBarVisible = !useAppStore().appData.isSideBarVisible;
+const onToggleSidebar = (isSideBarVisible: boolean) => {
+  useAppStore().appData.isSideBarVisible = isSideBarVisible;
 };
 </script>
 

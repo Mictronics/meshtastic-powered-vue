@@ -4,7 +4,7 @@
       aria-label="Toggle sidebar"
       severity="secondary"
       variant="outlined"
-      @click="$emit('eventToggleSidebar')"
+      @click="emit('update:isSideBarVisible', !props.isSideBarVisible)"
       class="absolute top-4 right-0 translate-x-1/2 px-2 py-2 z-50 bg-white dark:bg-slate-600"
     >
       <Menu :size="15" />
@@ -150,12 +150,12 @@ import {
   Menu,
   Wrench,
 } from 'lucide-vue-next';
-import { ref, computed, watchEffect } from 'vue';
+import { ref, computed, watchEffect, watch } from 'vue';
 import { useConnectionStore } from '@/composables/core/stores/connection/useConnectionStore';
 import { ConnectionStatus } from '@/composables/core/stores/connection/types';
 import { useDeviceStore } from '@/composables/core/stores/device/useDeviceStore';
 import { useNodeDBStore } from '@/composables/core/stores/nodeDB/useNodeDBStore';
-import { useColorMode, useCycleList } from '@vueuse/core';
+import { useColorMode, useCycleList, useMediaQuery } from '@vueuse/core';
 import DeviceInfo from '@/components/Dashboard/DeviceInfo.vue';
 import ToolsDialog from './Pages/ToolsDialog.vue';
 import type { FunctionalComponent } from 'vue';
@@ -163,6 +163,8 @@ import type { LucideProps } from 'lucide-vue-next';
 import { Protobuf } from '@meshtastic/core';
 import { useRoute } from 'vue-router';
 import { computedWithControl } from '@vueuse/core';
+
+const BREAKPOINT_MD = 768;
 
 type NavPanelItem = {
   label: string;
@@ -182,7 +184,7 @@ type ChannelPanelItem = {
 };
 
 const emit = defineEmits<{
-  (e: 'eventToggleSidebar'): void;
+  (e: 'update:isSideBarVisible', value: boolean): void;
 }>();
 const props = defineProps<{
   isSideBarVisible: boolean;
@@ -221,6 +223,7 @@ const batteryLevel = computed(() => myNode.value?.deviceMetrics?.batteryLevel);
 const voltage = computed(() => myNode.value?.deviceMetrics?.voltage);
 const online = computed(() => myNode.value?.localStats?.numOnlineNodes || '-');
 const visibleToolDialog = ref(false);
+const isLargeScreen = useMediaQuery(`(min-width: ${BREAKPOINT_MD}px)`);
 
 const nodeCount = computed(() => {
   const nm = nodeDBStore.nodeDatabase.value?.nodeMap;
@@ -338,6 +341,14 @@ const channelPanelItems = computed(() => {
 
   return chList;
 });
+
+watch(
+  isLargeScreen,
+  (large) => {
+    emit('update:isSideBarVisible', large);
+  },
+  { immediate: true }
+);
 </script>
 
 <style lang="css" scoped>
