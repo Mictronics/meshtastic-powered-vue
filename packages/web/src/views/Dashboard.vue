@@ -1,7 +1,7 @@
 <template>
   <Toast position="bottom-right" />
-  <main>
-    <div class="w-full flex">
+  <main class="min-h-screen flex flex-col">
+    <div class="w-full flex flex-1">
       <Sidebar
         :is-side-bar-visible="useAppStore().appData.isSideBarVisible"
         @update:is-side-bar-visible="onToggleSidebar"
