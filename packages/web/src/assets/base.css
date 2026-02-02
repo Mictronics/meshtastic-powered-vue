@@ -548,6 +548,7 @@
   --p-toggleswitch-handle-size: 1rem;
   --p-toggleswitch-width: 2.5rem;
   --p-toggleswitch-height: 1.5rem;
+  --p-inputgroup-addon-padding: 0.5rem 0.5rem;
 }
 
 :root {
@@ -571,9 +572,9 @@
 }
 
 :root.dark {
-  --p-primary-color: var(--color-green-400);
+  --p-primary-color: var(--color-green-700);
   --p-primary-contrast-color: var(--color-slate-900);
-  --p-primary-hover-color: var(--color-green-300);
+  --p-primary-hover-color: var(--color-green-500);
   --p-primary-active-color: var(--color-green-200);
   --p-content-border-color: var(--color-slate-700);
   --p-content-hover-background: var(--color-slate-800);
