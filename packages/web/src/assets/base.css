@@ -545,6 +545,9 @@
   --p-surface-900: var(--color-slate-900);
   --p-surface-950: var(--color-slate-950);
   --p-content-border-radius: 6px;
+  --p-toggleswitch-handle-size: 1rem;
+  --p-toggleswitch-width: 2.5rem;
+  --p-toggleswitch-height: 1.5rem;
 }
 
 :root {
