@@ -38,7 +38,8 @@ import Accordion from 'primevue/accordion';
 import AccordionPanel from 'primevue/accordionpanel';
 import AccordionHeader from 'primevue/accordionheader';
 import AccordionContent from 'primevue/accordioncontent';
-import Fieldset from 'primevue/fieldset';
+import ToggleSwitch from 'primevue/toggleswitch';
+import Select from 'primevue/select';
 
 import Toast from 'primevue/toast';
 import ToastService from 'primevue/toastservice';
@@ -111,7 +112,8 @@ try {
     AccordionPanel,
     AccordionHeader,
     AccordionContent,
-    Fieldset
+    ToggleSwitch,
+    Select
 ].forEach(component => {
     app.component(component.name, component);
 });
