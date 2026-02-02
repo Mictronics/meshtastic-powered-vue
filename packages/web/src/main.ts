@@ -40,6 +40,7 @@ import AccordionHeader from 'primevue/accordionheader';
 import AccordionContent from 'primevue/accordioncontent';
 import ToggleSwitch from 'primevue/toggleswitch';
 import Select from 'primevue/select';
+import Fieldset from 'primevue/fieldset';
 
 import Toast from 'primevue/toast';
 import ToastService from 'primevue/toastservice';
@@ -113,7 +114,8 @@ try {
     AccordionHeader,
     AccordionContent,
     ToggleSwitch,
-    Select
+    Select,
+    Fieldset
 ].forEach(component => {
     app.component(component.name, component);
 });
