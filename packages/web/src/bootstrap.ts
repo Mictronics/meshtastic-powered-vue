@@ -5,9 +5,11 @@ import { useMessageStore } from '@/composables/core/stores/message/useMessageSto
 import { useNodeDBStore } from '@/composables/core/stores/nodeDB/useNodeDBStore';
 import { useAppStore } from '@/composables/core/stores/app/useAppStore';
 import { useFormattedNodeDatabase } from '@/composables/core/utils/useFormattedNodeDatabase';
+import { useConfirm } from './composables/useConfirmDialog';
 
 export function bootstrapApp() {
     try {
+        useConfirm();
         useIndexedDB();
         useAppStore();
         useConnectionStore();
