@@ -15,9 +15,9 @@
         <span class="font-bold text-2xl block mb-2 mt-6">{{ message.header }}</span>
         <p class="mb-0">{{ message.message }}</p>
         <div class="flex items-center gap-2 mt-6">
-          <Button label="Delete" severity="danger" @click="acceptCallback"></Button>
+          <Button :label="message.acceptLabel" severity="danger" @click="acceptCallback"></Button>
           <Button
-            label="Cancel"
+            :label="message.rejectLabel"
             severity="secondary"
             variant="outlined"
             @click="rejectCallback"
