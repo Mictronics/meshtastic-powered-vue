@@ -19,6 +19,11 @@
           class="dark:bg-slate-800 dark:text-slate-400"
           size="small"
           v-model="model.modemPreset"
+          :disabled="!model.usePreset"
+          :options="modemPresetOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Select modem preset"
         />
       </FormRow>
 
@@ -67,6 +72,7 @@
 </template>
 
 <script setup lang="ts">
+import { Protobuf } from '@meshtastic/core';
 import FormGrid from '../components/FormGrid.vue';
 import FormRow from '../components/FormRow.vue';
 
@@ -79,4 +85,11 @@ defineProps<{
     codingRate: string;
   };
 }>();
+
+const modemPresetOptions = Object.entries(Protobuf.Config.Config_LoRaConfig_ModemPreset)
+  .filter(([_, value]) => typeof value === 'number')
+  .map(([key, value]) => ({
+    label: key.replaceAll('_', ' '),
+    value: value as Protobuf.Config.Config_LoRaConfig_ModemPreset,
+  }));
 </script>

@@ -8,18 +8,26 @@
       <FormRow label="Region" for-id="region" description="Sets the region for your node.">
         <Select
           aria-labelledby="region"
-          class="dark:bg-slate-800 dark:text-slate-400"
+          class="dark:bg-slate-800 dark:text-slate-400 w-full"
           size="small"
           v-model="model.region"
+          :options="regionOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Select your region"
         />
       </FormRow>
 
       <FormRow label="Hop Limit" for-id="hopLimit" description="Maximum number of hops.">
         <Select
           aria-labelledby="hopLimit"
-          class="dark:bg-slate-800 dark:text-slate-400"
+          class="dark:bg-slate-800 dark:text-slate-400 w-full"
           size="small"
           v-model="model.hopLimit"
+          :options="hopLimitOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Select hop limit"
         />
       </FormRow>
 
@@ -57,16 +65,35 @@
 </template>
 
 <script setup lang="ts">
+import { Protobuf } from '@meshtastic/core';
 import FormGrid from '../components/FormGrid.vue';
 import FormRow from '../components/FormRow.vue';
 
 defineProps<{
   model: {
-    region: string;
+    region: number;
     hopLimit: number;
     frequencySlot: string;
     forwardMqtt: boolean;
     allowMqtt: boolean;
   };
 }>();
+
+type HopLimit = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+const hopLimitOptions: { label: string; value: HopLimit }[] = [
+  { label: '1 hop', value: 1 },
+  { label: '2 hops', value: 2 },
+  { label: '3 hops', value: 3 },
+  { label: '4 hops', value: 4 },
+  { label: '5 hops', value: 5 },
+  { label: '6 hops', value: 5 },
+  { label: '7 hops', value: 5 },
+];
+
+const regionOptions = Object.entries(Protobuf.Config.Config_LoRaConfig_RegionCode)
+  .filter(([_, value]) => typeof value === 'number')
+  .map(([key, value]) => ({
+    label: key,
+    value: value as Protobuf.Config.Config_LoRaConfig_RegionCode,
+  }));
 </script>

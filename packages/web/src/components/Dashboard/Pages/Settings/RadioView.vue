@@ -37,8 +37,8 @@ import WaveformSettings from './subforms/WaveformSettings.vue';
 import RadioSettings from './subforms/RadioSettings.vue';
 
 const meshSettings = ref({
-  region: '',
-  hopLimit: 0,
+  region: 0,
+  hopLimit: 3,
   frequencySlot: '',
   forwardMqtt: false,
   allowMqtt: false,
