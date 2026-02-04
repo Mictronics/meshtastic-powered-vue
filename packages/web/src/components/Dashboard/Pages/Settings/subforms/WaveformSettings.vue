@@ -52,7 +52,7 @@
             :invalid="v$.bandwidth.$invalid"
             @blur="v$.bandwidth.$touch()"
           />
-          <InputGroupAddon class="">kHz</InputGroupAddon>
+          <InputGroupAddon>kHz</InputGroupAddon>
         </InputGroup>
       </FormRow>
 
@@ -75,7 +75,7 @@
             :invalid="v$.spreadingFactor.$invalid"
             @blur="v$.spreadingFactor.$touch()"
           />
-          <InputGroupAddon class="">CPS</InputGroupAddon>
+          <InputGroupAddon>CPS</InputGroupAddon>
         </InputGroup>
       </FormRow>
 

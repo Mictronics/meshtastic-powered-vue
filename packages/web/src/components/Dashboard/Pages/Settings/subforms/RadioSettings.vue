@@ -32,7 +32,7 @@
             :invalid="v$.transmitPower.$invalid"
             @blur="v$.transmitPower.$touch()"
           />
-          <InputGroupAddon class="">dBm</InputGroupAddon>
+          <InputGroupAddon>dBm</InputGroupAddon>
         </InputGroup>
       </FormRow>
 
@@ -58,7 +58,7 @@
             :invalid="v$.frequencyOffset.$invalid"
             @blur="v$.frequencyOffset.$touch()"
           />
-          <InputGroupAddon class="">Hz</InputGroupAddon>
+          <InputGroupAddon>Hz</InputGroupAddon>
         </InputGroup>
       </FormRow>
 
@@ -81,7 +81,7 @@
             :invalid="v$.overrideFrequency.$invalid"
             @blur="v$.overrideFrequency.$touch()"
           />
-          <InputGroupAddon class="">MHz</InputGroupAddon>
+          <InputGroupAddon>MHz</InputGroupAddon>
         </InputGroup>
       </FormRow>
 
