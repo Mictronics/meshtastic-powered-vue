@@ -34,6 +34,8 @@
             class="dark:bg-slate-800 dark:text-slate-400"
             size="small"
             v-model="model.bandwidth"
+            type="number"
+            :disabled="model.usePreset"
           />
           <InputGroupAddon class="">kHz</InputGroupAddon>
         </InputGroup>
@@ -50,6 +52,8 @@
             class="dark:bg-slate-800 dark:text-slate-400"
             size="small"
             v-model="model.spreadingFactor"
+            type="number"
+            :disabled="model.usePreset"
           />
           <InputGroupAddon class="">CPS</InputGroupAddon>
         </InputGroup>
@@ -65,6 +69,8 @@
           class="dark:bg-slate-800 dark:text-slate-400"
           size="small"
           v-model="model.codingRate"
+          type="number"
+          :disabled="model.usePreset"
         />
       </FormRow>
     </FormGrid>

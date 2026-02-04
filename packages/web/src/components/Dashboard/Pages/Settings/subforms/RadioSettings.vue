@@ -43,6 +43,7 @@
             class="dark:bg-slate-800 dark:text-slate-400"
             size="small"
             v-model="model.frequencyOffset"
+            type="number"
           />
           <InputGroupAddon class="">Hz</InputGroupAddon>
         </InputGroup>
@@ -59,6 +60,8 @@
             class="dark:bg-slate-800 dark:text-slate-400"
             size="small"
             v-model="model.overrideFrequency"
+            type="number"
+            step="0.001"
           />
           <InputGroupAddon class="">MHz</InputGroupAddon>
         </InputGroup>
