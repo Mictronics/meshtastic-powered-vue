@@ -199,7 +199,6 @@
       </div>
     </Drawer>
   </div>
-  <ConfirmDialog ref="confirmDialogRef" />
 </template>
 
 <script setup lang="ts">
@@ -224,6 +223,7 @@ import { useIgnoreNode } from '@/composables/core/utils/useIgnoreNode';
 import { type SortDir } from '@/components/Dashboard/Pages/NodeView/types';
 import { orderBy, filter, some } from 'lodash-es';
 import { useDeleteNode } from '@/composables/core/utils/useDeleteNode';
+import { useConfirm } from '@/composables/useConfirmDialog';
 
 const nodeDatabase = useFormattedNodeDatabase().nodeDatabase;
 const searchQuery = ref('');
@@ -233,6 +233,7 @@ const selectedNode = ref<FormattedNode>();
 const windowWidth = ref(window.innerWidth);
 const showScrollButton = ref(false);
 const scroller = ref();
+const { open } = useConfirm();
 
 const nodeInfoItems = computed(() => {
   const n = selectedNode.value;
@@ -456,9 +457,8 @@ const onMarkIgnored = (nodeNumber: number, fav: boolean) => {
   useIgnoreNode().updateIgnore(nodeNumber, fav);
 };
 
-const confirmDialogRef = ref<InstanceType<typeof ConfirmDialog> | null>(null);
 const deleteNode = async (nodeNumber: number) => {
-  const confirmed = await confirmDialogRef.value?.open({
+  const confirmed = await open({
     header: 'Delete Node?',
     message: 'All data linked to this node will be permanently deleted.',
     acceptLabel: 'Delete',

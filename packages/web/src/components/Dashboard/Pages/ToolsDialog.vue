@@ -7,7 +7,6 @@
       </a>
     </template>
   </PanelMenu>
-  <ConfirmDialog ref="confirmDialogRef" />
   <Dialog v-model:visible="visibleQRDialog" header="Channel QR Code">
     <QRDialog />
   </Dialog>
@@ -33,13 +32,14 @@ import { useDeviceStore } from '@/composables/core/stores/device/useDeviceStore'
 import { useMessageStore } from '@/composables/core/stores/message/useMessageStore';
 import { useIndexedDB } from '@/composables/core/stores/indexedDB';
 import { useGlobalToast } from '@/composables/useGlobalToast';
+import { useConfirm } from '@/composables/useConfirmDialog';
 
 const device = useDeviceStore().device;
 const messages = useMessageStore().messageStore;
 const indexedDB = useIndexedDB();
 const toast = useGlobalToast();
-const confirmDialogRef = ref<InstanceType<typeof ConfirmDialog> | null>(null);
 const visibleQRDialog = ref(false);
+const { open } = useConfirm();
 
 type ToolPanelItem = {
   label: string;
@@ -87,7 +87,7 @@ const toolsPanelItems = computed<ToolPanelItem[]>(() => [
     label: 'Reset Node Database',
     myIcon: Trash,
     command: async (_event?: any) => {
-      const confirmed = await confirmDialogRef.value?.open({
+      const confirmed = await open({
         header: 'Reset Node Database?',
         message: 'This will delete all nodes from the device database.',
         acceptLabel: 'Reset',
@@ -110,7 +110,7 @@ const toolsPanelItems = computed<ToolPanelItem[]>(() => [
     label: 'Shutdown',
     myIcon: PowerOff,
     command: async (_event?: any) => {
-      const confirmed = await confirmDialogRef.value?.open({
+      const confirmed = await open({
         header: 'Shutdown device?',
         message: 'The device will be shut down immediately.',
         acceptLabel: 'Shutdown',
@@ -133,7 +133,7 @@ const toolsPanelItems = computed<ToolPanelItem[]>(() => [
     label: 'Reboot',
     myIcon: RefreshCw,
     command: async (_event?: any) => {
-      const confirmed = await confirmDialogRef.value?.open({
+      const confirmed = await open({
         header: 'Reboot device?',
         message: 'The device will immediately reboot.',
         acceptLabel: 'Reboot',
@@ -156,7 +156,7 @@ const toolsPanelItems = computed<ToolPanelItem[]>(() => [
     label: 'Factory Reset Device',
     myIcon: Factory,
     command: async (_event?: any) => {
-      const confirmed = await confirmDialogRef.value?.open({
+      const confirmed = await open({
         header: 'Factory Reset Device?',
         message: 'The device will be reset to factory defaults.',
         acceptLabel: 'Reset',
@@ -179,7 +179,7 @@ const toolsPanelItems = computed<ToolPanelItem[]>(() => [
     label: 'Factory Reset Configuration',
     myIcon: Factory,
     command: async (_event?: any) => {
-      const confirmed = await confirmDialogRef.value?.open({
+      const confirmed = await open({
         header: 'Factory Reset Configuration?',
         message: 'The configuration will be reset to factory defaults.',
         acceptLabel: 'Reset',
@@ -202,7 +202,7 @@ const toolsPanelItems = computed<ToolPanelItem[]>(() => [
     label: 'Clear Message Store',
     myIcon: Eraser,
     command: async (_event?: any) => {
-      const confirmed = await confirmDialogRef.value?.open({
+      const confirmed = await open({
         header: 'Clear Message Store?',
         message: 'This will clear all message from persistent browser storage!',
         acceptLabel: 'Clear',
@@ -224,7 +224,7 @@ const toolsPanelItems = computed<ToolPanelItem[]>(() => [
     label: 'Clear All Stores',
     myIcon: Eraser,
     command: async (_event?: any) => {
-      const confirmed = await confirmDialogRef.value?.open({
+      const confirmed = await open({
         header: 'Clear Database Stores?',
         message: 'This will clear the entire persistent browser storage!',
         acceptLabel: 'Clear',

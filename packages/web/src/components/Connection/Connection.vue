@@ -43,7 +43,6 @@
     />
   </div>
   <AddConnectionDialog ref="addConnectionDialog" />
-  <ConfirmDialog ref="confirmDialogRef" />
 </template>
 
 <script setup lang="ts">
@@ -56,9 +55,11 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import { useConnectionStore } from '@/composables/core/stores/connection/useConnectionStore';
 import { useConnection } from '@/composables/core/useConnection';
 import { useGlobalToast } from '@/composables/useGlobalToast';
+import { useConfirm } from '@/composables/useConfirmDialog';
 
 const route = useRoute();
 const router = useRouter();
+const { open } = useConfirm();
 
 type AddConnectionDialogHandle = { open: () => void; close: () => void };
 const addConnectionDialog = ref<AddConnectionDialogHandle | null>(null);
@@ -76,9 +77,8 @@ const showAddConnectionDialog = () => {
   addConnectionDialog.value?.open();
 };
 
-const confirmDialogRef = ref<InstanceType<typeof ConfirmDialog> | null>(null);
 const deleteConnection = async (id: number) => {
-  const confirmed = await confirmDialogRef.value?.open({
+  const confirmed = await open({
     header: 'Delete Connection?',
     message: 'All device data linked to this connection will be permanently deleted.',
     acceptLabel: 'Delete',
