@@ -41,6 +41,7 @@ import AccordionContent from 'primevue/accordioncontent';
 import ToggleSwitch from 'primevue/toggleswitch';
 import Select from 'primevue/select';
 import Fieldset from 'primevue/fieldset';
+import Password from 'primevue/password';
 
 import Toast from 'primevue/toast';
 import ToastService from 'primevue/toastservice';
@@ -115,7 +116,8 @@ try {
     AccordionContent,
     ToggleSwitch,
     Select,
-    Fieldset
+    Fieldset,
+    Password
 ].forEach(component => {
     app.component(component.name, component);
 });
