@@ -5,62 +5,75 @@
       <p class="text-slate-400">Settings for the LoRa radio</p>
     </div>
     <FormGrid>
-      <label for="transmitEnabled" class="font-medium">Transmit Enabled</label>
-      <ToggleSwitch input-id="transmitEnabled" v-model="model.transmitEnable" />
-      <p class="text-slate-400">Enable/Disable transmit (TX) from the LoRa radio.</p>
+      <FormRow
+        label="Transmit Enabled"
+        for-id="transmitEnabled"
+        description="Enable/Disable transmit (TX) from the LoRa radio."
+      >
+        <ToggleSwitch input-id="transmitEnabled" v-model="model.transmitEnable" />
+      </FormRow>
 
-      <label for="transmitPower" class="font-medium">Transmit Power</label>
-      <InputGroup>
-        <InputText
-          id="transmitPower"
-          class="dark:bg-slate-800 dark:text-slate-400"
-          size="small"
-          type="number"
-          min="0"
-          max="27"
-          v-model="model.transmitPower"
-        />
-        <InputGroupAddon class="">dBm</InputGroupAddon>
-      </InputGroup>
-      <p class="text-slate-400">Max transmit power.</p>
+      <FormRow label="Transmit Power" for-id="transmitPower" description="Max transmit power.">
+        <InputGroup>
+          <InputText
+            id="transmitPower"
+            class="dark:bg-slate-800 dark:text-slate-400"
+            size="small"
+            type="number"
+            min="0"
+            max="27"
+            v-model="model.transmitPower"
+          />
+          <InputGroupAddon class="">dBm</InputGroupAddon>
+        </InputGroup>
+      </FormRow>
 
-      <label for="dutyCycle" class="font-medium">Override Duty Cycle</label>
-      <ToggleSwitch input-id="dutyCycle" v-model="model.overrideDutyCycle" />
-      <p class="text-slate-400">Override Duty Cycle</p>
+      <FormRow label="Override Duty Cycle" for-id="dutyCycle" description="Override Duty Cycle.">
+        <ToggleSwitch input-id="dutyCycle" v-model="model.overrideDutyCycle" />
+      </FormRow>
 
-      <label for="frequencyOffset" class="font-medium">Frequency Offset</label>
-      <InputGroup>
-        <InputText
-          id="frequencyOffset"
-          class="dark:bg-slate-800 dark:text-slate-400"
-          size="small"
-          v-model="model.frequencyOffset"
-        />
-        <InputGroupAddon class="">Hz</InputGroupAddon>
-      </InputGroup>
-      <p class="text-slate-400">Frequency offset to correct for crystal calibration errors.</p>
+      <FormRow
+        label="Frequency Offset"
+        for-id="frequencyOffset"
+        description="Frequency offset to correct for crystal calibration errors."
+      >
+        <InputGroup>
+          <InputText
+            id="frequencyOffset"
+            class="dark:bg-slate-800 dark:text-slate-400"
+            size="small"
+            v-model="model.frequencyOffset"
+          />
+          <InputGroupAddon class="">Hz</InputGroupAddon>
+        </InputGroup>
+      </FormRow>
 
-      <label for="overrideFrequency" class="font-medium">Override frequency</label>
-      <InputGroup>
-        <InputText
-          id="overrideFrequency"
-          class="dark:bg-slate-800 dark:text-slate-400"
-          size="small"
-          v-model="model.overrideFrequency"
-        />
-        <InputGroupAddon class="">MHz</InputGroupAddon>
-      </InputGroup>
-      <p class="text-slate-400">Override frequency.</p>
+      <FormRow
+        label="Override frequency"
+        for-id="overrideFrequency"
+        description="Override frequency."
+      >
+        <InputGroup>
+          <InputText
+            id="overrideFrequency"
+            class="dark:bg-slate-800 dark:text-slate-400"
+            size="small"
+            v-model="model.overrideFrequency"
+          />
+          <InputGroupAddon class="">MHz</InputGroupAddon>
+        </InputGroup>
+      </FormRow>
 
-      <label for="boostedGain" class="font-medium">Boosted RX Gain</label>
-      <ToggleSwitch input-id="boostedGain" v-model="model.boostedGain" />
-      <p class="text-slate-400">Boosted RX Gain</p>
+      <FormRow label="Boosted RX Gain" for-id="boostedGain" description="Boosted RX Gain.">
+        <ToggleSwitch input-id="boostedGain" v-model="model.boostedGain" />
+      </FormRow>
     </FormGrid>
   </div>
 </template>
 
 <script setup lang="ts">
 import FormGrid from '../components/FormGrid.vue';
+import FormRow from '../components/FormRow.vue';
 
 defineProps<{
   model: {

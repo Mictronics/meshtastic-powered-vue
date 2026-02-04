@@ -5,57 +5,70 @@
       <p class="text-slate-400">Settings for the LoRa waveform</p>
     </div>
     <FormGrid>
-      <label for="usePreset" class="font-medium">Use Preset</label>
-      <ToggleSwitch input-id="usePreset" v-model="model.usePreset" />
-      <p class="text-slate-400">Use one of the predefined modem presets.</p>
+      <FormRow
+        label="Use Preset"
+        for-id="usePreset"
+        description="Use one of the predefined modem presets."
+      >
+        <ToggleSwitch input-id="usePreset" v-model="model.usePreset" />
+      </FormRow>
 
-      <span id="modemPreset" class="font-medium">Modem Preset</span>
-      <Select
-        aria-labelledby="modemPreset"
-        class="dark:bg-slate-800 dark:text-slate-400"
-        size="small"
-        v-model="model.modemPreset"
-      />
-      <p class="text-slate-400">Modem preset to use.</p>
-
-      <label for="bandwidth" class="font-medium">Bandwidth</label>
-      <InputGroup>
-        <InputText
-          id="bandwidth"
+      <FormRow label="Modem Preset" for-id="modemPreset" description="Modem preset to use.">
+        <Select
+          aria-labelledby="modemPreset"
           class="dark:bg-slate-800 dark:text-slate-400"
           size="small"
-          v-model="model.bandwidth"
+          v-model="model.modemPreset"
         />
-        <InputGroupAddon class="">kHz</InputGroupAddon>
-      </InputGroup>
-      <p class="text-slate-400">Channel bandwidth in kHz</p>
+      </FormRow>
 
-      <label for="spreadingFactor" class="font-medium">Spreading Factor</label>
-      <InputGroup>
+      <FormRow label="Bandwidth" for-id="bandwidth" description="Channel bandwidth in kHz.">
+        <InputGroup>
+          <InputText
+            id="bandwidth"
+            class="dark:bg-slate-800 dark:text-slate-400"
+            size="small"
+            v-model="model.bandwidth"
+          />
+          <InputGroupAddon class="">kHz</InputGroupAddon>
+        </InputGroup>
+      </FormRow>
+
+      <FormRow
+        label="Spreading Factor"
+        for-id="spreadingFactor"
+        description="Indicates the number of chirps per symbol."
+      >
+        <InputGroup>
+          <InputText
+            id="spreadingFactor"
+            class="dark:bg-slate-800 dark:text-slate-400"
+            size="small"
+            v-model="model.spreadingFactor"
+          />
+          <InputGroupAddon class="">CPS</InputGroupAddon>
+        </InputGroup>
+      </FormRow>
+
+      <FormRow
+        label="Coding Rate"
+        for-id="codingRate"
+        description="The denominator of the coding rate."
+      >
         <InputText
-          id="spreadingFactor"
+          id="codingRate"
           class="dark:bg-slate-800 dark:text-slate-400"
           size="small"
-          v-model="model.spreadingFactor"
+          v-model="model.codingRate"
         />
-        <InputGroupAddon class="">CPS</InputGroupAddon>
-      </InputGroup>
-      <p class="text-slate-400">Indicates the number of chirps per symbol.</p>
-
-      <label for="codingRate" class="font-medium">Coding Rate</label>
-      <InputText
-        id="codingRate"
-        class="dark:bg-slate-800 dark:text-slate-400"
-        size="small"
-        v-model="model.codingRate"
-      />
-      <p class="text-slate-400">The denominator of the coding rate.</p>
+      </FormRow>
     </FormGrid>
   </div>
 </template>
 
 <script setup lang="ts">
 import FormGrid from '../components/FormGrid.vue';
+import FormRow from '../components/FormRow.vue';
 
 defineProps<{
   model: {
