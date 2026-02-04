@@ -61,7 +61,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import SaveButton from './SaveButton.vue';
+import SaveButton from './components/SaveButton.vue';
 
 const saveButtonDisable = ref(true);
 
