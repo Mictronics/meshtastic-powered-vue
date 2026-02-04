@@ -10,32 +10,47 @@
         for-id="usePreset"
         description="Use one of the predefined modem presets."
       >
-        <ToggleSwitch input-id="usePreset" v-model="model.usePreset" />
+        <ToggleSwitch input-id="usePreset" v-model="usePreset" />
       </FormRow>
 
-      <FormRow label="Modem Preset" for-id="modemPreset" description="Modem preset to use.">
+      <FormRow
+        label="Modem Preset"
+        for-id="modemPreset"
+        description="Modem preset to use."
+        :error="useGetError(v$.modemPreset)"
+        s
+      >
         <Select
           aria-labelledby="modemPreset"
           class="dark:bg-slate-800 dark:text-slate-400"
           size="small"
-          v-model="model.modemPreset"
-          :disabled="!model.usePreset"
+          v-model="modemPreset"
+          :disabled="!usePreset"
           :options="modemPresetOptions"
           optionLabel="label"
           optionValue="value"
           placeholder="Select modem preset"
+          :invalid="v$.modemPreset.$invalid"
+          @blur="v$.modemPreset.$touch()"
         />
       </FormRow>
 
-      <FormRow label="Bandwidth" for-id="bandwidth" description="Channel bandwidth in kHz.">
+      <FormRow
+        label="Bandwidth"
+        for-id="bandwidth"
+        description="Channel bandwidth in kHz."
+        :error="useGetError(v$.bandwidth)"
+      >
         <InputGroup>
           <InputText
             id="bandwidth"
             class="dark:bg-slate-800 dark:text-slate-400"
             size="small"
-            v-model="model.bandwidth"
+            v-model="bandwidth"
             type="number"
-            :disabled="model.usePreset"
+            :disabled="usePreset"
+            :invalid="v$.bandwidth.$invalid"
+            @blur="v$.bandwidth.$touch()"
           />
           <InputGroupAddon class="">kHz</InputGroupAddon>
         </InputGroup>
@@ -45,15 +60,20 @@
         label="Spreading Factor"
         for-id="spreadingFactor"
         description="Indicates the number of chirps per symbol."
+        :error="useGetError(v$.spreadingFactor)"
       >
         <InputGroup>
           <InputText
             id="spreadingFactor"
             class="dark:bg-slate-800 dark:text-slate-400"
             size="small"
-            v-model="model.spreadingFactor"
+            v-model="spreadingFactor"
             type="number"
-            :disabled="model.usePreset"
+            min="0"
+            max="12"
+            :disabled="usePreset"
+            :invalid="v$.spreadingFactor.$invalid"
+            @blur="v$.spreadingFactor.$touch()"
           />
           <InputGroupAddon class="">CPS</InputGroupAddon>
         </InputGroup>
@@ -63,14 +83,19 @@
         label="Coding Rate"
         for-id="codingRate"
         description="The denominator of the coding rate."
+        :error="useGetError(v$.codingRate)"
       >
         <InputText
           id="codingRate"
-          class="dark:bg-slate-800 dark:text-slate-400"
+          class="dark:bg-slate-800 dark:text-slate-400 w-full"
           size="small"
-          v-model="model.codingRate"
+          v-model="codingRate"
           type="number"
-          :disabled="model.usePreset"
+          min="0"
+          max="10"
+          :disabled="usePreset"
+          :invalid="v$.codingRate.$invalid"
+          @blur="v$.codingRate.$touch()"
         />
       </FormRow>
     </FormGrid>
@@ -81,16 +106,18 @@
 import { Protobuf } from '@meshtastic/core';
 import FormGrid from '../components/FormGrid.vue';
 import FormRow from '../components/FormRow.vue';
+import type { Validation } from '@vuelidate/core';
+import { useGetError } from '@/composables/useGetError';
 
 defineProps<{
-  model: {
-    usePreset: boolean;
-    modemPreset: number;
-    bandwidth: string;
-    spreadingFactor: string;
-    codingRate: string;
-  };
+  v$: Validation;
 }>();
+
+const usePreset = defineModel<boolean>('usePreset');
+const modemPreset = defineModel<number>('modemPreset');
+const bandwidth = defineModel<string>('bandwidth');
+const spreadingFactor = defineModel<string>('spreadingFactor');
+const codingRate = defineModel<string>('codingRate');
 
 const modemPresetOptions = Object.entries(Protobuf.Config.Config_LoRaConfig_ModemPreset)
   .filter(([_, value]) => typeof value === 'number')

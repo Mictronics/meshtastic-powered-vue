@@ -5,6 +5,7 @@
 
   <div>
     <slot />
+    <p v-if="error" class="text-red-400 dark:text-red-600 text-sm">{{ error }}</p>
   </div>
 
   <p v-if="description" class="text-slate-400">
@@ -13,9 +14,15 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
-  label?: string;
-  description?: string;
-  forId?: string;
-}>();
+withDefaults(
+  defineProps<{
+    label?: string;
+    description?: string;
+    forId?: string;
+    error?: string | boolean;
+  }>(),
+  {
+    error: false,
+  }
+);
 </script>
