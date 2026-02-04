@@ -1,16 +1,18 @@
 <template>
-  <label v-if="label" :for="forId" class="font-medium">
-    {{ label }}
-  </label>
+  <div class="contents">
+    <label v-if="label" :for="forId" class="font-medium">
+      {{ label }}
+    </label>
 
-  <div>
-    <slot />
-    <p v-if="error" class="text-red-400 dark:text-red-600 text-sm">{{ error }}</p>
+    <div>
+      <slot />
+      <p v-if="error" class="text-red-400 dark:text-red-600 text-sm">{{ error }}</p>
+    </div>
+
+    <p v-if="description" class="text-slate-400">
+      {{ description }}
+    </p>
   </div>
-
-  <p v-if="description" class="text-slate-400">
-    {{ description }}
-  </p>
 </template>
 
 <script setup lang="ts">
