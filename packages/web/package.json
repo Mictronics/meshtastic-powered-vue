@@ -32,7 +32,6 @@
     "@vuelidate/validators": "^2.0.4",
     "@vueuse/core": "^14.1.0",
     "base64-js": "^1.5.1",
-    "crypto-random-string": "^5.0.0",
     "emoji-mart-vue-fast": "^15.0.5",
     "geojson": "^0.5.0",
     "humanize-duration": "^3.33.2",
