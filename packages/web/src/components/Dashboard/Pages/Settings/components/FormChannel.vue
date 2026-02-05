@@ -2,18 +2,19 @@
   <FormGrid>
     <FormRow
       label="Role"
-      for-id="region"
+      for-id="role"
       description="Device telemetry is sent over Primary. Only one Primary allowed."
     >
       <Select
-        aria-labelledby="region"
+        aria-labelledby="role"
         class="dark:bg-slate-800 dark:text-slate-400 w-full"
         size="small"
         :options="roleOptions"
         optionLabel="label"
         optionValue="value"
         placeholder="Select channel role"
-        v-model="formValues.role"
+        v-model="formChannel.role"
+        :disabled="formChannel.index === 0"
       />
     </FormRow>
 
@@ -29,7 +30,7 @@
         type="text"
         minlength="0"
         maxlength="12"
-        v-model="formValues.settings.name"
+        v-model="formChannel.settings.name"
       />
     </FormRow>
 
@@ -39,9 +40,9 @@
       description="Supported PSK lengths: 256-bit, 128-bit, 8-bit, Empty (0-bit)"
     >
       <FormKeyGenerator
-        :initial-key="preSharedKey"
+        :initial-key="psk"
         :initial-key-size="pskSize"
-        :error="useGetError(v$.preSharedKey)"
+        :error="useGetError(pskV$.preSharedKey)"
         @update-key="onKeyUpdate"
       />
     </FormRow>
@@ -59,7 +60,7 @@
         optionLabel="label"
         optionValue="value"
         placeholder="Select position precision"
-        v-model="formValues.settings.moduleSettings.positionPrecision"
+        v-model="formChannel.settings.moduleSettings.positionPrecision"
       />
     </FormRow>
 
@@ -68,7 +69,7 @@
       for-id="allowMqttUplink"
       description="Allow sending messages from the local mesh via MQTT."
     >
-      <ToggleSwitch input-id="allowMqttUplink" v-model="formValues.settings.uplinkEnabled" />
+      <ToggleSwitch input-id="allowMqttUplink" v-model="formChannel.settings.uplinkEnabled" />
     </FormRow>
 
     <FormRow
@@ -76,7 +77,7 @@
       for-id="allowMqttDownlink"
       description="Allow receiving messages from MQTT into the local mesh."
     >
-      <ToggleSwitch input-id="allowMqttDownlink" v-model="formValues.settings.downlinkEnabled" />
+      <ToggleSwitch input-id="allowMqttDownlink" v-model="formChannel.settings.downlinkEnabled" />
     </FormRow>
 
     <FormRow
@@ -84,7 +85,7 @@
       for-id="muteNotes"
       description="Mute notifications or alerts from this channel."
     >
-      <ToggleSwitch input-id="muteNotes" v-model="formValues.settings.mute" />
+      <ToggleSwitch input-id="muteNotes" v-model="formChannel.settings.mute" />
     </FormRow>
 
     <FormRow
@@ -94,14 +95,14 @@
     >
       <ToggleSwitch
         input-id="muteChannel"
-        v-model="formValues.settings.moduleSettings.isClientMuted"
+        v-model="formChannel.settings.moduleSettings.isClientMuted"
       />
     </FormRow>
   </FormGrid>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed, watch } from 'vue';
 import type { Protobuf } from '@meshtastic/core';
 import { fromByteArray, toByteArray } from 'base64-js';
 import FormGrid from '../components/FormGrid.vue';
@@ -115,6 +116,10 @@ import { useGetError } from '@/composables/useGetError';
 const props = defineProps<{
   channel: Protobuf.Channel.Channel;
   selectedChannel: number;
+}>();
+
+const emit = defineEmits<{
+  (e: 'updateChannel', channel: Protobuf.Channel.Channel): void;
 }>();
 
 type Role = 0 | 1 | 2;
@@ -140,7 +145,7 @@ const positionOptions: { label: string; value: Position }[] = [
   { label: 'Precise', value: 32 },
 ];
 
-const formValues = ref({
+const formChannel = ref({
   ...props.channel,
   settings: {
     ...(props.channel.settings ?? {}),
@@ -151,6 +156,21 @@ const formValues = ref({
     },
   },
 });
+
+watch(
+  () => formChannel.value.index,
+  (index: number) => {
+    const role = formChannel.value.role;
+    if (index === 0) {
+      formChannel.value.role = 1;
+    } else if (index > 0) {
+      if (role !== 0 && role !== 2) {
+        formChannel.value.role = 0;
+      }
+    }
+  },
+  { immediate: true }
+);
 
 const toKeyLength = (value?: number): Key => {
   switch (value) {
@@ -165,7 +185,13 @@ const toKeyLength = (value?: number): Key => {
 };
 
 const pskSize = ref<Key>(toKeyLength(props.channel.settings?.psk?.length));
-const preSharedKey = ref(formValues.value.settings.psk);
+
+const psk = computed<string>({
+  get: () => formChannel.value.settings.psk as string,
+  set: (val: string) => {
+    formChannel.value.settings.psk = val;
+  },
+});
 
 const tryDecodeBase64 = (value: string): Uint8Array | null => {
   try {
@@ -206,12 +232,12 @@ const keyRule = {
     decodedLengthMatches,
   },
 };
-const v$ = useVuelidate(keyRule, { preSharedKey });
+const pskV$ = useVuelidate(keyRule, { preSharedKey: psk });
 
 const onKeyUpdate = (payload: PreSharedKeyUpdate) => {
   const { key, length } = payload;
-  preSharedKey.value = key;
+  psk.value = key;
   pskSize.value = length;
-  v$.value.$touch();
+  pskV$.value.$touch();
 };
 </script>
