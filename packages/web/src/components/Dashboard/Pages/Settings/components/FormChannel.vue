@@ -103,7 +103,9 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import type { Protobuf } from '@meshtastic/core';
+import { watchDebounced } from '@vueuse/core';
+import { create } from '@bufbuild/protobuf';
+import { Protobuf } from '@meshtastic/core';
 import { fromByteArray, toByteArray } from 'base64-js';
 import FormGrid from '../components/FormGrid.vue';
 import FormRow from '../components/FormRow.vue';
@@ -185,7 +187,6 @@ const toKeyLength = (value?: number): Key => {
 };
 
 const pskSize = ref<Key>(toKeyLength(props.channel.settings?.psk?.length));
-
 const psk = computed<string>({
   get: () => formChannel.value.settings.psk as string,
   set: (val: string) => {
@@ -240,4 +241,25 @@ const onKeyUpdate = (payload: PreSharedKeyUpdate) => {
   pskSize.value = length;
   pskV$.value.$touch();
 };
+
+watchDebounced(
+  formChannel,
+  (channel) => {
+    const { $typeName, ...settingsWithoutTypeName } = channel.settings;
+    const payload = create(Protobuf.Channel.ChannelSchema, {
+      ...channel,
+      settings: create(Protobuf.Channel.ChannelSettingsSchema, {
+        ...settingsWithoutTypeName,
+        psk: toByteArray(channel.settings.psk),
+        moduleSettings: create(Protobuf.Channel.ModuleSettingsSchema, {
+          ...channel.settings.moduleSettings,
+          positionPrecision: channel.settings.moduleSettings.positionPrecision,
+          isClientMuted: channel.settings.moduleSettings.isClientMuted ?? false,
+        }),
+      }),
+    });
+    emit('updateChannel', payload);
+  },
+  { debounce: 300, deep: true }
+);
 </script>
