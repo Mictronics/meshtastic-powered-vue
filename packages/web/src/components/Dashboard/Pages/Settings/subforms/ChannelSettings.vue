@@ -41,6 +41,5 @@ const onUpdateChannel = (updatedChannel: Protobuf.Channel.Channel) => {
 
   if (index === -1) return;
   channels.value = channels.value.map((ch, i) => (i === index ? updatedChannel : ch));
-  console.log(channels.value);
 };
 </script>
