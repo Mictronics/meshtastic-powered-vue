@@ -8,38 +8,48 @@
     </template>
     <Accordion value="0">
       <AccordionPanel value="0">
-        <AccordionHeader>LoRa</AccordionHeader>
+        <AccordionHeader>
+          <div>
+            LoRa
+            <span v-if="isLoraDirty" class="ml-2 text-orange-500">●</span>
+          </div>
+        </AccordionHeader>
         <AccordionContent>
           <MeshSettings
-            v-model:allow-mqtt="meshSettings.ignoreMqtt"
-            v-model:forward-mqtt="meshSettings.configOkToMqtt"
-            v-model:frequency-slot="meshSettings.channelNum"
-            v-model:hop-limit="meshSettings.hopLimit"
-            v-model:region="meshSettings.region"
-            :v$="meshV$"
+            v-model:ignore-mqtt="loraConfig.ignoreMqtt"
+            v-model:config-ok-to-mqtt="loraConfig.configOkToMqtt"
+            v-model:channel-num="loraConfig.channelNum"
+            v-model:hop-limit="loraConfig.hopLimit"
+            v-model:region="loraConfig.region"
+            :v$="loraV$"
           />
           <WaveformSettings
-            v-model:bandwidth="waveformSettings.bandwidth"
-            v-model:coding-rate="waveformSettings.codingRate"
-            v-model:modem-preset="waveformSettings.modemPreset"
-            v-model:spreading-factor="waveformSettings.spreadFactor"
-            v-model:use-preset="waveformSettings.usePreset"
-            :v$="waveformV$"
+            v-model:bandwidth="loraConfig.bandwidth"
+            v-model:coding-rate="loraConfig.codingRate"
+            v-model:modem-preset="loraConfig.modemPreset"
+            v-model:spread-factor="loraConfig.spreadFactor"
+            v-model:use-preset="loraConfig.usePreset"
+            :v$="loraV$"
           />
           <RadioSettings
-            v-model:boosted-gain="radioSettings.sx1262RxBoostedGain"
-            v-model:frequency-offset="radioSettings.frequencyOffset"
-            v-model:override-duty-cycle="radioSettings.overrideDutyCycle"
-            v-model:override-frequency="radioSettings.overrideFrequency"
-            v-model:transmit-enabled="radioSettings.txEnabled"
-            v-model:transmit-power="radioSettings.txPower"
-            v-model:pa-fan-disabled="radioSettings.paFanDisabled"
-            :v$="radioV$"
+            v-model:sx126x-rx-boosted-gain="loraConfig.sx126xRxBoostedGain"
+            v-model:frequency-offset="loraConfig.frequencyOffset"
+            v-model:override-duty-cycle="loraConfig.overrideDutyCycle"
+            v-model:override-frequency="loraConfig.overrideFrequency"
+            v-model:tx-enabled="loraConfig.txEnabled"
+            v-model:tx-power="loraConfig.txPower"
+            v-model:pa-fan-disabled="loraConfig.paFanDisabled"
+            :v$="loraV$"
           />
         </AccordionContent>
       </AccordionPanel>
       <AccordionPanel value="1">
-        <AccordionHeader>Channels</AccordionHeader>
+        <AccordionHeader>
+          <div>
+            Channels
+            <span v-if="isChannelsDirty" class="ml-2 text-orange-500">●</span>
+          </div>
+        </AccordionHeader>
         <AccordionContent>
           <ChannelSettings v-model:channels="allChannels" />
         </AccordionContent>
@@ -54,213 +64,68 @@
 
 <script setup lang="ts">
 import { Protobuf } from '@meshtastic/core';
-import { ref, reactive, computed } from 'vue';
+import { create } from '@bufbuild/protobuf';
+import { ref, computed, watchEffect } from 'vue';
 import { useVuelidate } from '@vuelidate/core';
-import { RadioRules, MeshRules, WaveformRules } from './subforms/ValidationRules';
+import { LoraRules } from './subforms/ValidationRules';
 import SaveButton from './components/SaveButton.vue';
 import MeshSettings from './subforms/MeshSettings.vue';
 import WaveformSettings from './subforms/WaveformSettings.vue';
 import RadioSettings from './subforms/RadioSettings.vue';
 import ChannelSettings from './subforms/ChannelSettings.vue';
 import { useDeviceStore } from '@/composables/core/stores/device/useDeviceStore';
+import { useDeepCompareConfig } from '@/composables/useDeepCompareConfig';
 
 const device = useDeviceStore().device;
-const config = ref(device.value?.config.lora);
+const allChannels = ref<Protobuf.Channel.Channel[]>(
+  Array.from({ length: 8 }, () => create(Protobuf.Channel.ChannelSchema))
+);
+const loraConfig = ref<Protobuf.Config.Config_LoRaConfig>(
+  create(Protobuf.Config.Config_LoRaConfigSchema)
+);
 
-const meshSettings = reactive({
-  region: 0,
-  hopLimit: 3,
-  channelNum: '0',
-  configOkToMqtt: false,
-  ignoreMqtt: false,
+const loraV$ = useVuelidate(LoraRules, loraConfig);
+
+watchEffect(() => {
+  if (!device.value) return;
+
+  const lora = device.value.config?.lora;
+  const channels = device.value.channels;
+  if (!lora) return;
+
+  loraConfig.value = {
+    ...loraConfig.value,
+    ...lora,
+  };
+
+  allChannels.value = Object.values(channels);
 });
 
-const waveformSettings = reactive({
-  usePreset: true,
-  modemPreset: 0,
-  bandwidth: '0',
-  spreadFactor: '0',
-  codingRate: '0',
+const isLoraDirty = computed(() => {
+  if (!device.value?.config.lora) return false;
+  return !useDeepCompareConfig(loraConfig.value, device.value?.config.lora, true);
 });
 
-const radioSettings = reactive({
-  txEnabled: true,
-  txPower: '0',
-  overrideDutyCycle: false,
-  frequencyOffset: '0',
-  overrideFrequency: '0',
-  sx1262RxBoostedGain: true,
-  paFanDisabled: false,
+const isChannelsDirty = computed(() => {
+  if (!device.value?.channels) return false;
+  return !useDeepCompareConfig(allChannels.value, Object.values(device.value?.channels), true);
 });
 
-const radioV$ = useVuelidate(RadioRules, radioSettings);
-const meshV$ = useVuelidate(MeshRules, meshSettings);
-const waveformV$ = useVuelidate(WaveformRules, waveformSettings);
-
-const saveButtonDisable = ref(true);
+const saveButtonDisable = computed(() => !isLoraDirty.value && !isChannelsDirty.value);
 const onSaveSettings = () => {
-  meshV$.value.$touch();
-  waveformV$.value.$touch();
-  radioV$.value.$touch();
+  loraV$.value.$touch();
 
-  if (meshV$.value.$invalid || waveformV$.value.$invalid || radioV$.value.$invalid) {
+  if (loraV$.value.$invalid) {
     return;
   }
-};
 
-let allChannels = reactive<Protobuf.Channel.Channel[]>([
-  {
-    $typeName: 'meshtastic.Channel',
-    index: 0,
-    role: 1,
-    settings: {
-      $typeName: 'meshtastic.ChannelSettings',
-      channelNum: 0,
-      psk: [1],
-      name: 'LongFast',
-      id: 0,
-      uplinkEnabled: false,
-      downlinkEnabled: false,
-      mute: false,
-      moduleSettings: {
-        $typeName: 'meshtastic.ModuleSettings',
-        positionPrecision: 0,
-        isClientMuted: false,
-      },
-    },
-  },
-  {
-    $typeName: 'meshtastic.Channel',
-    index: 1,
-    role: 2,
-    settings: {
-      $typeName: 'meshtastic.ChannelSettings',
-      channelNum: 0,
-      psk: [
-        43, 187, 99, 123, 165, 82, 13, 213, 94, 54, 16, 15, 214, 51, 247, 199, 119, 111, 52, 91, 86,
-        59, 128, 158, 222, 115, 236, 162, 133, 66, 12, 168,
-      ],
-      name: 'Deutsch',
-      id: 0,
-      uplinkEnabled: false,
-      downlinkEnabled: false,
-      mute: false,
-      moduleSettings: {
-        $typeName: 'meshtastic.ModuleSettings',
-        positionPrecision: 0,
-        isClientMuted: false,
-      },
-    },
-  },
-  {
-    $typeName: 'meshtastic.Channel',
-    index: 2,
-    role: 2,
-    settings: {
-      $typeName: 'meshtastic.ChannelSettings',
-      channelNum: 0,
-      psk: [2],
-      name: 'Bayern',
-      id: 0,
-      uplinkEnabled: false,
-      downlinkEnabled: false,
-      mute: false,
-      moduleSettings: {
-        $typeName: 'meshtastic.ModuleSettings',
-        positionPrecision: 14,
-        isClientMuted: false,
-      },
-    },
-  },
-  {
-    $typeName: 'meshtastic.Channel',
-    index: 3,
-    role: 2,
-    settings: {
-      $typeName: 'meshtastic.ChannelSettings',
-      channelNum: 0,
-      psk: [130],
-      name: 'Franken',
-      id: 0,
-      uplinkEnabled: false,
-      downlinkEnabled: false,
-      mute: false,
-      moduleSettings: {
-        $typeName: 'meshtastic.ModuleSettings',
-        positionPrecision: 14,
-        isClientMuted: false,
-      },
-    },
-  },
-  {
-    $typeName: 'meshtastic.Channel',
-    index: 4,
-    role: 2,
-    settings: {
-      $typeName: 'meshtastic.ChannelSettings',
-      channelNum: 0,
-      psk: [
-        250, 228, 204, 17, 163, 145, 238, 25, 42, 105, 123, 254, 13, 19, 142, 17, 222, 65, 134, 240,
-        8, 65, 143, 194, 103, 241, 235, 226, 202, 25, 112, 229,
-      ],
-      name: 'Mesh Hessen',
-      id: 0,
-      uplinkEnabled: false,
-      downlinkEnabled: false,
-      mute: false,
-      moduleSettings: {
-        $typeName: 'meshtastic.ModuleSettings',
-        positionPrecision: 10,
-        isClientMuted: false,
-      },
-    },
-  },
-  {
-    $typeName: 'meshtastic.Channel',
-    index: 5,
-    role: 2,
-    settings: {
-      $typeName: 'meshtastic.ChannelSettings',
-      channelNum: 0,
-      psk: [12],
-      name: 'DonauRies',
-      id: 0,
-      uplinkEnabled: false,
-      downlinkEnabled: false,
-      mute: false,
-    },
-  },
-  {
-    $typeName: 'meshtastic.Channel',
-    index: 6,
-    role: 0,
-    settings: {
-      $typeName: 'meshtastic.ChannelSettings',
-      channelNum: 0,
-      psk: [],
-      name: '',
-      id: 0,
-      uplinkEnabled: false,
-      downlinkEnabled: false,
-      mute: false,
-    },
-  },
-  {
-    $typeName: 'meshtastic.Channel',
-    index: 7,
-    role: 0,
-    settings: {
-      $typeName: 'meshtastic.ChannelSettings',
-      channelNum: 0,
-      psk: [],
-      name: '',
-      id: 0,
-      uplinkEnabled: false,
-      downlinkEnabled: false,
-      mute: false,
-    },
-  },
-]);
+  if (isLoraDirty.value) {
+    device.value?.setChange({ type: 'config', variant: 'lora' }, loraConfig);
+  }
+
+  if (isChannelsDirty.value) {
+  }
+};
 </script>
 
 <style lang="css" scoped>
