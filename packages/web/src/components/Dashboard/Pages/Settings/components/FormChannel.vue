@@ -107,7 +107,7 @@ import { fromByteArray, toByteArray } from 'base64-js';
 import FormGrid from '../components/FormGrid.vue';
 import FormRow from '../components/FormRow.vue';
 import FormKeyGenerator from './FormKeyGenerator.vue';
-import type { PreSharedKeyUpdate } from './FormKeyGenerator.vue';
+import type { PreSharedKeyUpdate, Key } from './FormKeyGenerator.vue';
 import useVuelidate from '@vuelidate/core';
 import { helpers } from '@vuelidate/validators';
 import { useGetError } from '@/composables/useGetError';
@@ -152,7 +152,19 @@ const formValues = ref({
   },
 });
 
-const pskSize = ref(props.channel.settings?.psk?.length ?? 16);
+const toKeyLength = (value?: number): Key => {
+  switch (value) {
+    case 0:
+    case 1:
+    case 16:
+    case 32:
+      return value;
+    default:
+      return 16;
+  }
+};
+
+const pskSize = ref<Key>(toKeyLength(props.channel.settings?.psk?.length));
 const preSharedKey = ref(formValues.value.settings.psk);
 
 const tryDecodeBase64 = (value: string): Uint8Array | null => {

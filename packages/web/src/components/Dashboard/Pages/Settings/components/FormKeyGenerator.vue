@@ -44,16 +44,16 @@ import { Copy, CopyCheck } from 'lucide-vue-next';
 import { useConfirm } from '@/composables/useConfirmDialog';
 import { fromByteArray } from 'base64-js';
 
-type Key = 0 | 1 | 16 | 32;
+export type Key = 0 | 1 | 16 | 32;
 export interface PreSharedKeyUpdate {
   key: string;
-  length: 0 | 1 | 16 | 32 | number;
+  length: 0 | 1 | 16 | 32;
 }
 
 const props = withDefaults(
   defineProps<{
     initialKey: string;
-    initialKeySize: Key | number;
+    initialKeySize: Key;
     error?: string | boolean;
   }>(),
   {
@@ -74,7 +74,7 @@ const keyOptions: { label: string; value: Key }[] = [
 
 const { open } = useConfirm();
 const preSharedKey = ref(props.initialKey);
-const pskSize = ref<Key | number>(props.initialKeySize);
+const pskSize = ref<Key>(props.initialKeySize);
 const { copy, copied, isSupported } = useClipboard();
 
 const generatePreSharedKey = async () => {
