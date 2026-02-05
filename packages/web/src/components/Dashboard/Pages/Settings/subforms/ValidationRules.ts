@@ -3,22 +3,22 @@ import { required, numeric, between, integer, helpers } from '@vuelidate/validat
 export const MeshRules = {
     region: { required, integer, minValue: 0 },
     hopLimit: { required, integer, between: between(0, 7) },
-    frequencySlot: { required, integer, between: between(0, 208) },
-    forwardMqtt: { required },
-    allowMqtt: { required },
+    channelNum: { required, integer, between: between(0, 208) },
+    configOkToMqtt: { required },
+    ignoreMqtt: { required },
 };
 
 export const WaveformRules = {
     usePreset: { required },
     modemPreset: { required, integer, minValue: 0 },
     bandwidth: { required, integer },
-    spreadingFactor: { required, integer, between: between(0, 12) },
+    spreadFactor: { required, integer, between: between(0, 12) },
     codingRate: { required, integer, between: between(0, 10) },
 };
 
 export const RadioRules = {
-    transmitEnabled: { required },
-    transmitPower: { required, integer, between: between(0, 36) },
+    txEnabled: { required },
+    txPower: { required, integer, between: between(0, 36) },
     overrideDutyCycle: { required },
     frequencyOffset: { required, integer, between: between(-1e6, 1e6) },
     overrideFrequency: {
@@ -31,5 +31,6 @@ export const RadioRules = {
                 return n === 0 || (n >= 410 && n <= 930);
             }),
     },
-    boostedGain: { required },
+    sx1262RxBoostedGain: { required },
+    paFanDisabled: { required },
 };
