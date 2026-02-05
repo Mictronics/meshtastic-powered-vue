@@ -513,8 +513,8 @@ class Device implements IDevice {
         const keyStr = serializeKey(key);
         this.changeRegistry.changes[keyStr] = {
             key,
-            value,
-            originalValue,
+            value: toRaw(value),
+            originalValue: toRaw(originalValue),
             timestamp: Date.now(),
         };
     };
