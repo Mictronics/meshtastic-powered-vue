@@ -47,37 +47,37 @@
 
       <FormRow
         label="Frequency Slot"
-        for-id="frequencySlot"
+        for-id="channelNum"
         description="LoRa frequency channel number."
-        :error="useGetError(v$.frequencySlot)"
+        :error="useGetError(v$.channelNum)"
       >
         <InputText
-          id="frequencySlot"
+          id="channelNum"
           class="dark:bg-slate-800 dark:text-slate-400 w-full"
           size="small"
           type="number"
           min="0"
-          v-model="frequencySlot"
-          :invalid="v$.frequencySlot.$invalid"
-          @blur="v$.frequencySlot.$touch()"
+          v-model="channelNum"
+          :invalid="v$.channelNum.$invalid"
+          @blur="v$.channelNum.$touch()"
         />
       </FormRow>
 
       <FormRow
         label="Forward MQTT"
-        for-id="forwardMqtt"
+        for-id="configOkToMqtt"
         description="Forward MQTT messages over the mesh."
       >
-        <ToggleSwitch input-id="forwardMqtt" v-model="forwardMqtt" />
+        <ToggleSwitch input-id="configOkToMqtt" v-model="configOkToMqtt" />
       </FormRow>
 
       <FormRow
         label="Allow MQTT upload"
-        for-id="allowMqtt"
+        for-id="ignoreMqtt"
         description="When enabled, the user approves the packet to be uploaded via MQTT. When disabled, remote
         nodes are requested not to forward packets via MQTT."
       >
-        <ToggleSwitch input-id="allowMqtt" v-model="allowMqtt" />
+        <ToggleSwitch input-id="ignoreMqtt" v-model="ignoreMqtt" />
       </FormRow>
     </FormGrid>
   </div>
@@ -96,9 +96,9 @@ defineProps<{
 
 const region = defineModel<number>('region');
 const hopLimit = defineModel<number>('hopLimit');
-const frequencySlot = defineModel<string>('frequencySlot');
-const forwardMqtt = defineModel<boolean>('forwardMqtt');
-const allowMqtt = defineModel<boolean>('allowMqtt');
+const channelNum = defineModel<string>('channelNum');
+const configOkToMqtt = defineModel<boolean>('configOkToMqtt');
+const ignoreMqtt = defineModel<boolean>('ignoreMqtt');
 
 type HopLimit = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 const hopLimitOptions: { label: string; value: HopLimit }[] = [

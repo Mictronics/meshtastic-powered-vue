@@ -7,30 +7,30 @@
     <FormGrid>
       <FormRow
         label="Transmit Enabled"
-        for-id="transmitEnabled"
+        for-id="txEnabled"
         description="Enable/Disable transmit (TX) from the LoRa radio."
       >
-        <ToggleSwitch input-id="transmitEnabled" v-model="transmitEnabled" />
+        <ToggleSwitch input-id="txEnabled" v-model="txEnabled" />
       </FormRow>
 
       <FormRow
         label="Transmit Power"
-        for-id="transmitPower"
+        for-id="txPower"
         description="Max transmit power."
-        :error="useGetError(v$.transmitPower)"
+        :error="useGetError(v$.txPower)"
       >
         <InputGroup>
           <InputText
-            id="transmitPower"
+            id="txPower"
             class="dark:bg-slate-800 dark:text-slate-400"
             size="small"
             type="number"
             min="0"
             max="50"
-            v-model="transmitPower"
-            :error="useGetError(v$.transmitPower)"
-            :invalid="v$.transmitPower.$invalid"
-            @blur="v$.transmitPower.$touch()"
+            v-model="txPower"
+            :error="useGetError(v$.txPower)"
+            :invalid="v$.txPower.$invalid"
+            @blur="v$.txPower.$touch()"
           />
           <InputGroupAddon>dBm</InputGroupAddon>
         </InputGroup>
@@ -85,8 +85,16 @@
         </InputGroup>
       </FormRow>
 
-      <FormRow label="Boosted RX Gain" for-id="boostedGain" description="Boosted RX Gain.">
-        <ToggleSwitch input-id="boostedGain" v-model="boostedGain" />
+      <FormRow label="Boosted RX Gain" for-id="sx1262RxBoostedGain" description="Boosted RX Gain.">
+        <ToggleSwitch input-id="sx1262RxBoostedGain" v-model="sx1262RxBoostedGain" />
+      </FormRow>
+
+      <FormRow
+        label="Disable PA fan"
+        for-id="paFanDisabled"
+        description="Disable the build-in power amplifier fan using pin define in RF95_FAN_EN."
+      >
+        <ToggleSwitch input-id="paFanDisabled" v-model="paFanDisabled" />
       </FormRow>
     </FormGrid>
   </div>
@@ -102,10 +110,11 @@ defineProps<{
   v$: Validation;
 }>();
 
-const transmitEnabled = defineModel<boolean>('transmitEnabled');
-const transmitPower = defineModel<string>('transmitPower');
+const txEnabled = defineModel<boolean>('txEnabled');
+const txPower = defineModel<string>('txPower');
 const overrideDutyCycle = defineModel<boolean>('overrideDutyCycle');
 const frequencyOffset = defineModel<string>('frequencyOffset');
 const overrideFrequency = defineModel<string>('overrideFrequency');
-const boostedGain = defineModel<boolean>('boostedGain');
+const sx1262RxBoostedGain = defineModel<boolean>('sx1262RxBoostedGain');
+const paFanDisabled = defineModel<boolean>('paFanDisabled');
 </script>

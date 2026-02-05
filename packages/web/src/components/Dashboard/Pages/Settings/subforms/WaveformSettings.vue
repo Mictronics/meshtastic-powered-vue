@@ -58,22 +58,22 @@
 
       <FormRow
         label="Spreading Factor"
-        for-id="spreadingFactor"
+        for-id="spreadFactor"
         description="Indicates the number of chirps per symbol."
-        :error="useGetError(v$.spreadingFactor)"
+        :error="useGetError(v$.spreadFactor)"
       >
         <InputGroup>
           <InputText
-            id="spreadingFactor"
+            id="spreadFactor"
             class="dark:bg-slate-800 dark:text-slate-400"
             size="small"
-            v-model="spreadingFactor"
+            v-model="spreadFactor"
             type="number"
             min="0"
             max="12"
             :disabled="usePreset"
-            :invalid="v$.spreadingFactor.$invalid"
-            @blur="v$.spreadingFactor.$touch()"
+            :invalid="v$.spreadFactor.$invalid"
+            @blur="v$.spreadFactor.$touch()"
           />
           <InputGroupAddon>CPS</InputGroupAddon>
         </InputGroup>
@@ -116,7 +116,7 @@ defineProps<{
 const usePreset = defineModel<boolean>('usePreset');
 const modemPreset = defineModel<number>('modemPreset');
 const bandwidth = defineModel<string>('bandwidth');
-const spreadingFactor = defineModel<string>('spreadingFactor');
+const spreadFactor = defineModel<string>('spreadFactor');
 const codingRate = defineModel<string>('codingRate');
 
 const modemPresetOptions = Object.entries(Protobuf.Config.Config_LoRaConfig_ModemPreset)

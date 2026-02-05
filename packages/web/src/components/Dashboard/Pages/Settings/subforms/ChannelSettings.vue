@@ -12,7 +12,11 @@
       </TabList>
       <TabPanels>
         <TabPanel v-for="ch in channels" :key="ch.index" :value="ch.index" as="div">
-          <FormChannel :channel="ch" :selected-channel="selectedChannel" />
+          <FormChannel
+            :channel="ch"
+            :selected-channel="selectedChannel"
+            @update-channel="onUpdateChannel"
+          />
         </TabPanel>
       </TabPanels>
     </Tabs>
@@ -29,5 +33,14 @@ const selectedChannel = ref<number>(0);
 const handleChannelChange = (value: string | number) => {
   const val = Number(value);
   selectedChannel.value = val;
+};
+
+const onUpdateChannel = (updatedChannel: Protobuf.Channel.Channel) => {
+  if (!channels.value) return;
+  const index = channels.value.findIndex((ch) => ch.index === selectedChannel.value);
+
+  if (index === -1) return;
+  channels.value = channels.value.map((ch, i) => (i === index ? updatedChannel : ch));
+  console.log(channels.value);
 };
 </script>
