@@ -57,7 +57,7 @@
           size="small"
           type="number"
           min="0"
-          v-model="channelNum"
+          v-model="channelNumInput"
           :invalid="v$.channelNum.$invalid"
           @blur="v$.channelNum.$touch()"
         />
@@ -84,6 +84,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import { Protobuf } from '@meshtastic/core';
 import FormGrid from '../components/FormGrid.vue';
 import FormRow from '../components/FormRow.vue';
@@ -96,19 +97,29 @@ defineProps<{
 
 const region = defineModel<number>('region');
 const hopLimit = defineModel<number>('hopLimit');
-const channelNum = defineModel<string>('channelNum');
+const channelNum = defineModel<number>('channelNum');
 const configOkToMqtt = defineModel<boolean>('configOkToMqtt');
 const ignoreMqtt = defineModel<boolean>('ignoreMqtt');
+const channelNumInput = computed<string>({
+  get() {
+    return channelNum.value?.toString() ?? '';
+  },
+  set(value) {
+    const n = Number(value);
+    channelNum.value = Number.isNaN(n) ? undefined : n;
+  },
+});
 
-type HopLimit = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+type HopLimit = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
 const hopLimitOptions: { label: string; value: HopLimit }[] = [
+  { label: 'Direct', value: 0 },
   { label: '1 hop', value: 1 },
   { label: '2 hops', value: 2 },
   { label: '3 hops', value: 3 },
   { label: '4 hops', value: 4 },
   { label: '5 hops', value: 5 },
-  { label: '6 hops', value: 5 },
-  { label: '7 hops', value: 5 },
+  { label: '6 hops', value: 6 },
+  { label: '7 hops', value: 7 },
 ];
 
 const regionOptions = Object.entries(Protobuf.Config.Config_LoRaConfig_RegionCode)

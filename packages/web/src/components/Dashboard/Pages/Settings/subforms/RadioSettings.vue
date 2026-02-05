@@ -27,7 +27,7 @@
             type="number"
             min="0"
             max="50"
-            v-model="txPower"
+            v-model="txPowerInput"
             :error="useGetError(v$.txPower)"
             :invalid="v$.txPower.$invalid"
             @blur="v$.txPower.$touch()"
@@ -51,7 +51,7 @@
             id="frequencyOffset"
             class="dark:bg-slate-800 dark:text-slate-400"
             size="small"
-            v-model="frequencyOffset"
+            v-model="frequencyOffsetInput"
             type="number"
             min="-1e6"
             max="1e6"
@@ -73,7 +73,7 @@
             id="overrideFrequency"
             class="dark:bg-slate-800 dark:text-slate-400"
             size="small"
-            v-model="overrideFrequency"
+            v-model="overrideFrequencyInput"
             type="number"
             min="0"
             max="950"
@@ -85,8 +85,8 @@
         </InputGroup>
       </FormRow>
 
-      <FormRow label="Boosted RX Gain" for-id="sx1262RxBoostedGain" description="Boosted RX Gain.">
-        <ToggleSwitch input-id="sx1262RxBoostedGain" v-model="sx1262RxBoostedGain" />
+      <FormRow label="Boosted RX Gain" for-id="sx126xRxBoostedGain" description="Boosted RX Gain.">
+        <ToggleSwitch input-id="sx126xRxBoostedGain" v-model="sx126xRxBoostedGain" />
       </FormRow>
 
       <FormRow
@@ -101,6 +101,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import FormGrid from '../components/FormGrid.vue';
 import FormRow from '../components/FormRow.vue';
 import type { Validation } from '@vuelidate/core';
@@ -111,10 +112,37 @@ defineProps<{
 }>();
 
 const txEnabled = defineModel<boolean>('txEnabled');
-const txPower = defineModel<string>('txPower');
+const txPower = defineModel<number>('txPower');
 const overrideDutyCycle = defineModel<boolean>('overrideDutyCycle');
-const frequencyOffset = defineModel<string>('frequencyOffset');
-const overrideFrequency = defineModel<string>('overrideFrequency');
-const sx1262RxBoostedGain = defineModel<boolean>('sx1262RxBoostedGain');
+const frequencyOffset = defineModel<number>('frequencyOffset');
+const overrideFrequency = defineModel<number>('overrideFrequency');
+const sx126xRxBoostedGain = defineModel<boolean>('sx126xRxBoostedGain');
 const paFanDisabled = defineModel<boolean>('paFanDisabled');
+const txPowerInput = computed<string>({
+  get() {
+    return txPower.value?.toString() ?? '';
+  },
+  set(value) {
+    const n = Number(value);
+    txPower.value = Number.isNaN(n) ? undefined : n;
+  },
+});
+const frequencyOffsetInput = computed<string>({
+  get() {
+    return frequencyOffset.value?.toString() ?? '';
+  },
+  set(value) {
+    const n = Number(value);
+    frequencyOffset.value = Number.isNaN(n) ? undefined : n;
+  },
+});
+const overrideFrequencyInput = computed<string>({
+  get() {
+    return overrideFrequency.value?.toString() ?? '';
+  },
+  set(value) {
+    const n = Number(value);
+    overrideFrequency.value = Number.isNaN(n) ? undefined : n;
+  },
+});
 </script>

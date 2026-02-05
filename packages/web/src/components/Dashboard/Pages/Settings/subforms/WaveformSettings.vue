@@ -46,7 +46,7 @@
             id="bandwidth"
             class="dark:bg-slate-800 dark:text-slate-400"
             size="small"
-            v-model="bandwidth"
+            v-model="bandwidthInput"
             type="number"
             :disabled="usePreset"
             :invalid="v$.bandwidth.$invalid"
@@ -67,7 +67,7 @@
             id="spreadFactor"
             class="dark:bg-slate-800 dark:text-slate-400"
             size="small"
-            v-model="spreadFactor"
+            v-model="spreadFactorInput"
             type="number"
             min="0"
             max="12"
@@ -89,7 +89,7 @@
           id="codingRate"
           class="dark:bg-slate-800 dark:text-slate-400 w-full"
           size="small"
-          v-model="codingRate"
+          v-model="codingRateInput"
           type="number"
           min="0"
           max="10"
@@ -103,6 +103,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import { Protobuf } from '@meshtastic/core';
 import FormGrid from '../components/FormGrid.vue';
 import FormRow from '../components/FormRow.vue';
@@ -115,9 +116,36 @@ defineProps<{
 
 const usePreset = defineModel<boolean>('usePreset');
 const modemPreset = defineModel<number>('modemPreset');
-const bandwidth = defineModel<string>('bandwidth');
-const spreadFactor = defineModel<string>('spreadFactor');
-const codingRate = defineModel<string>('codingRate');
+const bandwidth = defineModel<number>('bandwidth');
+const spreadFactor = defineModel<number>('spreadFactor');
+const codingRate = defineModel<number>('codingRate');
+const bandwidthInput = computed<string>({
+  get() {
+    return bandwidth.value?.toString() ?? '';
+  },
+  set(value) {
+    const n = Number(value);
+    bandwidth.value = Number.isNaN(n) ? undefined : n;
+  },
+});
+const spreadFactorInput = computed<string>({
+  get() {
+    return spreadFactor.value?.toString() ?? '';
+  },
+  set(value) {
+    const n = Number(value);
+    spreadFactor.value = Number.isNaN(n) ? undefined : n;
+  },
+});
+const codingRateInput = computed<string>({
+  get() {
+    return codingRate.value?.toString() ?? '';
+  },
+  set(value) {
+    const n = Number(value);
+    codingRate.value = Number.isNaN(n) ? undefined : n;
+  },
+});
 
 const modemPresetOptions = Object.entries(Protobuf.Config.Config_LoRaConfig_ModemPreset)
   .filter(([_, value]) => typeof value === 'number')
