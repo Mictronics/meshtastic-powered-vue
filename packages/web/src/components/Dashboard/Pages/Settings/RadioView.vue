@@ -6,12 +6,12 @@
         <SaveButton type="submit" :disabled="saveButtonDisable" @save-settings="onSaveSettings" />
       </div>
     </template>
-    <Accordion value="0">
-      <AccordionPanel value="0">
+    <Accordion v-model:value="activeSettingTab">
+      <AccordionPanel value="lora">
         <AccordionHeader>
           <div>
             LoRa
-            <span v-if="isLoraDirty" class="ml-2 text-orange-500">●</span>
+            <span v-if="isLoraDirty" class="ml-2 text-orange-500 text-sm">●</span>
           </div>
         </AccordionHeader>
         <AccordionContent>
@@ -43,18 +43,18 @@
           />
         </AccordionContent>
       </AccordionPanel>
-      <AccordionPanel value="1">
+      <AccordionPanel value="channels">
         <AccordionHeader>
           <div>
             Channels
-            <span v-if="isChannelsDirty" class="ml-2 text-orange-500">●</span>
+            <span v-if="isChannelsDirty" class="ml-2 text-orange-500 text-sm">●</span>
           </div>
         </AccordionHeader>
         <AccordionContent>
-          <ChannelSettings v-model:channels="allChannels" />
+          <ChannelSettings v-model:channels="allChannels" :dirty-flags="channelDirtyFlags" />
         </AccordionContent>
       </AccordionPanel>
-      <AccordionPanel value="2">
+      <AccordionPanel value="security">
         <AccordionHeader>Security</AccordionHeader>
         <AccordionContent></AccordionContent>
       </AccordionPanel>
@@ -65,7 +65,7 @@
 <script setup lang="ts">
 import { Protobuf } from '@meshtastic/core';
 import { create } from '@bufbuild/protobuf';
-import { ref, computed, watchEffect } from 'vue';
+import { ref, computed, watchEffect, toRaw } from 'vue';
 import { useVuelidate } from '@vuelidate/core';
 import { LoraRules } from './subforms/ValidationRules';
 import SaveButton from './components/SaveButton.vue';
@@ -75,7 +75,9 @@ import RadioSettings from './subforms/RadioSettings.vue';
 import ChannelSettings from './subforms/ChannelSettings.vue';
 import { useDeviceStore } from '@/composables/core/stores/device/useDeviceStore';
 import { useDeepCompareConfig } from '@/composables/useDeepCompareConfig';
+import { purgeUncloneableProperties } from '@/composables/core/stores/utils/purgeUncloneable';
 
+const activeSettingTab = ref();
 const device = useDeviceStore().device;
 const allChannels = ref<Protobuf.Channel.Channel[]>(
   Array.from({ length: 8 }, () => create(Protobuf.Channel.ChannelSchema))
@@ -103,13 +105,24 @@ watchEffect(() => {
 
 const isLoraDirty = computed(() => {
   if (!device.value?.config.lora) return false;
-  return !useDeepCompareConfig(loraConfig.value, device.value?.config.lora, true);
+  const dirty = !useDeepCompareConfig(loraConfig.value, device.value?.config.lora, true);
+  if (!dirty) {
+    device.value?.removeChange({ type: 'config', variant: 'lora' });
+  }
+  return dirty;
 });
 
-const isChannelsDirty = computed(() => {
-  if (!device.value?.channels) return false;
-  return !useDeepCompareConfig(allChannels.value, Object.values(device.value?.channels), true);
+const channelDirtyFlags = computed(() => {
+  if (!device.value?.channels) return allChannels.value.map(() => false);
+
+  const deviceChannels = Object.values(device.value.channels);
+  return allChannels.value.map((channel, index) => {
+    const original = deviceChannels[index];
+    return !useDeepCompareConfig(channel, original, true);
+  });
 });
+
+const isChannelsDirty = computed(() => channelDirtyFlags.value.some(Boolean));
 
 const saveButtonDisable = computed(() => !isLoraDirty.value && !isChannelsDirty.value);
 const onSaveSettings = () => {
@@ -120,10 +133,21 @@ const onSaveSettings = () => {
   }
 
   if (isLoraDirty.value) {
-    device.value?.setChange({ type: 'config', variant: 'lora' }, loraConfig);
+    const conf = toRaw(loraConfig.value);
+    purgeUncloneableProperties(conf);
+    device.value?.setChange({ type: 'config', variant: 'lora' }, conf);
   }
 
   if (isChannelsDirty.value) {
+    allChannels.value.forEach((channel, index) => {
+      if (channelDirtyFlags.value[index]) {
+        const channelRaw = toRaw(channel);
+        purgeUncloneableProperties(channelRaw);
+        device.value?.setChange({ type: 'channel', index }, channelRaw);
+      } else {
+        device.value?.removeChange({ type: 'channel', index: channel.index });
+      }
+    });
   }
 };
 </script>
