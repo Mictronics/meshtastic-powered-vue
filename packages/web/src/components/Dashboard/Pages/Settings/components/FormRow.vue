@@ -6,7 +6,7 @@
 
     <div>
       <slot />
-      <p v-if="error" class="text-red-400 dark:text-red-600 text-sm">{{ error }}</p>
+      <p v-if="error" class="text-red-400 dark:text-red-600 text-xs">{{ error }}</p>
     </div>
 
     <p v-if="description" class="text-slate-400">
