@@ -245,6 +245,9 @@ const onKeyUpdate = (payload: PreSharedKeyUpdate) => {
 watchDebounced(
   formChannel,
   (channel) => {
+    if (pskV$.value.$invalid) {
+      return;
+    }
     const { $typeName, ...settingsWithoutTypeName } = channel.settings;
     const payload = create(Protobuf.Channel.ChannelSchema, {
       ...channel,
