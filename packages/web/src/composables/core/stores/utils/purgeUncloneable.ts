@@ -11,7 +11,7 @@ export function purgeUncloneableProperties(
         const value = record[key];
         // If this property itself is uncloneable, inspect deeper
         try {
-            console.log(value)
+            //console.log(value)
             structuredClone(value);
         } catch {
             if (isReactive(value)) {
