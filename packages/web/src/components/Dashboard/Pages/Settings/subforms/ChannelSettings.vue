@@ -8,6 +8,7 @@
       <TabList>
         <Tab v-for="ch in channels" :key="ch.index" :value="ch.index" pt:root:class="font-light">
           {{ ch.settings?.name || `Channel ${ch.index}` }}
+          <span v-if="dirtyFlags[ch.index]" class="ml-2 text-orange-500 text-sm">●</span>
         </Tab>
       </TabList>
       <TabPanels>
@@ -27,6 +28,10 @@
 import { ref } from 'vue';
 import type { Protobuf } from '@meshtastic/core';
 import FormChannel from '../components/FormChannel.vue';
+
+defineProps<{
+  dirtyFlags: boolean[];
+}>();
 
 const channels = defineModel<Protobuf.Channel.Channel[]>('channels');
 const selectedChannel = ref<number>(0);
