@@ -4,7 +4,6 @@ import {
 } from "@/composables/core/stores/indexedDB";
 import { reactive, toRaw } from 'vue';
 import { createSharedComposable, watchIgnorable } from "@vueuse/core";
-import type { RasterSource } from "./types.ts";
 import type { SortState, ButtonKey } from "@/components/Dashboard/Pages/NodeView/types.ts";
 import type { LngLatLike } from "maplibre-gl";
 

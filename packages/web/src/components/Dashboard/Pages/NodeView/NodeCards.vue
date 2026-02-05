@@ -203,7 +203,7 @@
 
 <script setup lang="ts">
 import { Search, Star, StarOff, Trash2, Eye, EyeOff, CircleArrowUp, X } from 'lucide-vue-next';
-import { ref, computed, onMounted, onUnmounted, onBeforeUnmount, type Ref } from 'vue';
+import { ref, computed, onMounted, onUnmounted, onBeforeUnmount } from 'vue';
 import { formatTimeAgoIntl, refDebounced } from '@vueuse/core';
 import { numberToHexUnpadded } from '@noble/curves/utils.js';
 import type { FormattedNode } from '@/composables/core/utils/types';
@@ -211,10 +211,8 @@ import { useFormattedNodeDatabase } from '@/composables/core/utils/useFormattedN
 import NodeAvatar from '@/components/Dashboard/NodeAvatar.vue';
 import BatteryStatus from '@/components/Dashboard/BatteryStatus.vue';
 import NodeDetailsItem from '@/components/Dashboard/Pages/NodeView/NodeDetailsItem.vue';
-import DeviceImage from '@/components/Dashboard/Pages/NodeView/DeviceImage.vue';
 import CoordinateDisplay from '@/components/Dashboard/Pages/NodeView/CoordinateDisplay.vue';
 import SortButtonGroup from '@/components/Dashboard/Pages/NodeView/SortButtonGroup.vue';
-import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import NodeFeatures from '@/components/Dashboard/Pages/NodeView/NodeFeatures.vue';
 import SectionDivider from '@/components/Dashboard/Pages/SectionDivider.vue';
 import MetricsGrid from '@/components/Dashboard/Pages/NodeView/MetricsGrid.vue';
@@ -256,7 +254,6 @@ const deviceMetricsItems = computed(() => {
   const formatVoltage = (v?: number) => (v == null ? 'N/A' : `${v.toPrecision(2)} V`);
   const formatBattery = (level?: number) =>
     level == null ? 'N/A' : level > 100 ? 'Plugged in' : `${level} %`;
-  const formatPercent = (val?: number) => (val == null ? 'N/A' : `${val.toFixed(1)} %`);
 
   return [
     { label: 'Air TX', value: m.airUtilTx },
@@ -373,13 +370,17 @@ const airQualityItems = computed(() => {
 });
 
 const isFavorite = computed(() => {
-  if (selectedNode.value?.nodeNumber)
+  if (selectedNode.value?.nodeNumber) {
     return nodeDatabase.value[selectedNode.value.nodeNumber]?.isFavorite;
+  }
+  return false;
 });
 
 const isIgnored = computed(() => {
-  if (selectedNode.value?.nodeNumber)
+  if (selectedNode.value?.nodeNumber) {
     return nodeDatabase.value[selectedNode.value.nodeNumber]?.isIgnored;
+  }
+  return false;
 });
 
 const updateWidth = () => (windowWidth.value = window.innerWidth);

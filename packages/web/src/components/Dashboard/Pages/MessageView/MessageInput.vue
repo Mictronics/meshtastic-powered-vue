@@ -69,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, onBeforeUnmount, type ComponentPublicInstance, computed, watch } from 'vue';
+import { ref, nextTick, onBeforeUnmount, type ComponentPublicInstance, computed } from 'vue';
 import { createGlobalState, refAutoReset } from '@vueuse/core';
 import { Smile, Send } from 'lucide-vue-next';
 import { Types } from '@meshtastic/core';

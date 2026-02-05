@@ -97,7 +97,7 @@ const generatePreSharedKey = async () => {
       const cryptoApi = (globalThis as any).crypto || (window as any).crypto;
       cryptoApi.getRandomValues(bytes);
       preSharedKey.value = fromByteArray(bytes);
-    } catch (e) {
+    } catch {
       preSharedKey.value = '';
     }
   }

@@ -83,6 +83,7 @@ const displayValue = computed(() => {
   const absLon = Math.abs(lon);
 
   switch (modes[modeIndex.value]) {
+    default:
     case 'WGS84 DD':
       return `${absLat.toFixed(6)}° ${latDir}, ${absLon.toFixed(6)}° ${lonDir}`;
     case 'WGS84 DMS': {

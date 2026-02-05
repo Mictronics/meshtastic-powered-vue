@@ -269,11 +269,11 @@ const onMapLoad = (e: any) => {
   });
 };
 
-const onZoomEnd = (e: any) => {
+const onZoomEnd = () => {
   appStore.appData.mapZoom = zoom.value;
 };
 
-const onDragEnd = (e: any) => {
+const onDragEnd = () => {
   appStore.appData.mapCenter = center.value;
 };
 

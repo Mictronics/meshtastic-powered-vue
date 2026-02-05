@@ -21,12 +21,10 @@ import {
   Trash,
   Factory,
   Eraser,
-  Unlink,
 } from 'lucide-vue-next';
 import { ref, computed } from 'vue';
 import type { FunctionalComponent } from 'vue';
 import type { LucideProps } from 'lucide-vue-next';
-import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import QRDialog from './QRDialog.vue';
 import { useDeviceStore } from '@/composables/core/stores/device/useDeviceStore';
 import { useMessageStore } from '@/composables/core/stores/message/useMessageStore';
