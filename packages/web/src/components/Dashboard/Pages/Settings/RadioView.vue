@@ -1,16 +1,10 @@
 <template>
-  <Fieldset pt:legend:class="fieldset-legend" class="m-1">
-    <template #legend>
-      <div class="flex items-center gap-4">
-        <span class="font-bold">Radio</span>
-        <SaveButton type="submit" :disabled="saveButtonDisable" @save-settings="onSaveSettings" />
-        <MeterGroup
-          v-if="saveConfigHandler.isSaving.value"
-          :value="saveConfigHandler.meters.value"
-          pt:root:class="text-xs"
-        />
-      </div>
-    </template>
+  <SettingsLayout
+    :saveButtonDisable="saveButtonDisable"
+    :onSaveSettings="onSaveSettings"
+    :saveConfigHandler="saveConfigHandler"
+  >
+    <template #title>Radio</template>
     <Accordion v-model:value="activeSettingTab">
       <AccordionPanel value="lora">
         <AccordionHeader>
@@ -81,7 +75,7 @@
         </AccordionContent>
       </AccordionPanel>
     </Accordion>
-  </Fieldset>
+  </SettingsLayout>
 </template>
 
 <script setup lang="ts">
@@ -90,7 +84,7 @@ import { create } from '@bufbuild/protobuf';
 import { ref, computed, watchEffect, toRaw } from 'vue';
 import { useVuelidate } from '@vuelidate/core';
 import { LoraRules } from '@/composables/ValidationRules';
-import SaveButton from './components/SaveButton.vue';
+import SettingsLayout from './components/SettingsLayout.vue';
 import MeshSettings from './subforms/MeshSettings.vue';
 import WaveformSettings from './subforms/WaveformSettings.vue';
 import RadioSettings from './subforms/RadioSettings.vue';

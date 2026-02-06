@@ -1,11 +1,10 @@
 <template>
-  <Fieldset pt:legend:class="fieldset-legend" class="h-dvh m-1">
-    <template #legend>
-      <div class="flex items-center gap-4">
-        <span class="font-bold">Modules</span>
-        <SaveButton :disabled="saveButtonDisable" @save-settings="onSaveSettings" />
-      </div>
-    </template>
+  <SettingsLayout
+    :saveButtonDisable="saveButtonDisable"
+    :onSaveSettings="onSaveSettings"
+    :saveConfigHandler="saveConfigHandler"
+  >
+  <template #title>Modules</template>
     <Accordion value="0">
       <AccordionPanel value="0">
         <AccordionHeader>MQTT</AccordionHeader>
@@ -56,14 +55,16 @@
         <AccordionContent></AccordionContent>
       </AccordionPanel>
     </Accordion>
-  </Fieldset>
+  </SettingsLayout>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import SaveButton from './components/SaveButton.vue';
+import SettingsLayout from './components/SettingsLayout.vue';
+import { useConfigSave } from '@/composables/useConfigSave';
 
 const saveButtonDisable = ref(true);
+const saveConfigHandler = useConfigSave();
 
 const onSaveSettings = () => {};
 </script>
