@@ -113,7 +113,7 @@ watchEffect(() => {
   if (!device.value) return;
 
   const lora = device.value.getEffectiveConfig('lora');
-  const channels = device.value.get
+  const channels = device.value.channels;
   const security = device.value.getEffectiveConfig('security');
   if (!lora || !security) return;
 
