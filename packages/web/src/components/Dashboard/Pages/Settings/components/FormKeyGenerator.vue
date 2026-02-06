@@ -10,20 +10,22 @@
         optionValue="value"
         placeholder="Length"
         v-model="pskSize"
+        :disabled="fixedKey32"
       />
       <Button size="small" severity="success" @click="generatePreSharedKey">Generate</Button>
     </div>
     <InputGroup>
       <Password
-        v-model="preSharedKey"
+        v-model="privateKey"
         toggleMask
         size="small"
         :feedback="false"
         :invalid="!!error"
+        @input="onPrivateKeyUpdate"
       />
       <InputGroupAddon>
         <Button
-          :disabled="!isSupported || !preSharedKey"
+          :disabled="!isSupported || !privateKey"
           size="small"
           variant="text"
           severity="secondary"
@@ -43,10 +45,13 @@ import { useClipboard, watchDebounced } from '@vueuse/core';
 import { Copy, CopyCheck } from 'lucide-vue-next';
 import { useConfirm } from '@/composables/useConfirmDialog';
 import { fromByteArray } from 'base64-js';
+import { getX25519PrivateKey, getX25519PublicKey } from '@/composables/useX25519';
+import { tryDecodeBase64 } from '@/composables/useBase64KeyValidator';
 
 export type Key = 0 | 1 | 16 | 32;
 export interface PreSharedKeyUpdate {
-  key: string;
+  privateKey: string;
+  publicKey: string;
   length: 0 | 1 | 16 | 32;
 }
 
@@ -55,9 +60,11 @@ const props = withDefaults(
     initialKey: string;
     initialKeySize: Key;
     error?: string | boolean;
+    fixedKey32?: boolean;
   }>(),
   {
     error: false,
+    fixedKey32: false,
   }
 );
 
@@ -73,13 +80,14 @@ const keyOptions: { label: string; value: Key }[] = [
 ];
 
 const { open } = useConfirm();
-const preSharedKey = ref(props.initialKey);
+const privateKey = ref(props.initialKey);
+const publicKey = ref('');
 const pskSize = ref<Key>(props.initialKeySize);
 const { copy, copied, isSupported } = useClipboard();
 
 const generatePreSharedKey = async () => {
   const confirmed = await open({
-    header: 'Generate pre-shared key?',
+    header: 'Generate key?',
     message: 'The existing key will be overwritten.',
     acceptLabel: 'Generate',
     cancelLabel: 'Cancel',
@@ -87,33 +95,61 @@ const generatePreSharedKey = async () => {
 
   if (!confirmed) return;
 
+  if (props.fixedKey32) {
+    pskSize.value = 32;
+  }
+
   const size = Number(pskSize.value) || 0;
 
   if (size === 0) {
-    preSharedKey.value = '';
+    privateKey.value = '';
+    publicKey.value = '';
+  } else if (size === 32) {
+    const pk = getX25519PrivateKey();
+    privateKey.value = fromByteArray(pk);
+    publicKey.value = fromByteArray(getX25519PublicKey(pk));
   } else {
     try {
       const bytes = new Uint8Array(size);
       const cryptoApi = (globalThis as any).crypto || (window as any).crypto;
       cryptoApi.getRandomValues(bytes);
-      preSharedKey.value = fromByteArray(bytes);
+      privateKey.value = fromByteArray(bytes);
     } catch {
-      preSharedKey.value = '';
+      privateKey.value = '';
     }
+    publicKey.value = '';
   }
 
   emitUpdate();
 };
 
+const onPrivateKeyUpdate = () => {
+  if (props.fixedKey32) {
+    pskSize.value = 32;
+  }
+
+  if (pskSize.value === 32) {
+    const decoded = tryDecodeBase64(privateKey.value);
+    if (decoded && decoded.length === 32) {
+      publicKey.value = fromByteArray(getX25519PublicKey(decoded));
+    } else {
+      publicKey.value = '';
+    }
+  } else {
+    publicKey.value = '';
+  }
+};
+
 const emitUpdate = () => {
   emit('updateKey', {
-    key: preSharedKey.value,
+    privateKey: privateKey.value,
+    publicKey: publicKey.value,
     length: pskSize.value,
   });
 };
 
 watchDebounced(
-  [preSharedKey, pskSize],
+  [privateKey, pskSize],
   () => {
     emitUpdate();
   },
@@ -122,7 +158,7 @@ watchDebounced(
 
 const copyKey = async () => {
   try {
-    await copy(preSharedKey.value);
+    await copy(privateKey.value);
   } catch {}
 };
 </script>
