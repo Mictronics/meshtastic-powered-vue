@@ -152,10 +152,17 @@ const channelDirtyFlags = computed(() => {
 const isChannelsDirty = computed(() => channelDirtyFlags.value.some(Boolean));
 
 const isSecurityDirty = computed(() => {
-  return false;
+  if (!device.value?.config.security) return false;
+  const dirty = !useDeepCompareConfig(securityConfig.value, device.value?.config.security, true);
+  if (!dirty) {
+    device.value?.removeChange({ type: 'config', variant: 'security' });
+  }
+  return dirty;
 });
 
-const saveButtonDisable = computed(() => !isLoraDirty.value && !isChannelsDirty.value);
+const saveButtonDisable = computed(
+  () => !isLoraDirty.value && !isChannelsDirty.value && !isSecurityDirty.value
+);
 const onSaveSettings = () => {
   loraV$.value.$touch();
 
