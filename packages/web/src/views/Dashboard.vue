@@ -1,5 +1,4 @@
 <template>
-  <Toast position="bottom-right" />
   <main class="min-h-screen flex flex-col">
     <div class="w-full flex flex-1">
       <Sidebar
