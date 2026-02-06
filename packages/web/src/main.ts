@@ -42,6 +42,7 @@ import ToggleSwitch from 'primevue/toggleswitch';
 import Select from 'primevue/select';
 import Fieldset from 'primevue/fieldset';
 import Password from 'primevue/password';
+import MeterGroup from 'primevue/metergroup';
 
 import Toast from 'primevue/toast';
 import ToastService from 'primevue/toastservice';
@@ -117,7 +118,8 @@ try {
     ToggleSwitch,
     Select,
     Fieldset,
-    Password
+    Password,
+    MeterGroup
 ].forEach(component => {
     app.component(component.name, component);
 });
