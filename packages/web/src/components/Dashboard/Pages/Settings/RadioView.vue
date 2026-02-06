@@ -112,9 +112,9 @@ const loraV$ = useVuelidate(LoraRules, loraConfig);
 watchEffect(() => {
   if (!device.value) return;
 
-  const lora = device.value.config?.lora;
-  const channels = device.value.channels;
-  const security = device.value.config?.security;
+  const lora = device.value.getEffectiveConfig('lora');
+  const channels = device.value.get
+  const security = device.value.getEffectiveConfig('security');
   if (!lora || !security) return;
 
   loraConfig.value = {
