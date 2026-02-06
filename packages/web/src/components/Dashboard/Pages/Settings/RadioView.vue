@@ -55,8 +55,25 @@
         </AccordionContent>
       </AccordionPanel>
       <AccordionPanel value="security">
-        <AccordionHeader>Security</AccordionHeader>
-        <AccordionContent></AccordionContent>
+        <AccordionHeader>
+          <div>
+            Security
+            <span v-if="isSecurityDirty" class="ml-2 text-orange-500 text-sm">●</span>
+          </div>
+        </AccordionHeader>
+        <AccordionContent>
+          <SecuritySettings
+            v-model:admin-channel-enabled="securityConfig.adminChannelEnabled"
+            v-model:debug-log-api-enabled="securityConfig.debugLogApiEnabled"
+            v-model:is-managed="securityConfig.isManaged"
+            v-model:serial-enabled="securityConfig.serialEnabled"
+            v-model:private-key="securityConfig.privateKey"
+            v-model:public-key="securityConfig.publicKey"
+            v-model:admin-key0="securityConfig.adminKey[0]"
+            v-model:admin-key1="securityConfig.adminKey[1]"
+            v-model:admin-key2="securityConfig.adminKey[2]"
+          />
+        </AccordionContent>
       </AccordionPanel>
     </Accordion>
   </Fieldset>
@@ -67,12 +84,13 @@ import { Protobuf } from '@meshtastic/core';
 import { create } from '@bufbuild/protobuf';
 import { ref, computed, watchEffect, toRaw } from 'vue';
 import { useVuelidate } from '@vuelidate/core';
-import { LoraRules } from './subforms/ValidationRules';
+import { LoraRules } from '@/composables/ValidationRules';
 import SaveButton from './components/SaveButton.vue';
 import MeshSettings from './subforms/MeshSettings.vue';
 import WaveformSettings from './subforms/WaveformSettings.vue';
 import RadioSettings from './subforms/RadioSettings.vue';
 import ChannelSettings from './subforms/ChannelSettings.vue';
+import SecuritySettings from './subforms/SecuritySettings.vue';
 import { useDeviceStore } from '@/composables/core/stores/device/useDeviceStore';
 import { useDeepCompareConfig } from '@/composables/useDeepCompareConfig';
 import { purgeUncloneableProperties } from '@/composables/core/stores/utils/purgeUncloneable';
@@ -85,6 +103,9 @@ const allChannels = ref<Protobuf.Channel.Channel[]>(
 const loraConfig = ref<Protobuf.Config.Config_LoRaConfig>(
   create(Protobuf.Config.Config_LoRaConfigSchema)
 );
+const securityConfig = ref<Protobuf.Config.Config_SecurityConfig>(
+  create(Protobuf.Config.Config_SecurityConfigSchema)
+);
 
 const loraV$ = useVuelidate(LoraRules, loraConfig);
 
@@ -93,11 +114,17 @@ watchEffect(() => {
 
   const lora = device.value.config?.lora;
   const channels = device.value.channels;
-  if (!lora) return;
+  const security = device.value.config?.security;
+  if (!lora || !security) return;
 
   loraConfig.value = {
     ...loraConfig.value,
     ...lora,
+  };
+
+  securityConfig.value = {
+    ...securityConfig.value,
+    ...security,
   };
 
   allChannels.value = Object.values(channels);
@@ -123,6 +150,10 @@ const channelDirtyFlags = computed(() => {
 });
 
 const isChannelsDirty = computed(() => channelDirtyFlags.value.some(Boolean));
+
+const isSecurityDirty = computed(() => {
+  return false;
+});
 
 const saveButtonDisable = computed(() => !isLoraDirty.value && !isChannelsDirty.value);
 const onSaveSettings = () => {
