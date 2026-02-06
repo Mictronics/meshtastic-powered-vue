@@ -4,6 +4,11 @@
       <div class="flex items-center gap-4">
         <span class="font-bold">Radio</span>
         <SaveButton type="submit" :disabled="saveButtonDisable" @save-settings="onSaveSettings" />
+        <MeterGroup
+          v-if="saveConfigHandler.isSaving.value"
+          :value="saveConfigHandler.meters.value"
+          pt:root:class="text-xs"
+        />
       </div>
     </template>
     <Accordion v-model:value="activeSettingTab">
@@ -94,9 +99,11 @@ import SecuritySettings from './subforms/SecuritySettings.vue';
 import { useDeviceStore } from '@/composables/core/stores/device/useDeviceStore';
 import { useDeepCompareConfig } from '@/composables/useDeepCompareConfig';
 import { purgeUncloneableProperties } from '@/composables/core/stores/utils/purgeUncloneable';
+import { useConfigSave } from '@/composables/useConfigSave';
 
 const activeSettingTab = ref();
 const device = useDeviceStore().device;
+const saveConfigHandler = useConfigSave();
 const allChannels = ref<Protobuf.Channel.Channel[]>(
   Array.from({ length: 8 }, () => create(Protobuf.Channel.ChannelSchema))
 );
@@ -163,6 +170,7 @@ const isSecurityDirty = computed(() => {
 const saveButtonDisable = computed(
   () => !isLoraDirty.value && !isChannelsDirty.value && !isSecurityDirty.value
 );
+
 const onSaveSettings = () => {
   loraV$.value.$touch();
 
@@ -193,6 +201,8 @@ const onSaveSettings = () => {
     purgeUncloneableProperties(conf);
     device.value?.setChange({ type: 'config', variant: 'security' }, conf);
   }
+
+  saveConfigHandler.save();
 };
 </script>
 
