@@ -187,6 +187,12 @@ const onSaveSettings = () => {
       }
     });
   }
+
+  if (isSecurityDirty.value) {
+    const conf = toRaw(securityConfig.value);
+    purgeUncloneableProperties(conf);
+    device.value?.setChange({ type: 'config', variant: 'security' }, conf);
+  }
 };
 </script>
 
