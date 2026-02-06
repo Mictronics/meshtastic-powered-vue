@@ -100,6 +100,8 @@ import { useDeviceStore } from '@/composables/core/stores/device/useDeviceStore'
 import { useDeepCompareConfig } from '@/composables/useDeepCompareConfig';
 import { purgeUncloneableProperties } from '@/composables/core/stores/utils/purgeUncloneable';
 import { useConfigSave } from '@/composables/useConfigSave';
+import { onBeforeRouteLeave } from 'vue-router';
+import { useConfirm } from '@/composables/useConfirmDialog';
 
 const activeSettingTab = ref();
 const device = useDeviceStore().device;
@@ -204,6 +206,26 @@ const onSaveSettings = () => {
 
   saveConfigHandler.save();
 };
+
+const { open } = useConfirm();
+onBeforeRouteLeave(async (to, from, next) => {
+  if (saveConfigHandler.isSaving.value || !saveButtonDisable.value) {
+    const confirmed = await open({
+      header: 'Discard pending changes?',
+      message: 'Leaving the page will discard all changes.',
+      acceptLabel: 'Leave',
+      cancelLabel: 'Cancel',
+    });
+
+    if (confirmed) {
+      next();
+    } else {
+      next(false);
+    }
+  } else {
+    next();
+  }
+});
 </script>
 
 <style lang="css" scoped>
