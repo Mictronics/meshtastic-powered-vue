@@ -112,8 +112,8 @@ import FormRow from '../components/FormRow.vue';
 import FormKeyGenerator from './FormKeyGenerator.vue';
 import type { PreSharedKeyUpdate, Key } from './FormKeyGenerator.vue';
 import useVuelidate from '@vuelidate/core';
-import { helpers } from '@vuelidate/validators';
 import { useGetError } from '@/composables/useGetError';
+import { useBase64KeyRules } from '@/composables/useBase64KeyValidator';
 
 const props = defineProps<{
   channel: Protobuf.Channel.Channel;
@@ -194,50 +194,16 @@ const psk = computed<string>({
   },
 });
 
-const tryDecodeBase64 = (value: string): Uint8Array | null => {
-  try {
-    return toByteArray(value);
-  } catch {
-    return null;
-  }
-};
-
-const emptyWhenZeroLength = helpers.withMessage(
-  'Key must be empty when length is set to Empty',
-  (value: string) => {
-    return pskSize.value === 0 ? value.length === 0 : true;
-  }
-);
-
-const validBase64 = helpers.withMessage('Key is not valid Base64', (value: string) => {
-  if (!value || pskSize.value === 0) return true;
-  return tryDecodeBase64(value) !== null;
-});
-
-const decodedLengthMatches = helpers.withMessage(
-  'Decoded key length does not match selected size',
-  (value: string) => {
-    if (!value || pskSize.value === 0) return true;
-
-    const decoded = tryDecodeBase64(value);
-    if (!decoded) return true; // handled by validBase64
-
-    return decoded.length === pskSize.value;
-  }
-);
-
-const keyRule = {
-  preSharedKey: {
-    emptyWhenZeroLength,
-    validBase64,
-    decodedLengthMatches,
+const pskV$ = useVuelidate(
+  {
+    preSharedKey: useBase64KeyRules(pskSize, 'Pre-shared key'),
   },
-};
-const pskV$ = useVuelidate(keyRule, { preSharedKey: psk });
+  { preSharedKey: psk }
+);
 
 const onKeyUpdate = (payload: PreSharedKeyUpdate) => {
-  const { key, length } = payload;
-  psk.value = key;
+  const { privateKey, length } = payload;
+  psk.value = privateKey;
   pskSize.value = length;
   pskV$.value.$touch();
 };
