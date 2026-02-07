@@ -15,12 +15,8 @@
     "lint": "eslint . --fix --cache"
   },
   "dependencies": {
+    "@bufbuild/protobuf": "^2.11.0",
     "@indoorequal/vue-maplibre-gl": "^8.4.2",
-    "@meshtastic/core": "link:../core",
-    "@meshtastic/protobufs": "link:../protobufs",
-    "@meshtastic/transport-http": "link:../transport-http",
-    "@meshtastic/transport-web-bluetooth": "link:../transport-web-bluetooth",
-    "@meshtastic/transport-web-serial": "link:../transport-web-serial",
     "@noble/curves": "^2.0.1",
     "@primeuix/themes": "^2.0.3",
     "@primevue/core": "^4.5.4",
@@ -59,9 +55,12 @@
     "@vue/eslint-config-typescript": "^14.6.0",
     "@vue/tsconfig": "^0.8.1",
     "eslint": "^9.39.2",
+    "eslint-plugin-unused-imports": "^4.3.0",
     "eslint-plugin-vue": "~10.5.1",
     "jiti": "^2.6.1",
+    "knip": "^5.83.0",
     "npm-run-all2": "^8.0.4",
+    "rollup-plugin-visualizer": "^6.0.5",
     "typescript": "~5.9.3",
     "vite": "^7.3.1",
     "vite-plugin-unused-code": "^0.1.6",
@@ -77,9 +76,6 @@
       "plugin:vue/vue3-essential",
       "eslint:recommended"
     ],
-    "parserOptions": {
-      "parser": "@babel/eslint-parser"
-    },
     "rules": {
       "vue/multi-word-component-names": "off",
       "no-undef": "off",
@@ -89,5 +85,9 @@
       "no-empty": "off",
       "no-explicit-any": "off"
     }
-  }
+  },
+  "sideEffects": [
+    "*.css",
+    "*.scss"
+  ]
 }
