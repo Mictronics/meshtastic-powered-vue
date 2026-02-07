@@ -43,6 +43,7 @@ import Select from 'primevue/select';
 import Fieldset from 'primevue/fieldset';
 import Password from 'primevue/password';
 import MeterGroup from 'primevue/metergroup';
+import InputMask from 'primevue/inputmask';
 
 import Toast from 'primevue/toast';
 import ToastService from 'primevue/toastservice';
@@ -119,7 +120,8 @@ try {
     Select,
     Fieldset,
     Password,
-    MeterGroup
+    MeterGroup,
+    InputMask
 ].forEach(component => {
     app.component(component.name, component);
 });
