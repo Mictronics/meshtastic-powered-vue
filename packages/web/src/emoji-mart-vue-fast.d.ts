@@ -1,5 +1,5 @@
 declare module 'emoji-mart-vue-fast' {
-    import { DefineComponent, ComponentPublicInstance } from 'vue';
+    import { DefineComponent } from 'vue';
 
     export type EmojiData = {
         id?: string;
