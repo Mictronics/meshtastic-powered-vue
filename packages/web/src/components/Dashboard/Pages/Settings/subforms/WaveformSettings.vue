@@ -23,6 +23,7 @@
         <Select
           aria-labelledby="modemPreset"
           class="dark:bg-slate-800 dark:text-slate-400"
+          label-class="dark:bg-slate-800 dark:text-slate-400"
           size="small"
           v-model="modemPreset"
           :disabled="!usePreset"

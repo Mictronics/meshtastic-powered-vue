@@ -567,6 +567,8 @@
   --p-text-hover-color: var(--color-slate-800);
   --p-text-muted-color: var(--color-slate-500);
   --p-text-hover-muted-color: var(--color-slate-600);
+  --p-button-success-background: var(--p-primary-color);
+  --p-button-success-border-color: var(--p-primary-color);
   --dashboard-border-color: var(--color-slate-200);
   background: var(--color-white);
 }
@@ -587,6 +589,8 @@
   --p-text-hover-color: var(--color-slate-300);
   --p-text-muted-color: var(--color-slate-400);
   --p-text-hover-muted-color: var(--color-slate-400);
+  --p-button-success-background: var(--p-primary-color);
+  --p-button-success-border-color: var(--p-primary-color);
   --dashboard-border-color: var(--color-slate-700);
   background: var(--color-slate-900);
 }

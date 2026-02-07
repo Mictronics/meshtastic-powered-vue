@@ -14,6 +14,7 @@
         <Select
           aria-labelledby="region"
           class="dark:bg-slate-800 dark:text-slate-400 w-full"
+          label-class="dark:bg-slate-800 dark:text-slate-400"
           size="small"
           v-model="region"
           :options="regionOptions"
@@ -34,6 +35,7 @@
         <Select
           aria-labelledby="hopLimit"
           class="dark:bg-slate-800 dark:text-slate-400 w-full"
+          label-class="dark:bg-slate-800 dark:text-slate-400"
           size="small"
           v-model="hopLimit"
           :options="hopLimitOptions"

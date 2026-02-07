@@ -3,6 +3,7 @@
     <div class="flex flex-row gap-1 pb-1">
       <Select
         aria-label="Select key length"
+        label-class="dark:bg-slate-800 dark:text-slate-400"
         class="dark:bg-slate-800 dark:text-slate-400"
         size="small"
         :options="keyOptions"
@@ -16,6 +17,7 @@
     </div>
     <InputGroup>
       <Password
+        input-class="dark:bg-slate-800 dark:text-slate-400"
         v-model="privateKey"
         toggleMask
         size="small"

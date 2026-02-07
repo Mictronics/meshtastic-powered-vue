@@ -2,6 +2,7 @@
   <div class="contents">
     <InputGroup>
       <InputText
+        class="dark:bg-slate-800 dark:text-slate-400"
         size="small"
         :feedback="false"
         :invalid="!!error"

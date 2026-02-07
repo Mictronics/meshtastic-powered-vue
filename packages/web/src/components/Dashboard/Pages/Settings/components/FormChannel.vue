@@ -8,6 +8,7 @@
       <Select
         aria-labelledby="role"
         class="dark:bg-slate-800 dark:text-slate-400 w-full"
+        label-class="dark:bg-slate-800 dark:text-slate-400"
         size="small"
         :options="roleOptions"
         optionLabel="label"
@@ -55,6 +56,7 @@
       <Select
         aria-labelledby="position"
         class="dark:bg-slate-800 dark:text-slate-400 w-full"
+        label-class="dark:bg-slate-800 dark:text-slate-400"
         size="small"
         :options="positionOptions"
         optionLabel="label"
