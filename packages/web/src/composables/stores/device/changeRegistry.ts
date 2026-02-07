@@ -55,7 +55,7 @@ export interface ChangeRegistry {
 /**
  * Convert structured key to string for Map lookup
  */
-export function serializeKey(key: ConfigChangeKey): ConfigChangeKeyString {
+export const serializeKey = (key: ConfigChangeKey): ConfigChangeKeyString => {
     switch (key.type) {
         case "config":
             return `config:${key.variant}`;
@@ -73,7 +73,7 @@ export function serializeKey(key: ConfigChangeKey): ConfigChangeKeyString {
 /**
  * Reverse operation for type-safe retrieval
  */
-export function deserializeKey(keyStr: ConfigChangeKeyString): ConfigChangeKey {
+export const deserializeKey = (keyStr: ConfigChangeKeyString): ConfigChangeKey => {
     const parts = keyStr.split(":");
     const type = parts[0];
 
@@ -106,7 +106,7 @@ export function deserializeKey(keyStr: ConfigChangeKeyString): ConfigChangeKey {
 /**
  * Create an empty change registry
  */
-export function createChangeRegistry(): ChangeRegistry {
+export const createChangeRegistry = (): ChangeRegistry => {
     return {
         changes: {},
     };
@@ -115,44 +115,44 @@ export function createChangeRegistry(): ChangeRegistry {
 /**
  * Check if a config variant has changes
  */
-export function hasConfigChange(
+export const hasConfigChange = (
     registry: ChangeRegistry,
     variant: ValidConfigType,
-): boolean {
+): boolean => {
     return registry.changes.hasOwnProperty(serializeKey({ type: "config", variant }));
 }
 
 /**
  * Check if a module config variant has changes
  */
-export function hasModuleConfigChange(
+export const hasModuleConfigChange = (
     registry: ChangeRegistry,
     variant: ValidModuleConfigType,
-): boolean {
+): boolean => {
     return registry.changes.hasOwnProperty(serializeKey({ type: "moduleConfig", variant }));
 }
 
 /**
  * Check if a channel has changes
  */
-export function hasChannelChange(
+export const hasChannelChange = (
     registry: ChangeRegistry,
     index: Types.ChannelNumber,
-): boolean {
+): boolean => {
     return registry.changes.hasOwnProperty(serializeKey({ type: "channel", index }));
 }
 
 /**
  * Check if user config has changes
  */
-export function hasUserChange(registry: ChangeRegistry): boolean {
+export const hasUserChange = (registry: ChangeRegistry): boolean => {
     return registry.changes.hasOwnProperty(serializeKey({ type: "user" }));
 }
 
 /**
  * Get count of config changes
  */
-export function getConfigChangeCount(registry: ChangeRegistry): number {
+export const getConfigChangeCount = (registry: ChangeRegistry): number => {
     let count = 0;
     for (const keyStr of Object.keys(registry.changes)) {
         const key = deserializeKey(keyStr);
@@ -166,7 +166,7 @@ export function getConfigChangeCount(registry: ChangeRegistry): number {
 /**
  * Get count of module config changes
  */
-export function getModuleConfigChangeCount(registry: ChangeRegistry): number {
+export const getModuleConfigChangeCount = (registry: ChangeRegistry): number => {
     let count = 0;
     for (const keyStr of Object.keys(registry.changes)) {
         const key = deserializeKey(keyStr);
@@ -180,7 +180,7 @@ export function getModuleConfigChangeCount(registry: ChangeRegistry): number {
 /**
  * Get count of channel changes
  */
-export function getChannelChangeCount(registry: ChangeRegistry): number {
+export const getChannelChangeCount = (registry: ChangeRegistry): number => {
     let count = 0;
     for (const keyStr of Object.keys(registry.changes)) {
         const key = deserializeKey(keyStr);
@@ -194,7 +194,7 @@ export function getChannelChangeCount(registry: ChangeRegistry): number {
 /**
  * Get all config changes as an array
  */
-export function getAllConfigChanges(registry: ChangeRegistry): ChangeEntry[] {
+export const getAllConfigChanges = (registry: ChangeRegistry): ChangeEntry[] => {
     const changes: ChangeEntry[] = [];
     for (const entry of Object.values(registry.changes)) {
         if (entry.key.type === "config") {
@@ -207,9 +207,9 @@ export function getAllConfigChanges(registry: ChangeRegistry): ChangeEntry[] {
 /**
  * Get all module config changes as an array
  */
-export function getAllModuleConfigChanges(
+export const getAllModuleConfigChanges = (
     registry: ChangeRegistry,
-): ChangeEntry[] {
+): ChangeEntry[] => {
     const changes: ChangeEntry[] = [];
     for (const entry of Object.values(registry.changes)) {
         if (entry.key.type === "moduleConfig") {
@@ -222,7 +222,7 @@ export function getAllModuleConfigChanges(
 /**
  * Get all channel changes as an array
  */
-export function getAllChannelChanges(registry: ChangeRegistry): ChangeEntry[] {
+export const getAllChannelChanges = (registry: ChangeRegistry): ChangeEntry[] => {
     const changes: ChangeEntry[] = [];
     for (const entry of Object.values(registry.changes)) {
         if (entry.key.type === "channel") {
@@ -235,7 +235,7 @@ export function getAllChannelChanges(registry: ChangeRegistry): ChangeEntry[] {
 /**
  * Get all admin message changes as an array
  */
-export function getAllAdminMessages(registry: ChangeRegistry): ChangeEntry[] {
+export const getAllAdminMessages = (registry: ChangeRegistry): ChangeEntry[] => {
     const changes: ChangeEntry[] = [];
     for (const entry of Object.values(registry.changes)) {
         if (entry.key.type === "adminMessage") {
@@ -248,7 +248,7 @@ export function getAllAdminMessages(registry: ChangeRegistry): ChangeEntry[] {
 /**
  * Get count of admin message changes
  */
-export function getAdminMessageChangeCount(registry: ChangeRegistry): number {
+export const getAdminMessageChangeCount = (registry: ChangeRegistry): number => {
     let count = 0;
     for (const keyStr of Object.keys(registry.changes)) {
         const key = deserializeKey(keyStr);

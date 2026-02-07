@@ -11,11 +11,11 @@ function equalKey(a?: Uint8Array | null, b?: Uint8Array | null): boolean {
     return true;
 }
 
-export function validateIncomingNode(
+export const validateIncomingNode = (
     newNode: Protobuf.Mesh.NodeInfo,
     setNodeError: (nodeNum: number, error: NodeErrorType) => void,
     getNodes: (filter?: (node: Protobuf.Mesh.NodeInfo) => boolean) => Protobuf.Mesh.NodeInfo[],
-): Protobuf.Mesh.NodeInfo | undefined {
+): Protobuf.Mesh.NodeInfo | undefined => {
     const num = newNode.num;
     const existingNodes = getNodes(n => n.num === num);
 

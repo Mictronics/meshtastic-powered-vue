@@ -12,10 +12,10 @@ export const tryDecodeBase64 = (value: string): Uint8Array | null => {
     }
 };
 
-export function useBase64KeyRules(
+export const useBase64KeyRules = (
     size: Ref<KeySize>,
     label = 'Key'
-) {
+) => {
     return {
         emptyWhenZeroLength: helpers.withMessage(
             `${label} must be empty when key length is set to Empty.`,

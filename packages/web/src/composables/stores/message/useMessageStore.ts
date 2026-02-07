@@ -33,10 +33,10 @@ export enum MessageType {
     Broadcast,
 }
 
-export function getConversationId(
+export const getConversationId = (
     node1: NodeNum,
     node2: NodeNum,
-): ConversationId {
+): ConversationId => {
     return [node1, node2].sort((a, b) => a - b).join(":");
 }
 

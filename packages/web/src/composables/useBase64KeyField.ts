@@ -1,7 +1,7 @@
 import { ref, watch } from 'vue';
 import { fromByteArray, toByteArray } from 'base64-js';
 
-export function useBase64KeyField(model: { value?: Uint8Array }) {
+export const useBase64KeyField = (model: { value?: Uint8Array }) => {
     const input = ref('');
     watch(
         () => model.value,

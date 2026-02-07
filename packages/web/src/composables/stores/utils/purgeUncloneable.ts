@@ -1,8 +1,8 @@
 import { isReactive, toRaw } from "vue";
 
-export function purgeUncloneableProperties(
+export const purgeUncloneableProperties = (
     target: unknown
-): void {
+): void => {
     if (typeof target !== 'object' || target === null) {
         return;
     }

@@ -7,7 +7,7 @@ import { useAppStore } from '@/composables/stores/app/useAppStore';
 import { useFormattedNodeDatabase } from '@/composables/stores/nodeDB/useFormattedNodeDatabase';
 import { useConfirm } from './composables/useConfirmDialog';
 
-export function bootstrapApp() {
+export const bootstrapApp = () => {
     try {
         useConfirm();
         useIndexedDB();

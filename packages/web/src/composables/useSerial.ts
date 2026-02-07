@@ -4,7 +4,7 @@ import { useSupported } from '@vueuse/core'
 
 /* https://github.com/vueuse/vueuse/blob/main/packages/core/useBluetooth/index.ts */
 
-export function useSerial(): UseSerialReturn {
+export const useSerial = (): UseSerialReturn => {
     const isSupported = useSupported(() => navigator && 'serial' in navigator)
 
     const port = shallowRef<undefined | SerialPort>()

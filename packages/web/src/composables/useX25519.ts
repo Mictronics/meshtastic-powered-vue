@@ -1,6 +1,6 @@
 import { x25519 } from '@noble/curves/ed25519.js';
 
-export function getX25519PrivateKey(): Uint8Array {
+export const getX25519PrivateKey = (): Uint8Array => {
   const key = x25519.utils.randomSecretKey();
 
   // scalar clamping for curve25519, according to
@@ -12,6 +12,6 @@ export function getX25519PrivateKey(): Uint8Array {
   return key;
 }
 
-export function getX25519PublicKey(privateKey: Uint8Array): Uint8Array {
+export const getX25519PublicKey = (privateKey: Uint8Array): Uint8Array => {
   return x25519.getPublicKey(privateKey);
 }
