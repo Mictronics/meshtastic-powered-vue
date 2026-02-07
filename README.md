@@ -60,6 +60,6 @@ You'll need to have [pnpm](https://pnpm.io/) installed to work with this monorep
    ```
 ## Demo
 
-A first [demo](https://www.mictronics.de/webclient/), based on release v0.5.1, is available for testing.
+[Demo](https://www.mictronics.de/webclient/), based on release v0.8.0, is available for testing.
 
 Preview and screenshots at [mictronics.de](https://www.mictronics.de/posts/Meshtastic-Powered-Vue/).
