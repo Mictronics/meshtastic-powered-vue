@@ -57,5 +57,4 @@ export const UserRules = {
         ),
     },
     isLicensed: { required },
-    isUnmessagable: { required },
 }
