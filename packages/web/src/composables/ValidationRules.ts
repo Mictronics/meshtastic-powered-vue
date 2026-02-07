@@ -1,4 +1,4 @@
-import { required, numeric, between, integer, helpers } from '@vuelidate/validators';
+import { required, numeric, between, integer, helpers, minValue, maxValue } from '@vuelidate/validators';
 
 export const LoraRules = {
     region: { required, integer, minValue: 0 },
@@ -57,4 +57,14 @@ export const UserRules = {
         ),
     },
     isLicensed: { required },
+}
+
+export const BluetoothRules = {
+    fixedPin: {
+        required,
+        integer,
+        minValue: minValue(100000),
+        maxValue: maxValue(999999)
+    },
+    mode: { required, integer, minValue: minValue(0), maxValue: maxValue(2) }
 }
