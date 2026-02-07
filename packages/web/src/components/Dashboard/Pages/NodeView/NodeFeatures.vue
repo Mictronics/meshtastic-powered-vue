@@ -84,7 +84,7 @@ import {
   ChartArea,
 } from 'lucide-vue-next';
 import type { FormattedNode } from '@/composables/types';
-import { EncryptionStatus } from '@/composables/useFormattedNodeDatabase';
+import { EncryptionStatus } from '@/composables/stores/nodeDB/useFormattedNodeDatabase';
 
 defineProps<{
   node: FormattedNode;

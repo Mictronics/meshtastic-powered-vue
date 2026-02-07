@@ -4,7 +4,7 @@ import { useDeviceStore } from '@/composables/stores/device/useDeviceStore';
 import { useMessageStore } from '@/composables/stores/message/useMessageStore';
 import { useNodeDBStore } from '@/composables/stores/nodeDB/useNodeDBStore';
 import { useAppStore } from '@/composables/stores/app/useAppStore';
-import { useFormattedNodeDatabase } from '@/composables/useFormattedNodeDatabase';
+import { useFormattedNodeDatabase } from '@/composables/stores/nodeDB/useFormattedNodeDatabase';
 import { useConfirm } from './composables/useConfirmDialog';
 
 export function bootstrapApp() {

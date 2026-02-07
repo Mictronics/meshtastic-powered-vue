@@ -125,7 +125,7 @@ import type { FeatureCollection, Feature, Point } from 'geojson';
 import { useAppStore } from '@/composables/stores/app/useAppStore';
 import { useEventListener, useThrottleFn, useColorMode } from '@vueuse/core';
 import type { LngLatLike } from 'maplibre-gl';
-import { useFormattedNodeDatabase } from '@/composables/useFormattedNodeDatabase';
+import { useFormattedNodeDatabase } from '@/composables/stores/nodeDB/useFormattedNodeDatabase';
 import type { FormattedNode } from '@/composables/types';
 import MapPopover from './MapPopover.vue';
 import { useColor } from '@/composables/useColor';

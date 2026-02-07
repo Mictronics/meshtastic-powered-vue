@@ -1,5 +1,5 @@
 import { Protobuf } from "@meshtastic/core";
-import { EncryptionStatus } from "./useFormattedNodeDatabase";
+import { EncryptionStatus } from "./stores/nodeDB/useFormattedNodeDatabase";
 
 export type FormattedNode = {
     nodeNumber: number;

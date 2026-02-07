@@ -90,7 +90,7 @@
 import { CircleArrowDown, Search } from 'lucide-vue-next';
 import { ref, nextTick, onMounted, computed, onBeforeUnmount, watch } from 'vue';
 import { computedWithControl, refDebounced, useDebounceFn } from '@vueuse/core';
-import { useFormattedNodeDatabase } from '@/composables/useFormattedNodeDatabase';
+import { useFormattedNodeDatabase } from '@/composables/stores/nodeDB/useFormattedNodeDatabase';
 import { useDeviceStore } from '@/composables/stores/device/useDeviceStore';
 import { useMessageStore } from '@/composables/stores/message/useMessageStore';
 import { useAppStore } from '@/composables/stores/app/useAppStore';

@@ -16,7 +16,7 @@ import type {
     FormattedHostMetrics,
     FormattedAirQualityMetrics,
     FormattedLocalStatsMetrics,
-} from './types'
+} from '@/composables/types'
 
 export enum EncryptionStatus {
     Encrypted = 0,
