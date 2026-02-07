@@ -28,3 +28,34 @@ export const LoraRules = {
     sx126xRxBoostedGain: { required },
     paFanDisabled: { required },
 };
+
+const byteLength = (str: string) => {
+    return new TextEncoder().encode(str).length;
+}
+
+export const UserRules = {
+    longName: {
+        required,
+        byteLength: helpers.withMessage(
+            'Long Name must be 1-40 bytes.',
+            (value: string) => {
+                if (!value) return false
+                const len = byteLength(value)
+                return len >= 1 && len <= 40
+            }
+        ),
+    },
+    shortName: {
+        required,
+        byteLength: helpers.withMessage(
+            'Short Name must be 2-4 bytes.',
+            (value: string) => {
+                if (!value) return false
+                const len = byteLength(value)
+                return len >= 2 && len <= 4
+            }
+        ),
+    },
+    isLicensed: { required },
+    isUnmessagable: { required },
+}
