@@ -5,6 +5,7 @@ import tailwindcss from '@tailwindcss/vite'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import unusedCode from 'vite-plugin-unused-code'
+import { visualizer } from "rollup-plugin-visualizer"
 
 let hash = "";
 let version = "";
@@ -19,7 +20,7 @@ try {
   version = execSync("git describe --tags --abbrev=0", {
     encoding: "utf8",
   }).trim();
-} catch (error) {
+} catch {
   console.error("Error getting git version.");
 }
 
@@ -32,6 +33,11 @@ export default defineConfig({
     unusedCode({
       patterns: ['src/**/*.*'],
     }),
+    visualizer({
+      open: true,
+      gzipSize: true,
+      brotliSize: false,
+    })
   ],
   define: {
     'import.meta.env.VITE_APP_NAME': JSON.stringify('meshtastic-powered-vue'),
