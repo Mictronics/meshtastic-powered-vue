@@ -28,7 +28,6 @@
             min="0"
             max="50"
             v-model="txPowerInput"
-            :error="useGetError(v$.txPower)"
             :invalid="v$.txPower.$invalid"
             @blur="v$.txPower.$touch()"
           />
