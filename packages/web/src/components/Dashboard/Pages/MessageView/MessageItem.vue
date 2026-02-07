@@ -17,8 +17,8 @@
       />
       <div class="flex flex-row">
         <div
-          class="p-1 relative dark:bg-slate-800 text-slate-800 dark:text-slate-400"
-          :class="{ 'rounded-2xl shadow-sm rounded-bl-none': !isEmojiOnly }"
+          class="p-1 relative dark:bg-slate-900 text-slate-800 dark:text-slate-400"
+          :class="{ 'rounded-2xl shadow-sm rounded-bl-none dark:bg-slate-800!': !isEmojiOnly }"
         >
           <p class="truncate" :class="{ 'emoji-only': isEmojiOnly }">
             {{ message.message }}
