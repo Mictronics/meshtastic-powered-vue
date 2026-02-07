@@ -1,4 +1,3 @@
-import type { DBSchema } from "idb";
 import {
     ConnectionStatus,
     ConnectionType,
@@ -17,14 +16,6 @@ import { useGlobalToast, type ToastSeverity } from '@/composables/useGlobalToast
 import { useDeviceStore } from "@/composables/core/stores/device/useDeviceStore";
 import { useMessageStore } from "@/composables/core/stores/message/useMessageStore";
 import { useNodeDBStore } from "@/composables/core/stores/nodeDB/useNodeDBStore";
-
-export interface ConnectionsDatabase extends DBSchema {
-    connections: {
-        value: IConnection;
-        key: number;
-        indexes: { 'by-id': number };
-    };
-}
 
 class Connection implements IConnection {
     id: ConnectionId;

@@ -8,7 +8,7 @@
 import { computed } from 'vue';
 import NodeDetailsItem from '@/components/Dashboard/Pages/NodeView/NodeDetailsItem.vue';
 
-export type MetricItem = {
+type MetricItem = {
   label: string;
   value: string | number | undefined;
   class?: string;

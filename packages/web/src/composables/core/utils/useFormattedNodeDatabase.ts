@@ -1,5 +1,5 @@
-import { createSharedComposable, watchThrottled } from '@vueuse/core'
-import { ref, type DebuggerEvent } from 'vue'
+import { createSharedComposable } from '@vueuse/core'
+import { ref } from 'vue'
 import { watchImmediate } from '@vueuse/core';
 import { base16 } from 'rfc4648';
 import humanizeDuration from 'humanize-duration';

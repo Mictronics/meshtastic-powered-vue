@@ -1,11 +1,10 @@
 import type { Types } from "@meshtastic/core";
-import type { DBSchema } from "idb";
 import {
     IDB_MESSAGE_STORE,
     useIndexedDB
 } from "@/composables/core/stores/indexedDB";
 import { createSharedComposable, watchThrottled } from '@vueuse/core'
-import { toRaw, isReactive, ref, type DebuggerEvent } from 'vue'
+import { toRaw, isReactive, ref } from 'vue'
 import { useGlobalToast, type ToastSeverity } from '@/composables/useGlobalToast';
 import { useEvictOldestEntries } from "@/composables/core/stores/utils/useEvictOldestEntries";
 import { purgeUncloneableProperties } from "@/composables/core/stores/utils/purgeUncloneable";
@@ -68,14 +67,6 @@ export interface IMessageStore {
 
     deleteAllMessages: () => void;
     clearMessageByMessageId: (params: ClearMessageParams) => void;
-}
-
-export interface MessageDatabase extends DBSchema {
-    devices: {
-        value: IMessageStore;
-        key: number;
-        indexes: { 'by-id': number };
-    };
 }
 
 class MessageStore implements IMessageStore {

@@ -52,7 +52,7 @@ export function useSerial(): UseSerialReturn {
     }
 }
 
-export interface UseSerialReturn {
+interface UseSerialReturn {
     isSupported: ComputedRef<boolean>
     isConnected: Readonly<ShallowRef<boolean>>
     port: ShallowRef<SerialPort | undefined>

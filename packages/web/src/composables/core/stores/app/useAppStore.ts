@@ -9,7 +9,7 @@ import type { LngLatLike } from "maplibre-gl";
 
 /* https://stackoverflow.com/a/76247596/3731501 */
 
-export interface IApp {
+interface IApp {
     recentDeviceId: number;
     isSideBarVisible: boolean;
     sortState: Partial<Record<ButtonKey, SortState>>;

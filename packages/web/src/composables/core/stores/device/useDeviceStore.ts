@@ -1,5 +1,4 @@
 import { create, toBinary } from "@bufbuild/protobuf";
-import type { DBSchema } from "idb";
 import {
     IDB_DEVICE_STORE,
     useIndexedDB
@@ -137,14 +136,6 @@ export interface IDevice {
     queueAdminMessage: (message: Protobuf.Admin.AdminMessage) => void;
     getAllQueuedAdminMessages: () => Protobuf.Admin.AdminMessage[];
     getAdminMessageChangeCount: () => number;
-}
-
-export interface DevicesDatabase extends DBSchema {
-    devices: {
-        value: IDevice;
-        key: number;
-        indexes: { 'by-id': number };
-    };
 }
 
 class Device implements IDevice {

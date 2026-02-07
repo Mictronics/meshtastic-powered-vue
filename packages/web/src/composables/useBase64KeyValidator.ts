@@ -2,7 +2,7 @@ import { helpers } from '@vuelidate/validators';
 import { toByteArray } from 'base64-js';
 import type { Ref } from 'vue';
 
-export type KeySize = 0 | 1 | 16 | 32;
+type KeySize = 0 | 1 | 16 | 32;
 
 export const tryDecodeBase64 = (value: string): Uint8Array | null => {
     try {

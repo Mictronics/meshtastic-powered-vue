@@ -3,7 +3,7 @@ import { shallowRef } from 'vue'
 
 export type ToastSeverity = 'success' | 'info' | 'warn' | 'error'
 
-export interface ToastAddOptions {
+interface ToastAddOptions {
   severity?: ToastSeverity
   summary?: string
   detail?: string

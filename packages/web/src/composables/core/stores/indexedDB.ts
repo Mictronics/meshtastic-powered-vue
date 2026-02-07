@@ -2,13 +2,13 @@ import { createSharedComposable } from '@vueuse/core';
 import { shallowRef } from 'vue';
 import { openDB, type IDBPDatabase, type IDBPTransaction, type IDBPObjectStore, type StoreNames } from 'idb';
 
-export const IDB_NAME = import.meta.env.VITE_APP_NAME;
+const IDB_NAME = import.meta.env.VITE_APP_NAME;
+const CURRENT_STORE_VERSION = 1;
 export const IDB_CONNECTION_STORE = "Connections";
 export const IDB_DEVICE_STORE = "Devices";
 export const IDB_MESSAGE_STORE = "Messages";
 export const IDB_NODESDB_STORE = "NodeDBs";
 export const IDB_APP_STORE = "App";
-export const CURRENT_STORE_VERSION = 1;
 
 const stores = [IDB_CONNECTION_STORE, IDB_DEVICE_STORE, IDB_MESSAGE_STORE, IDB_NODESDB_STORE];
 const INDEX_NAME = 'by-id';
@@ -20,7 +20,7 @@ const INDEX_OPTIONS = { unique: true };
  * A database upgrade function for a specific version.
  * It receives the opened `IDBPDatabase`, the previous version, the new version and the transaction.
  */
-export type DBUpgradeFn<T> = (
+type DBUpgradeFn<T> = (
     db: IDBPDatabase<T>,
     oldVersion: number,
     newVersion: number | null,
@@ -30,7 +30,7 @@ export type DBUpgradeFn<T> = (
 /**
  * Describes a single schema step for a specific version.
  */
-export type DBScheme<T> = {
+type DBScheme<T> = {
     version: number;
     upgrade: DBUpgradeFn<T>;
 };

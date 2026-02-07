@@ -17,7 +17,7 @@ import { purgeUncloneableProperties } from "@/composables/core/stores/utils/purg
 
 const NODE_RETENTION_DAYS = 14; // Remove nodes not heard from in 14 days
 
-export type NodeInfoExtented = Protobuf.Mesh.NodeInfo & {
+type NodeInfoExtented = Protobuf.Mesh.NodeInfo & {
     environmentMetrics?: Protobuf.Telemetry.EnvironmentMetrics;
     powerMetrics?: Protobuf.Telemetry.PowerMetrics;
     hostMetrics?: Protobuf.Telemetry.HostMetrics;
@@ -61,7 +61,7 @@ export interface INodeDB {
     setMetrics: (data: Types.PacketMetadata<Protobuf.Telemetry.Telemetry>) => void;
 }
 
-export interface NodeDatabase extends DBSchema {
+interface NodeDatabase extends DBSchema {
     devices: {
         value: INodeDB;
         key: number;

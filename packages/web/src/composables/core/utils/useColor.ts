@@ -1,6 +1,6 @@
 import { createSharedComposable } from "@vueuse/core";
 
-export interface RGBColor {
+interface RGBColor {
   r: number;
   g: number;
   b: number;

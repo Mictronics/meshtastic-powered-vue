@@ -2,7 +2,7 @@ import type { NodeErrorType } from "@/composables/core/stores/nodeDB/types";
 import type { Protobuf } from "@meshtastic/core";
 import { fromByteArray } from "base64-js";
 
-export function equalKey(a?: Uint8Array | null, b?: Uint8Array | null): boolean {
+function equalKey(a?: Uint8Array | null, b?: Uint8Array | null): boolean {
     if (!a || !b) return false;
     if (a.byteLength !== b.byteLength) return false;
     for (let i = 0; i < a.byteLength; i++) {
