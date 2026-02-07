@@ -8,7 +8,17 @@
     <Accordion>
       <AccordionPanel value="user">
         <AccordionHeader><DirtyHeader title="User" :dirty="isUserDirty" /></AccordionHeader>
-        <AccordionContent></AccordionContent>
+        <AccordionContent>
+          <UserSettings
+            v-model:isLicensed="userConfig.isLicensed"
+            v-model:isUnmessagable="userConfig.isUnmessagable"
+            v-model:longName="userConfig.longName"
+            v-model:shortName="userConfig.shortName"
+            :id="userConfig.id"
+            :hwModel="userConfig.hwModel"
+            :v$="userV$"
+          />
+        </AccordionContent>
       </AccordionPanel>
       <AccordionPanel value="device">
         <AccordionHeader>
@@ -38,22 +48,64 @@
         <AccordionHeader>
           <DirtyHeader title="Bluetooth" :dirty="isBluetoothDirty" />
         </AccordionHeader>
-        <AccordionContent></AccordionContent>
+        <AccordionContent>
+          <BluetoothSettings
+            v-model:enabled="bluetoothConfig.enabled"
+            v-model:fixedPin="bluetoothConfig.fixedPin"
+            v-model:mode="bluetoothConfig.mode"
+            :v$="bluetoothV$"
+          />
+        </AccordionContent>
       </AccordionPanel>
     </Accordion>
   </SettingsLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watchEffect } from 'vue';
+import { Protobuf } from '@meshtastic/core';
+import { create } from '@bufbuild/protobuf';
+import { useVuelidate } from '@vuelidate/core';
 import SettingsLayout from './components/SettingsLayout.vue';
 import DirtyHeader from './components/DirtyHeader.vue';
+import UserSettings from './subforms/UserSettings.vue';
+import BluetoothSettings from './subforms/BluetoothSettings.vue';
 import { useConfigSave } from '@/composables/useConfigSave';
 import { useDeviceStore } from '@/composables/stores/device/useDeviceStore';
+import { useNodeDBStore } from '@/composables/stores/nodeDB/useNodeDBStore';
+import { UserRules, BluetoothRules } from '@/composables/ValidationRules';
 
 const device = useDeviceStore().device;
+const database = useNodeDBStore().nodeDatabase;
 const saveButtonDisable = ref(true);
 const saveConfigHandler = useConfigSave();
+
+const userConfig = ref<Protobuf.Mesh.User>(create(Protobuf.Mesh.UserSchema));
+const userV$ = useVuelidate(UserRules, userConfig);
+
+const bluetoothConfig = ref<Protobuf.Config.Config_BluetoothConfig>(
+  create(Protobuf.Config.Config_BluetoothConfigSchema)
+);
+const bluetoothV$ = useVuelidate(BluetoothRules, bluetoothConfig);
+
+watchEffect(() => {
+  const node = database.value?.getMyNode();
+  if (!node) return;
+
+  userConfig.value = {
+    ...userConfig.value,
+    ...node.user,
+  };
+});
+
+watchEffect(() => {
+  if (!device) return;
+
+  bluetoothConfig.value = {
+    ...bluetoothConfig.value,
+    ...device.value?.config.bluetooth,
+  };
+});
 
 const isUserDirty = computed(() => {
   return false;
