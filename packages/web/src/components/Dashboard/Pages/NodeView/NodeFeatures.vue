@@ -83,8 +83,8 @@ import {
   AirVent,
   ChartArea,
 } from 'lucide-vue-next';
-import type { FormattedNode } from '@/composables/core/utils/types';
-import { EncryptionStatus } from '@/composables/core/utils/useFormattedNodeDatabase';
+import type { FormattedNode } from '@/composables/types';
+import { EncryptionStatus } from '@/composables/useFormattedNodeDatabase';
 
 defineProps<{
   node: FormattedNode;

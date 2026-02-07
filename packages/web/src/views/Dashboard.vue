@@ -25,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import { useAppStore } from '@/composables/core/stores/app/useAppStore';
+import { useAppStore } from '@/composables/stores/app/useAppStore';
 import Sidebar from '@/components/Dashboard/Sidebar.vue';
 
 const onToggleSidebar = (isSideBarVisible: boolean) => {

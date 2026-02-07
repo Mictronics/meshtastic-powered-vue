@@ -1,4 +1,4 @@
-import type { MessageState, MessageType } from "@/composables/core/stores/message/useMessageStore";
+import type { MessageState, MessageType } from "@/composables/stores/message/useMessageStore";
 import type { Types } from "@meshtastic/core";
 
 type NodeNum = number;

@@ -76,7 +76,7 @@ import { Types } from '@meshtastic/core';
 import { Picker, EmojiIndex } from 'emoji-mart-vue-fast/src';
 import 'emoji-mart-vue-fast/css/emoji-mart.css';
 import data from 'emoji-mart-vue-fast/data/all.json';
-import { useMessageStore } from '@/composables/core/stores/message/useMessageStore';
+import { useMessageStore } from '@/composables/stores/message/useMessageStore';
 
 const props = defineProps<{
   maxBytes: number;

@@ -1,16 +1,16 @@
-import { ConnectionPhase, ConnectionStatus, ConnectionType, type IConnection, type ConnectionId } from "@/composables/core/stores/connection/types"
+import { ConnectionPhase, ConnectionStatus, ConnectionType, type IConnection, type ConnectionId } from "@/composables/stores/connection/types"
 import { useBluetooth } from '@vueuse/core';
 import { useSerial } from "@/composables/useSerial";
-import { useRandomId } from "@/composables/core/useRandomId";
+import { useRandomId } from "@/composables/useRandomId";
 import { MeshDevice } from "@meshtastic/core";
 import { TransportHTTP } from "@meshtastic/transport-http";
 import { TransportWebBluetooth } from "@meshtastic/transport-web-bluetooth";
 import { TransportWebSerial } from "@meshtastic/transport-web-serial";
-import { useConnectionStore } from "@/composables/core/stores/connection/useConnectionStore";
-import { useDeviceStore } from "@/composables/core/stores/device/useDeviceStore";
-import { useNodeDBStore } from "@/composables/core/stores/nodeDB/useNodeDBStore";
-import { useMessageStore } from "@/composables/core/stores/message/useMessageStore";
-import { subscribeAll } from "@/composables/core/subscriptions";
+import { useConnectionStore } from "@/composables/stores/connection/useConnectionStore";
+import { useDeviceStore } from "@/composables/stores/device/useDeviceStore";
+import { useNodeDBStore } from "@/composables/stores/nodeDB/useNodeDBStore";
+import { useMessageStore } from "@/composables/stores/message/useMessageStore";
+import { subscribeAll } from "@/composables/subscriptions";
 import { useAppStore } from "./stores/app/useAppStore";
 import { createGlobalState } from '@vueuse/core'
 

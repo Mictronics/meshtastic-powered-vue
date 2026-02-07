@@ -225,9 +225,9 @@ import {
   ConnectionStatus,
   ConnectionType,
   type INewConnection,
-} from '@/composables/core/stores/connection/types';
-import { useConnectionStore } from '@/composables/core/stores/connection/useConnectionStore';
-import { useConnection } from '@/composables/core/useConnection';
+} from '@/composables/stores/connection/types';
+import { useConnectionStore } from '@/composables/stores/connection/useConnectionStore';
+import { useConnection } from '@/composables/useConnection';
 import { useUrlValidator } from '@/composables/useUrlValidator';
 
 const connectionName = ref('');

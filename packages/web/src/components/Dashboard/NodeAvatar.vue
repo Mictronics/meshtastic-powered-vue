@@ -26,7 +26,7 @@ const props = defineProps({
   shortName: { type: String, default: undefined },
 });
 
-import { useColor } from '@/composables/core/utils/useColor';
+import { useColor } from '@/composables/useColor';
 const avatarColor = computed(() => {
   const bgColor = useColor().getColorFromNodeNum(props.nodeNumber || 0);
   const isLight = useColor().isLightColor(bgColor);

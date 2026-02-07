@@ -1,5 +1,5 @@
-import { MessageState, MessageType } from "@/composables/core/stores/message/useMessageStore";
-import type { Message } from "@/composables/core/stores/message/types";
+import { MessageState, MessageType } from "@/composables/stores/message/useMessageStore";
+import type { Message } from "@/composables/stores/message/types";
 import type { Types } from "@meshtastic/core";
 
 class PacketToMessageDTO {

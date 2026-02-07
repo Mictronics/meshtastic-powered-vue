@@ -1,7 +1,7 @@
 import { useGlobalToast } from '@/composables/useGlobalToast';
-import { useDeviceStore } from "@/composables/core/stores/device/useDeviceStore";
-import { useNodeDBStore } from "@/composables/core/stores/nodeDB/useNodeDBStore";
-import { useFormattedNodeDatabase } from "@/composables/core/utils/useFormattedNodeDatabase"
+import { useDeviceStore } from "@/composables/stores/device/useDeviceStore";
+import { useNodeDBStore } from "@/composables/stores/nodeDB/useNodeDBStore";
+import { useFormattedNodeDatabase } from "@/composables/useFormattedNodeDatabase"
 
 export const useDeleteNode = () => {
     const device = useDeviceStore().device.value;

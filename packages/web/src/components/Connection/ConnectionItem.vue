@@ -169,7 +169,7 @@ import {
   ConnectionStatus,
   ConnectionType,
   type IConnection,
-} from '@/composables/core/stores/connection/types';
+} from '@/composables/stores/connection/types';
 import { formatTimeAgoIntl } from '@vueuse/core';
 
 const props = defineProps<{ connection: IConnection }>();

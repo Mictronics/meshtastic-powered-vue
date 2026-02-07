@@ -65,7 +65,7 @@
 import { Battery, Cpu } from 'lucide-vue-next';
 import { computed } from 'vue';
 import BatteryStatus from './BatteryStatus.vue';
-import { ConnectionStatus } from '@/composables/core/stores/connection/types';
+import { ConnectionStatus } from '@/composables/stores/connection/types';
 import NodeAvatar from '@/components/Dashboard/NodeAvatar.vue';
 
 const props = defineProps<{

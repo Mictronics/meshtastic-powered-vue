@@ -4,18 +4,18 @@ import {
     type INewConnection,
     type IConnection,
     type ConnectionId
-} from "@/composables/core/stores/connection/types";
+} from "@/composables/stores/connection/types";
 import {
     IDB_CONNECTION_STORE,
     useIndexedDB
-} from "@/composables/core/stores/indexedDB";
+} from "@/composables/stores/indexedDB";
 import { createSharedComposable } from '@vueuse/core'
 import { ref } from "vue";
-import { useRandomId } from "@/composables/core/useRandomId";
+import { useRandomId } from "@/composables/useRandomId";
 import { useGlobalToast, type ToastSeverity } from '@/composables/useGlobalToast';
-import { useDeviceStore } from "@/composables/core/stores/device/useDeviceStore";
-import { useMessageStore } from "@/composables/core/stores/message/useMessageStore";
-import { useNodeDBStore } from "@/composables/core/stores/nodeDB/useNodeDBStore";
+import { useDeviceStore } from "@/composables/stores/device/useDeviceStore";
+import { useMessageStore } from "@/composables/stores/message/useMessageStore";
+import { useNodeDBStore } from "@/composables/stores/nodeDB/useNodeDBStore";
 
 class Connection implements IConnection {
     id: ConnectionId;

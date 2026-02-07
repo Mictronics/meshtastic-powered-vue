@@ -90,18 +90,18 @@
 import { CircleArrowDown, Search } from 'lucide-vue-next';
 import { ref, nextTick, onMounted, computed, onBeforeUnmount, watch } from 'vue';
 import { computedWithControl, refDebounced, useDebounceFn } from '@vueuse/core';
-import { useFormattedNodeDatabase } from '@/composables/core/utils/useFormattedNodeDatabase';
-import { useDeviceStore } from '@/composables/core/stores/device/useDeviceStore';
-import { useMessageStore } from '@/composables/core/stores/message/useMessageStore';
-import { useAppStore } from '@/composables/core/stores/app/useAppStore';
+import { useFormattedNodeDatabase } from '@/composables/useFormattedNodeDatabase';
+import { useDeviceStore } from '@/composables/stores/device/useDeviceStore';
+import { useMessageStore } from '@/composables/stores/message/useMessageStore';
+import { useAppStore } from '@/composables/stores/app/useAppStore';
 import NodeAvatar from '@/components/Dashboard/NodeAvatar.vue';
 import { Types } from '@meshtastic/core';
 import { orderBy } from 'lodash-es';
-import { MessageType, MessageState } from '@/composables/core/stores/message/useMessageStore';
-import type { Message } from '@/composables/core/stores/message/types';
+import { MessageType, MessageState } from '@/composables/stores/message/useMessageStore';
+import type { Message } from '@/composables/stores/message/types';
 import MessageItem from './MessageItem.vue';
 import MessageInput from './MessageInput.vue';
-import { useRandomId } from '@/composables/core/useRandomId';
+import { useRandomId } from '@/composables/useRandomId';
 
 type DividerMessage = {
   groupedType: 'divider';

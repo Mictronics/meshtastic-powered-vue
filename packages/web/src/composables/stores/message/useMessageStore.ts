@@ -2,12 +2,12 @@ import type { Types } from "@meshtastic/core";
 import {
     IDB_MESSAGE_STORE,
     useIndexedDB
-} from "@/composables/core/stores/indexedDB";
+} from "@/composables/stores/indexedDB";
 import { createSharedComposable, watchThrottled } from '@vueuse/core'
 import { toRaw, isReactive, ref } from 'vue'
 import { useGlobalToast, type ToastSeverity } from '@/composables/useGlobalToast';
-import { useEvictOldestEntries } from "@/composables/core/stores/utils/useEvictOldestEntries";
-import { purgeUncloneableProperties } from "@/composables/core/stores/utils/purgeUncloneable";
+import { useEvictOldestEntries } from "@/composables/stores/utils/useEvictOldestEntries";
+import { purgeUncloneableProperties } from "@/composables/stores/utils/purgeUncloneable";
 import type {
     ChannelId,
     ClearMessageParams,
@@ -17,7 +17,7 @@ import type {
     MessageLogMap,
     NodeNum,
     SetMessageStateParams,
-} from "@/composables/core/stores/message/types";
+} from "@/composables/stores/message/types";
 
 const MESSAGESTORE_RETENTION_NUM = 10;
 const MESSAGELOG_RETENTION_NUM = 1000; // Max messages per conversation/channel

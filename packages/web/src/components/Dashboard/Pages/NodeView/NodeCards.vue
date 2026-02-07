@@ -206,8 +206,8 @@ import { Search, Star, StarOff, Trash2, Eye, EyeOff, CircleArrowUp, X } from 'lu
 import { ref, computed, onMounted, onUnmounted, onBeforeUnmount } from 'vue';
 import { formatTimeAgoIntl, refDebounced } from '@vueuse/core';
 import { numberToHexUnpadded } from '@noble/curves/utils.js';
-import type { FormattedNode } from '@/composables/core/utils/types';
-import { useFormattedNodeDatabase } from '@/composables/core/utils/useFormattedNodeDatabase';
+import type { FormattedNode } from '@/composables/types';
+import { useFormattedNodeDatabase } from '@/composables/useFormattedNodeDatabase';
 import NodeAvatar from '@/components/Dashboard/NodeAvatar.vue';
 import BatteryStatus from '@/components/Dashboard/BatteryStatus.vue';
 import NodeDetailsItem from '@/components/Dashboard/Pages/NodeView/NodeDetailsItem.vue';
@@ -216,11 +216,11 @@ import SortButtonGroup from '@/components/Dashboard/Pages/NodeView/SortButtonGro
 import NodeFeatures from '@/components/Dashboard/Pages/NodeView/NodeFeatures.vue';
 import SectionDivider from '@/components/Dashboard/Pages/SectionDivider.vue';
 import MetricsGrid from '@/components/Dashboard/Pages/NodeView/MetricsGrid.vue';
-import { useFavoriteNode } from '@/composables/core/utils/useFavoriteNode';
-import { useIgnoreNode } from '@/composables/core/utils/useIgnoreNode';
+import { useFavoriteNode } from '@/composables/useFavoriteNode';
+import { useIgnoreNode } from '@/composables/useIgnoreNode';
 import { type SortDir } from '@/components/Dashboard/Pages/NodeView/types';
 import { orderBy, filter, some } from 'lodash-es';
-import { useDeleteNode } from '@/composables/core/utils/useDeleteNode';
+import { useDeleteNode } from '@/composables/useDeleteNode';
 import { useConfirm } from '@/composables/useConfirmDialog';
 
 const nodeDatabase = useFormattedNodeDatabase().nodeDatabase;

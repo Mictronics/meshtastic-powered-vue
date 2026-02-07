@@ -122,13 +122,13 @@ import {
   MglPopup,
 } from '@indoorequal/vue-maplibre-gl';
 import type { FeatureCollection, Feature, Point } from 'geojson';
-import { useAppStore } from '@/composables/core/stores/app/useAppStore';
+import { useAppStore } from '@/composables/stores/app/useAppStore';
 import { useEventListener, useThrottleFn, useColorMode } from '@vueuse/core';
 import type { LngLatLike } from 'maplibre-gl';
-import { useFormattedNodeDatabase } from '@/composables/core/utils/useFormattedNodeDatabase';
-import type { FormattedNode } from '@/composables/core/utils/types';
+import { useFormattedNodeDatabase } from '@/composables/useFormattedNodeDatabase';
+import type { FormattedNode } from '@/composables/types';
 import MapPopover from './MapPopover.vue';
-import { useColor } from '@/composables/core/utils/useColor';
+import { useColor } from '@/composables/useColor';
 
 const appStore = useAppStore();
 const color = useColor();

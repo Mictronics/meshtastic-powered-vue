@@ -179,10 +179,10 @@ import {
   Router,
 } from 'lucide-vue-next';
 import { ref, computed, watchEffect, watch } from 'vue';
-import { useConnectionStore } from '@/composables/core/stores/connection/useConnectionStore';
-import { ConnectionStatus } from '@/composables/core/stores/connection/types';
-import { useDeviceStore } from '@/composables/core/stores/device/useDeviceStore';
-import { useNodeDBStore } from '@/composables/core/stores/nodeDB/useNodeDBStore';
+import { useConnectionStore } from '@/composables/stores/connection/useConnectionStore';
+import { ConnectionStatus } from '@/composables/stores/connection/types';
+import { useDeviceStore } from '@/composables/stores/device/useDeviceStore';
+import { useNodeDBStore } from '@/composables/stores/nodeDB/useNodeDBStore';
 import { useColorMode, useCycleList, useMediaQuery } from '@vueuse/core';
 import DeviceInfo from '@/components/Dashboard/DeviceInfo.vue';
 import ToolsDialog from './Pages/ToolsDialog.vue';

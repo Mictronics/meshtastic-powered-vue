@@ -56,7 +56,7 @@ import { Check, CheckCheck, CloudAlert } from 'lucide-vue-next';
 import SectionDivider from '@/components/Dashboard/Pages/SectionDivider.vue';
 import NodeAvatar from '@/components/Dashboard/NodeAvatar.vue';
 import type { MessageWithDivider } from './MessageView.vue';
-import { MessageState } from '@/composables/core/stores/message/useMessageStore';
+import { MessageState } from '@/composables/stores/message/useMessageStore';
 
 const props = defineProps<{
   message: MessageWithDivider;

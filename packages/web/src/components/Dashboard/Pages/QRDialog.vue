@@ -35,7 +35,7 @@ import { Protobuf } from '@meshtastic/core';
 import { fromByteArray } from 'base64-js';
 import QRCode from 'qrcode';
 import { shallowRef, ref, computed, watch } from 'vue';
-import { useDeviceStore } from '@/composables/core/stores/device/useDeviceStore';
+import { useDeviceStore } from '@/composables/stores/device/useDeviceStore';
 
 const device = useDeviceStore().device;
 const loraConfig = computed(() => device.value?.config.lora);

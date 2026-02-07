@@ -1,14 +1,14 @@
 import { create } from "@bufbuild/protobuf";
 import { Protobuf } from "@meshtastic/core";
 import { useGlobalToast } from '@/composables/useGlobalToast';
-import { useDeviceStore } from "@/composables/core/stores/device/useDeviceStore";
-import { useNodeDBStore } from "@/composables/core/stores/nodeDB/useNodeDBStore"
+import { useDeviceStore } from "@/composables/stores/device/useDeviceStore";
+import { useNodeDBStore } from "@/composables/stores/nodeDB/useNodeDBStore"
 
-export const useIgnoreNode = () => {
+export const useFavoriteNode = () => {
   const device = useDeviceStore().device.value;
   const nodeDatabase = useNodeDBStore().nodeDatabase.value;
 
-  function updateIgnore(nodeNumber: number, isIgnored: boolean) {
+  function updateFavorite(nodeNumber: number, isFavorite: boolean) {
     const node = nodeDatabase?.getNode(nodeNumber);
     if (!node) {
       return;
@@ -17,23 +17,23 @@ export const useIgnoreNode = () => {
     device?.sendAdminMessage(
       create(Protobuf.Admin.AdminMessageSchema, {
         payloadVariant: {
-          case: isIgnored ? "setIgnoredNode" : "removeIgnoredNode",
+          case: isFavorite ? "setFavoriteNode" : "removeFavoriteNode",
           value: nodeNumber,
         },
       }),
     );
 
-    nodeDatabase?.updateIgnore(nodeNumber, isIgnored);
+    nodeDatabase?.updateFavorite(nodeNumber, isFavorite);
 
     useGlobalToast().add({
       severity: 'info',
       summary: node?.user?.longName,
-      detail: isIgnored ? 'Will be ignored.' : 'Will be monitored.',
+      detail: isFavorite ? 'Marked favorite.' : 'Unmarked favorite.',
       life: 3000
     });
   }
 
   return {
-    updateIgnore
+    updateFavorite
   }
 }

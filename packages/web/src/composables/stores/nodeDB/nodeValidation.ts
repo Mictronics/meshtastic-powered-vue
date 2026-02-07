@@ -1,4 +1,4 @@
-import type { NodeErrorType } from "@/composables/core/stores/nodeDB/types";
+import type { NodeErrorType } from "@/composables/stores/nodeDB/types";
 import type { Protobuf } from "@meshtastic/core";
 import { fromByteArray } from "base64-js";
 

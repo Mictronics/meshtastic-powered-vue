@@ -26,9 +26,9 @@ import { ref, computed } from 'vue';
 import type { FunctionalComponent } from 'vue';
 import type { LucideProps } from 'lucide-vue-next';
 import QRDialog from './QRDialog.vue';
-import { useDeviceStore } from '@/composables/core/stores/device/useDeviceStore';
-import { useMessageStore } from '@/composables/core/stores/message/useMessageStore';
-import { useIndexedDB } from '@/composables/core/stores/indexedDB';
+import { useDeviceStore } from '@/composables/stores/device/useDeviceStore';
+import { useMessageStore } from '@/composables/stores/message/useMessageStore';
+import { useIndexedDB } from '@/composables/stores/indexedDB';
 import { useGlobalToast } from '@/composables/useGlobalToast';
 import { useConfirm } from '@/composables/useConfirmDialog';
 

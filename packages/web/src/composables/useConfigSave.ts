@@ -2,7 +2,7 @@ import { ref, computed } from 'vue'
 import { createSharedComposable } from '@vueuse/core';
 import { toBinary } from "@bufbuild/protobuf";
 import { Protobuf } from "@meshtastic/core";
-import { useDeviceStore } from '@/composables/core/stores/device/useDeviceStore';
+import { useDeviceStore } from '@/composables/stores/device/useDeviceStore';
 import { useGlobalToast } from '@/composables/useGlobalToast';
 import type { MeterItem } from 'primevue/metergroup';
 

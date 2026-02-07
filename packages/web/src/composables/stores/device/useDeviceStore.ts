@@ -6,16 +6,16 @@ import {
 import {
     ConnectionPhase,
     type ConnectionId,
-} from "@/composables/core/stores/connection/types.ts";
+} from "@/composables/stores/connection/types.ts";
 import {
     type WaypointWithMetadata,
-} from "@/composables/core/stores/device/types.ts";
+} from "@/composables/stores/device/types.ts";
 import { type MeshDevice, Protobuf, Types } from "@meshtastic/core";
 import { createSharedComposable, watchThrottled } from '@vueuse/core'
 import { toRaw, isReactive, ref } from 'vue'
 import { useGlobalToast, type ToastSeverity } from '@/composables/useGlobalToast';
-import { useEvictOldestEntries } from "@/composables/core/stores/utils/useEvictOldestEntries.ts";
-import { purgeUncloneableProperties } from "@/composables/core/stores/utils/purgeUncloneable";
+import { useEvictOldestEntries } from "@/composables/stores/utils/useEvictOldestEntries.ts";
+import { purgeUncloneableProperties } from "@/composables/stores/utils/purgeUncloneable.ts";
 import {
     type ChangeRegistry,
     type ConfigChangeKey,
@@ -35,7 +35,7 @@ import {
     hasModuleConfigChange,
     hasUserChange,
     serializeKey,
-} from "@/composables/core/stores/device/changeRegistry.ts";
+} from "@/composables/stores/device/changeRegistry.ts";
 
 const DEVICESTORE_RETENTION_NUM = 10;
 const TRACEROUTE_TARGET_RETENTION_NUM = 100; // Number of traceroutes targets to keep

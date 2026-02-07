@@ -5,7 +5,7 @@ import { base16 } from 'rfc4648';
 import humanizeDuration from 'humanize-duration';
 import { fromByteArray } from 'base64-js';
 import { Protobuf } from "@meshtastic/core";
-import { useNodeDBStore } from '@/composables/core/stores/nodeDB/useNodeDBStore';
+import { useNodeDBStore } from '@/composables/stores/nodeDB/useNodeDBStore';
 import type {
     FormattedEnvironmentMetrics,
     FormattedPowerMetrics,

@@ -1,7 +1,7 @@
 import {
     IDB_APP_STORE,
     useIndexedDB
-} from "@/composables/core/stores/indexedDB";
+} from "@/composables/stores/indexedDB";
 import { reactive, toRaw } from 'vue';
 import { createSharedComposable, watchIgnorable } from "@vueuse/core";
 import type { SortState, ButtonKey } from "@/components/Dashboard/Pages/NodeView/types.ts";

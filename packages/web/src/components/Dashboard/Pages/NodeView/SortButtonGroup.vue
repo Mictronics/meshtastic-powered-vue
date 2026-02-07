@@ -46,7 +46,7 @@ import {
 } from 'lucide-vue-next';
 import { watch, computed, ref, onMounted } from 'vue';
 import type { SortDir, SortState, ButtonKey, ButtonsMap } from './types';
-import { useAppStore } from '@/composables/core/stores/app/useAppStore';
+import { useAppStore } from '@/composables/stores/app/useAppStore';
 
 const emit = defineEmits<{
   (e: 'sortToggle', keys: string[], dirs: SortDir[]): void;
