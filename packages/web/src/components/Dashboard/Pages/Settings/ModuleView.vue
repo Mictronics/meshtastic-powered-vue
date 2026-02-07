@@ -4,54 +4,72 @@
     :onSaveSettings="onSaveSettings"
     :saveConfigHandler="saveConfigHandler"
   >
-  <template #title>Modules</template>
-    <Accordion value="0">
-      <AccordionPanel value="0">
-        <AccordionHeader>MQTT</AccordionHeader>
+    <template #title>Modules</template>
+    <Accordion>
+      <AccordionPanel value="mqtt">
+        <AccordionHeader><DirtyHeader title="MQTT" :dirty="isMqttDirty" /></AccordionHeader>
         <AccordionContent></AccordionContent>
       </AccordionPanel>
-      <AccordionPanel value="1">
-        <AccordionHeader>Serial</AccordionHeader>
+      <AccordionPanel value="serial">
+        <AccordionHeader><DirtyHeader title="Serial" :dirty="isSerialDirty" /></AccordionHeader>
         <AccordionContent></AccordionContent>
       </AccordionPanel>
-      <AccordionPanel value="2">
-        <AccordionHeader>External Notification</AccordionHeader>
+      <AccordionPanel value="externalNotification">
+        <AccordionHeader>
+          <DirtyHeader title="External Notification" :dirty="isExternalNotificationDirty" />
+        </AccordionHeader>
         <AccordionContent></AccordionContent>
       </AccordionPanel>
-      <AccordionPanel value="3">
-        <AccordionHeader>Store and Forward</AccordionHeader>
+      <AccordionPanel value="storeForward">
+        <AccordionHeader>
+          <DirtyHeader title="Store and Forward" :dirty="isStoreForwardDirty" />
+        </AccordionHeader>
         <AccordionContent></AccordionContent>
       </AccordionPanel>
-      <AccordionPanel value="4">
-        <AccordionHeader>Range Test</AccordionHeader>
+      <AccordionPanel value="rangeTest">
+        <AccordionHeader>
+          <DirtyHeader title="Range Test" :dirty="isRangeTestDirty" />
+        </AccordionHeader>
         <AccordionContent></AccordionContent>
       </AccordionPanel>
-      <AccordionPanel value="5">
-        <AccordionHeader>Telemetry</AccordionHeader>
+      <AccordionPanel value="telemetry">
+        <AccordionHeader>
+          <DirtyHeader title="Telemetry" :dirty="isTelemetryDirty" />
+        </AccordionHeader>
         <AccordionContent></AccordionContent>
       </AccordionPanel>
-      <AccordionPanel value="6">
-        <AccordionHeader>Canned Messages</AccordionHeader>
+      <AccordionPanel value="cannedMessages">
+        <AccordionHeader>
+          <DirtyHeader title="Canned Messages" :dirty="isCannedMessagesDirty" />
+        </AccordionHeader>
         <AccordionContent></AccordionContent>
       </AccordionPanel>
-      <AccordionPanel value="7">
-        <AccordionHeader>Audio</AccordionHeader>
+      <AccordionPanel value="audio">
+        <AccordionHeader><DirtyHeader title="Audio" :dirty="isAudioDirty" /></AccordionHeader>
         <AccordionContent></AccordionContent>
       </AccordionPanel>
-      <AccordionPanel value="8">
-        <AccordionHeader>Neighbor Info</AccordionHeader>
+      <AccordionPanel value="neighborInfo">
+        <AccordionHeader>
+          <DirtyHeader title="Neighbor Info" :dirty="isNeighborInfoDirty" />
+        </AccordionHeader>
         <AccordionContent></AccordionContent>
       </AccordionPanel>
-      <AccordionPanel value="9">
-        <AccordionHeader>Ambient Light</AccordionHeader>
+      <AccordionPanel value="ambientLight">
+        <AccordionHeader>
+          <DirtyHeader title="Ambient Light" :dirty="isAmbientLightDirty" />
+        </AccordionHeader>
         <AccordionContent></AccordionContent>
       </AccordionPanel>
-      <AccordionPanel value="10">
-        <AccordionHeader>Detection Sensor</AccordionHeader>
+      <AccordionPanel value="detectionSensor">
+        <AccordionHeader>
+          <DirtyHeader title="Detection Sensor" :dirty="isDetectionSensorDirty" />
+        </AccordionHeader>
         <AccordionContent></AccordionContent>
       </AccordionPanel>
-      <AccordionPanel value="11">
-        <AccordionHeader>Pax Counter</AccordionHeader>
+      <AccordionPanel value="paxCounter">
+        <AccordionHeader>
+          <DirtyHeader title="Pax Counter" :dirty="isPaxCounterDirty" />
+        </AccordionHeader>
         <AccordionContent></AccordionContent>
       </AccordionPanel>
     </Accordion>
@@ -59,12 +77,50 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import SettingsLayout from './components/SettingsLayout.vue';
+import DirtyHeader from './components/DirtyHeader.vue';
 import { useConfigSave } from '@/composables/useConfigSave';
 
 const saveButtonDisable = ref(true);
 const saveConfigHandler = useConfigSave();
+
+const isMqttDirty = computed(() => {
+  return false;
+});
+const isSerialDirty = computed(() => {
+  return false;
+});
+const isExternalNotificationDirty = computed(() => {
+  return false;
+});
+const isStoreForwardDirty = computed(() => {
+  return false;
+});
+const isRangeTestDirty = computed(() => {
+  return false;
+});
+const isTelemetryDirty = computed(() => {
+  return false;
+});
+const isCannedMessagesDirty = computed(() => {
+  return false;
+});
+const isAudioDirty = computed(() => {
+  return false;
+});
+const isNeighborInfoDirty = computed(() => {
+  return false;
+});
+const isAmbientLightDirty = computed(() => {
+  return false;
+});
+const isDetectionSensorDirty = computed(() => {
+  return false;
+});
+const isPaxCounterDirty = computed(() => {
+  return false;
+});
 
 const onSaveSettings = () => {};
 </script>

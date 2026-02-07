@@ -5,33 +5,39 @@
     :saveConfigHandler="saveConfigHandler"
   >
     <template #title>Device</template>
-    <Accordion value="0">
-      <AccordionPanel value="0">
-        <AccordionHeader>User</AccordionHeader>
+    <Accordion>
+      <AccordionPanel value="user">
+        <AccordionHeader><DirtyHeader title="User" :dirty="isUserDirty" /></AccordionHeader>
         <AccordionContent></AccordionContent>
       </AccordionPanel>
-      <AccordionPanel value="1">
-        <AccordionHeader>Device</AccordionHeader>
+      <AccordionPanel value="device">
+        <AccordionHeader>
+          <DirtyHeader title="Device" :dirty="isDeviceDirty" />
+        </AccordionHeader>
         <AccordionContent></AccordionContent>
       </AccordionPanel>
-      <AccordionPanel value="2">
-        <AccordionHeader>Position</AccordionHeader>
+      <AccordionPanel value="position">
+        <AccordionHeader>
+          <DirtyHeader title="Position" :dirty="isPositionDirty" />
+        </AccordionHeader>
         <AccordionContent></AccordionContent>
       </AccordionPanel>
-      <AccordionPanel value="3">
-        <AccordionHeader>Power</AccordionHeader>
+      <AccordionPanel value="power">
+        <AccordionHeader><DirtyHeader title="Power" :dirty="isPowerDirty" /></AccordionHeader>
         <AccordionContent></AccordionContent>
       </AccordionPanel>
-      <AccordionPanel value="4">
-        <AccordionHeader>Network</AccordionHeader>
+      <AccordionPanel value="network">
+        <AccordionHeader><DirtyHeader title="Network" :dirty="isNetworkDirty" /></AccordionHeader>
         <AccordionContent></AccordionContent>
       </AccordionPanel>
-      <AccordionPanel value="5">
-        <AccordionHeader>Display</AccordionHeader>
+      <AccordionPanel value="display">
+        <AccordionHeader><DirtyHeader title="Display" :dirty="isDisplayDirty" /></AccordionHeader>
         <AccordionContent></AccordionContent>
       </AccordionPanel>
-      <AccordionPanel value="6">
-        <AccordionHeader>Bluetooth</AccordionHeader>
+      <AccordionPanel value="bluetooth">
+        <AccordionHeader>
+          <DirtyHeader title="Bluetooth" :dirty="isBluetoothDirty" />
+        </AccordionHeader>
         <AccordionContent></AccordionContent>
       </AccordionPanel>
     </Accordion>
@@ -39,12 +45,38 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import SettingsLayout from './components/SettingsLayout.vue';
+import DirtyHeader from './components/DirtyHeader.vue';
 import { useConfigSave } from '@/composables/useConfigSave';
+import { useDeviceStore } from '@/composables/stores/device/useDeviceStore';
 
+const device = useDeviceStore().device;
 const saveButtonDisable = ref(true);
 const saveConfigHandler = useConfigSave();
+
+const isUserDirty = computed(() => {
+  return false;
+});
+const isDeviceDirty = computed(() => {
+  return false;
+});
+const isPositionDirty = computed(() => {
+  return false;
+});
+const isPowerDirty = computed(() => {
+  return false;
+});
+const isNetworkDirty = computed(() => {
+  return false;
+});
+const isDisplayDirty = computed(() => {
+  return false;
+});
+const isBluetoothDirty = computed(() => {
+  return false;
+});
+
 const onSaveSettings = () => {};
 </script>
 

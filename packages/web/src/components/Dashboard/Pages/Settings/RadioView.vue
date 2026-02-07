@@ -5,13 +5,10 @@
     :saveConfigHandler="saveConfigHandler"
   >
     <template #title>Radio</template>
-    <Accordion v-model:value="activeSettingTab">
+    <Accordion>
       <AccordionPanel value="lora">
         <AccordionHeader>
-          <div>
-            LoRa
-            <span v-if="isLoraDirty" class="ml-2 text-orange-500 text-sm">●</span>
-          </div>
+          <DirtyHeader title="LoRa" :dirty="isLoraDirty" />
         </AccordionHeader>
         <AccordionContent>
           <MeshSettings
@@ -44,10 +41,7 @@
       </AccordionPanel>
       <AccordionPanel value="channels">
         <AccordionHeader>
-          <div>
-            Channels
-            <span v-if="isChannelsDirty" class="ml-2 text-orange-500 text-sm">●</span>
-          </div>
+          <DirtyHeader title="Channels" :dirty="isChannelsDirty" />
         </AccordionHeader>
         <AccordionContent>
           <ChannelSettings v-model:channels="allChannels" :dirty-flags="channelDirtyFlags" />
@@ -55,10 +49,7 @@
       </AccordionPanel>
       <AccordionPanel value="security">
         <AccordionHeader>
-          <div>
-            Security
-            <span v-if="isSecurityDirty" class="ml-2 text-orange-500 text-sm">●</span>
-          </div>
+          <DirtyHeader title="Security" :dirty="isSecurityDirty" />
         </AccordionHeader>
         <AccordionContent>
           <SecuritySettings
@@ -90,6 +81,7 @@ import WaveformSettings from './subforms/WaveformSettings.vue';
 import RadioSettings from './subforms/RadioSettings.vue';
 import ChannelSettings from './subforms/ChannelSettings.vue';
 import SecuritySettings from './subforms/SecuritySettings.vue';
+import DirtyHeader from './components/DirtyHeader.vue';
 import { useDeviceStore } from '@/composables/stores/device/useDeviceStore';
 import { useDeepCompareConfig } from '@/composables/useDeepCompareConfig';
 import { purgeUncloneableProperties } from '@/composables/stores/utils/purgeUncloneable';
@@ -97,7 +89,6 @@ import { useConfigSave } from '@/composables/useConfigSave';
 import { onBeforeRouteLeave } from 'vue-router';
 import { useConfirm } from '@/composables/useConfirmDialog';
 
-const activeSettingTab = ref();
 const device = useDeviceStore().device;
 const saveConfigHandler = useConfigSave();
 const allChannels = ref<Protobuf.Channel.Channel[]>(
