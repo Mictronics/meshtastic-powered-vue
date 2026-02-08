@@ -51,7 +51,7 @@
         label="Node Info Broadcast Interval"
         for-id="nodeInfo"
         description="How often to broadcast node info."
-        :error="useGetError(v$.overrideFrequency)"
+        :error="useGetError(v$.nodeInfoBroadcastSecs)"
       >
         <InputGroup>
           <InputText
@@ -61,6 +61,7 @@
             v-model="nodeInfoBroadcastSecsInput"
             type="number"
             min="3600"
+            max="604800"
             step="1"
             :invalid="v$.nodeInfoBroadcastSecs.$invalid"
             @blur="v$.nodeInfoBroadcastSecs.$touch()"
