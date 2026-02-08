@@ -1,4 +1,4 @@
-import { required, numeric, between, integer, helpers, minValue, maxValue } from '@vuelidate/validators';
+import { required, numeric, between, integer, helpers, minValue, maxValue, minLength, maxLength } from '@vuelidate/validators';
 
 export const LoraRules = {
     region: { required, integer, minValue: 0 },
@@ -67,4 +67,29 @@ export const BluetoothRules = {
         maxValue: maxValue(999999)
     },
     mode: { required, integer, minValue: minValue(0), maxValue: maxValue(2) }
+}
+
+export const DeviceRules = {
+    buttonGpio: {
+        required,
+        integer,
+        minValue: minValue(0),
+        maxValue: maxValue(65535)
+    },
+    buzzerGpio: {
+        required,
+        integer,
+        minValue: minValue(0),
+        maxValue: maxValue(65535)
+    },
+    buzzerMode: {
+        required,
+        integer,
+        minValue: minValue(0),
+        maxValue: maxValue(4)
+    },
+    role: { required, integer, minValue: minValue(0), maxValue: maxValue(12) },
+    rebroadcastMode: { required, integer, minValue: minValue(0), maxValue: maxValue(5) },
+    nodeInfoBroadcastSecs: { required, integer, minValue: minValue(3600), maxValue: maxValue(604800) },
+    tzdef: { minLength: minLength(0), maxLength: maxLength(64) }
 }
