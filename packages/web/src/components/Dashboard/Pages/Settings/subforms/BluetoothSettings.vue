@@ -41,12 +41,10 @@
       >
         <InputMask
           v-model="fixedPinInput"
-          default-value="123456"
           size="small"
           mask="999999"
-          placeholder="123456"
           :unmask="true"
-          :disabled="mode !== 1"
+          :disabled="mode !== Protobuf.Config.Config_BluetoothConfig_PairingMode.FIXED_PIN"
           class="dark:bg-slate-800 dark:text-slate-400 w-full"
           :invalid="v$.fixedPin.$invalid"
           @blur="v$.fixedPin.$touch()"
@@ -82,10 +80,10 @@ const fixedPinInput = computed<string>({
   },
 });
 
-type Mode = 0 | 1 | 2;
-const modeOptions: { label: string; value: Mode }[] = [
-  { label: 'Random Pin', value: 0 },
-  { label: 'Fixed Pin', value: 1 },
-  { label: 'No Pin', value: 2 },
-];
+const modeOptions: { label: string; value: Protobuf.Config.Config_BluetoothConfig_PairingMode }[] =
+  [
+    { label: 'Random Pin', value: Protobuf.Config.Config_BluetoothConfig_PairingMode.RANDOM_PIN },
+    { label: 'Fixed Pin', value: Protobuf.Config.Config_BluetoothConfig_PairingMode.FIXED_PIN },
+    { label: 'No Pin', value: Protobuf.Config.Config_BluetoothConfig_PairingMode.NO_PIN },
+  ];
 </script>
