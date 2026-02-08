@@ -63,7 +63,7 @@ import { numberToHexUnpadded } from '@noble/curves/utils.js';
 
 import NodeFeatures from '@/components/Dashboard/Pages/NodeView/NodeFeatures.vue';
 import BatteryStatus from '@/components/Dashboard/BatteryStatus.vue';
-import type { FormattedNode } from '@/composables/core/utils/types';
+import type { FormattedNode } from '@/composables/types';
 
 const props = defineProps<{
   node: FormattedNode | null;
