@@ -61,14 +61,6 @@ export interface INodeDB {
     setMetrics: (data: Types.PacketMetadata<Protobuf.Telemetry.Telemetry>) => void;
 }
 
-interface NodeDatabase extends DBSchema {
-    devices: {
-        value: INodeDB;
-        key: number;
-        indexes: { 'by-id': number };
-    };
-}
-
 class NodeDB implements INodeDB {
     id: number;
     myNodeNum: number | undefined;

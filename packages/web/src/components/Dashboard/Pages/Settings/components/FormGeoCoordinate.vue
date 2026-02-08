@@ -117,8 +117,8 @@ const parseToWgs84 = (value: string, format: GeoFormat): LatLon | null => {
       case 'WGS84 DM': {
         const m = value.match(/(\d+)\s+([\d.]+)\s?([NS]).*?(\d+)\s+([\d.]+)\s?([EW])/);
         if (!m) return null;
-        let lat = Number(m[1]) + Number(m[2]) / 60;
-        let lon = Number(m[4]) + Number(m[5]) / 60;
+        const lat = Number(m[1]) + Number(m[2]) / 60;
+        const lon = Number(m[4]) + Number(m[5]) / 60;
         return { lat: m[3] === 'S' ? -lat : lat, lon: m[6] === 'W' ? -lon : lon };
       }
       case 'WGS84 DMS': {
@@ -126,8 +126,8 @@ const parseToWgs84 = (value: string, format: GeoFormat): LatLon | null => {
           /(\d+)\s?(\d+)\s?([\d.]+)\s?([NS]).*?(\d+)\s?(\d+)\s?([\d.]+)\s?([EW])/
         );
         if (!m) return null;
-        let lat = Number(m[1]) + Number(m[2]) / 60 + Number(m[3]) / 3600;
-        let lon = Number(m[5]) + Number(m[6]) / 60 + Number(m[7]) / 3600;
+        const lat = Number(m[1]) + Number(m[2]) / 60 + Number(m[3]) / 3600;
+        const lon = Number(m[5]) + Number(m[6]) / 60 + Number(m[7]) / 3600;
         return { lat: m[4] === 'S' ? -lat : lat, lon: m[8] === 'W' ? -lon : lon };
       }
       case 'WebMercator': {
