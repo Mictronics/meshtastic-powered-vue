@@ -1,74 +1,43 @@
 <template>
-  <div class="flex flex-wrap justify-start gap-4">
-    <div class="flex items-center gap-1">
-      <Checkbox
-        v-model="positionFlags"
-        inputId="altitudeCheck"
-        name="flags"
-        value="1"
-        size="small"
-      />
-      <label for="altitudeCheck">Altitude</label>
-    </div>
-    <div class="flex items-center gap-1">
-      <Checkbox v-model="positionFlags" inputId="altitudeMsl" name="flags" value="2" size="small" />
-      <label for="altitudeMsl">Altitude is Mean Sea Level</label>
-    </div>
-    <div class="flex items-center gap-1">
-      <Checkbox v-model="positionFlags" inputId="separation" name="flags" value="4" size="small" />
-      <label for="separation">Geoidal Separation</label>
-    </div>
-    <div class="flex items-center gap-1">
-      <Checkbox v-model="positionFlags" inputId="dop" name="flags" value="8" size="small" />
-      <label for="dop">Dilution of Precision (DOP)</label>
-    </div>
-    <div class="flex items-center gap-1">
-      <Checkbox v-model="positionFlags" inputId="hvdop" name="flags" value="16" size="small" />
-      <label for="hvdop">Horizontal/Vertical Dilution of Precision (HVDOP)</label>
-    </div>
-    <div class="flex items-center gap-1">
-      <Checkbox v-model="positionFlags" inputId="sats" name="flags" value="32" size="small" />
-      <label for="hvdop">Satellites in View</label>
-    </div>
-    <div class="flex items-center gap-1">
-      <Checkbox v-model="positionFlags" inputId="seq" name="flags" value="64" size="small" />
-      <label for="seq">Sequence Number</label>
-    </div>
-    <div class="flex items-center gap-1">
-      <Checkbox v-model="positionFlags" inputId="timestamp" name="flags" value="128" size="small" />
-      <label for="timestamp">Timestamp</label>
-    </div>
-    <div class="flex items-center gap-1">
-      <Checkbox v-model="positionFlags" inputId="hdg" name="flags" value="256" size="small" />
-      <label for="hdg">Heading</label>
-    </div>
-    <div class="flex items-center gap-1">
-      <Checkbox
-        v-model="positionFlagsArray"
-        inputId="speed"
-        name="flags"
-        value="512"
-        size="small"
-      />
-      <label for="speed">Speed</label>
-    </div>
+  <div class="contents">
+    <Listbox
+      v-model="positionFlagsArray"
+      :options="flags"
+      multiple
+      optionLabel="name"
+      class="dark:bg-slate-800 dark:text-slate-400"
+      checkmark
+      :highlightOnSelect="false"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { ref, computed } from 'vue';
 
 const positionFlags = defineModel<number>('positionFlags', {
   default: 0,
 });
 
-const positionFlagsArray = computed<number[]>({
+const positionFlagsArray = computed({
   get() {
     const value = positionFlags.value ?? 0;
-    return [1, 2, 4, 8, 16, 32, 64, 128, 256, 512].filter((flag) => (value & flag) === flag);
+    return flags.value.filter((f) => (value & f.bit) === f.bit);
   },
-  set(values) {
-    positionFlags.value = values.reduce((sum, v) => sum + v, 0);
+  set(selected) {
+    positionFlags.value = selected.reduce((sum, item) => sum + item.bit, 0);
   },
 });
+const flags = ref([
+  { name: 'Altitude', bit: 1 },
+  { name: 'Altitude is Mean Sea Level', bit: 2 },
+  { name: 'Geoidal Separation', bit: 4 },
+  { name: 'DOP', bit: 8 },
+  { name: 'HDOP & VDOP', bit: 16 },
+  { name: 'Satellites in view', bit: 32 },
+  { name: 'Sequence number', bit: 64 },
+  { name: 'Timestamp', bit: 128 },
+  { name: 'Heading', bit: 256 },
+  { name: 'Speed', bit: 512 },
+]);
 </script>
