@@ -25,7 +25,7 @@
           </p>
           <div class="flex items-center justify-start gap-1 mt-1 opacity-70">
             <span class="text-[10px]">
-              {{ message.longName ?? 'Unknown' }} on {{ formattedDate }}
+              {{ message.longName ?? 'Unknown' }} on {{ formattedDate }} with {{ message.hopsAway }}
             </span>
             <div v-if="message.isSelf" class="items-center">
               <Check

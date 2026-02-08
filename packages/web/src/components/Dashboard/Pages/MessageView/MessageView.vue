@@ -117,6 +117,7 @@ type ChatMessage = Message & {
   isFavorite?: boolean;
   nodeNumber?: number;
   isSelf?: boolean;
+  hopsAway?: string;
 };
 
 export type MessageWithDivider = DividerMessage | ChatMessage;
@@ -170,6 +171,7 @@ const getNodeMeta = (from: number) => {
     longName: node.longName,
     isFavorite: node.isFavorite,
     nodeNumber: node.nodeNumber,
+    hopsAway: node.hopsAway,
   };
 };
 
