@@ -44,7 +44,27 @@
         <AccordionHeader>
           <DirtyHeader title="Position" :dirty="isPositionDirty" />
         </AccordionHeader>
-        <AccordionContent></AccordionContent>
+        <AccordionContent>
+          <PositionSettings
+            v-model:broadcastSmartMinimumDistance="positionConfig.broadcastSmartMinimumDistance"
+            v-model:broadcastSmartMinimumIntervalSecs="
+              positionConfig.broadcastSmartMinimumIntervalSecs
+            "
+            v-model:fixedPosition="positionConfig.fixedPosition"
+            v-model:gpsEnGpio="positionConfig.gpsEnGpio"
+            v-model:gpsMode="positionConfig.gpsMode"
+            v-model:gpsUpdateInterval="positionConfig.gpsUpdateInterval"
+            v-model:positionBroadcastSecs="positionConfig.positionBroadcastSecs"
+            v-model:positionBroadcastSmartEnabled="positionConfig.positionBroadcastSmartEnabled"
+            v-model:positionFlags="positionConfig.positionFlags"
+            v-model:rxGpio="positionConfig.rxGpio"
+            v-model:txGpio="positionConfig.txGpio"
+            v-model:latitude="latitude"
+            v-model:longitude="longitude"
+            v-model:altitude="altitude"
+            :v$="positionV$"
+          />
+        </AccordionContent>
       </AccordionPanel>
       <AccordionPanel value="power">
         <AccordionHeader><DirtyHeader title="Power" :dirty="isPowerDirty" /></AccordionHeader>
@@ -84,11 +104,17 @@ import SettingsLayout from './components/SettingsLayout.vue';
 import DirtyHeader from './components/DirtyHeader.vue';
 import UserSettings from './subforms/UserSettings.vue';
 import DeviceSettings from './subforms/DeviceSettings.vue';
+import PositionSettings from './subforms/PositionSettings.vue';
 import BluetoothSettings from './subforms/BluetoothSettings.vue';
 import { useConfigSave } from '@/composables/useConfigSave';
 import { useDeviceStore } from '@/composables/stores/device/useDeviceStore';
 import { useNodeDBStore } from '@/composables/stores/nodeDB/useNodeDBStore';
-import { UserRules, BluetoothRules, DeviceRules } from '@/composables/ValidationRules';
+import {
+  UserRules,
+  BluetoothRules,
+  DeviceRules,
+  PositionRules,
+} from '@/composables/ValidationRules';
 
 const device = useDeviceStore().device;
 const database = useNodeDBStore().nodeDatabase;
@@ -108,6 +134,17 @@ const deviceConfig = ref<Protobuf.Config.Config_DeviceConfig>(
 );
 const deviceV$ = useVuelidate(DeviceRules, deviceConfig);
 
+const positionConfig = ref<Protobuf.Config.Config_PositionConfig>(
+  create(Protobuf.Config.Config_PositionConfigSchema)
+);
+const positionV$ = useVuelidate(PositionRules, positionConfig);
+
+const currentPosition = ref<Protobuf.Mesh.Position>(create(Protobuf.Mesh.PositionSchema));
+
+const latitude = ref<number>(0);
+const longitude = ref<number>(0);
+const altitude = ref<number>(0);
+
 watchEffect(() => {
   const node = database.value?.getMyNode();
   if (!node) return;
@@ -116,6 +153,11 @@ watchEffect(() => {
     ...userConfig.value,
     ...node.user,
   };
+
+  const currentPosition = node.position;
+  latitude.value = currentPosition?.latitudeI ? currentPosition.latitudeI / 1e7 : 0;
+  longitude.value = currentPosition?.latitudeI ? currentPosition.latitudeI / 1e7 : 0;
+  altitude.value = currentPosition?.altitude ?? 0;
 });
 
 watchEffect(() => {
@@ -129,6 +171,11 @@ watchEffect(() => {
   deviceConfig.value = {
     ...deviceConfig.value,
     ...device.value?.config.device,
+  };
+
+  positionConfig.value = {
+    ...positionConfig.value,
+    ...device.value?.config.position,
   };
 });
 
