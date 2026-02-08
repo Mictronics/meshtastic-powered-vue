@@ -56,7 +56,8 @@ import proj4 from 'proj4';
 type LatLon = { lat: number; lon: number };
 type GeoFormat = (typeof formats)[number];
 
-const model = defineModel<string>({ required: true });
+const latitude = defineModel<number>('latitude');
+const longitude = defineModel<number>('longitude');
 const formats = ['WGS84 DD', 'WGS84 DM', 'WGS84 DMS', 'UTM', 'WebMercator'] as const;
 const currentFormat = ref<GeoFormat>('WGS84 DD');
 const displayValue = ref('');
@@ -88,7 +89,10 @@ const rules = {
 };
 
 const v$ = useVuelidate(rules, { displayValue });
-const toDdString = ({ lat, lon }: LatLon) => `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+const setModelFromLatLon = ({ lat, lon }: LatLon) => {
+  latitude.value = lat;
+  longitude.value = lon;
+};
 
 const parseToWgs84 = (value: string, format: GeoFormat): LatLon | null => {
   try {
@@ -211,18 +215,28 @@ watch(displayValue, (v) => {
   const parsed = parseToWgs84(v, currentFormat.value);
   if (!parsed) return;
 
-  model.value = toDdString(parsed) ?? '';
-  console.log(model.value);
+  setModelFromLatLon(parsed);
 });
+
+watch(
+  [latitude, longitude],
+  ([lat, lon]) => {
+    if (typeof lat === 'number' && typeof lon === 'number') {
+      displayValue.value = formatFromDd({ lat, lon }, currentFormat.value);
+    }
+  },
+  { immediate: true }
+);
 
 const toggleFormat = () => {
   const i = formats.indexOf(currentFormat.value);
   const nextFormat = formats[(i + 1) % formats.length] ?? 'WGS84 DD';
   currentFormat.value = nextFormat;
 
-  if (model.value) {
-    const coord = parseToWgs84(model.value, 'WGS84 DD');
-    if (coord) displayValue.value = formatFromDd(coord, nextFormat);
+  const lat = latitude.value;
+  const lon = longitude.value;
+  if (typeof lat === 'number' && typeof lon === 'number') {
+    displayValue.value = formatFromDd({ lat, lon }, nextFormat);
   }
 
   v$.value.$reset();
