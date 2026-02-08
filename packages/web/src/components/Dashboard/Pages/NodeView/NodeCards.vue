@@ -155,6 +155,11 @@
           />
         </div>
         <div class="pt-6 border-t border-slate-100 dark:border-slate-600 flex gap-2">
+          <Button asChild v-slot="slotProps" size="small" variant="outline" severity="secondary">
+            <router-link :to="'/chat/direct/' + selectedNode.nodeNumber" :class="slotProps.class">
+              <MessageSquare :size="15" class="my-1 text-slate-800 dark:text-slate-400 p-0" />
+            </router-link>
+          </Button>
           <Button
             v-if="isFavorite"
             severity="secondary"
@@ -202,7 +207,17 @@
 </template>
 
 <script setup lang="ts">
-import { Search, Star, StarOff, Trash2, Eye, EyeOff, CircleArrowUp, X } from 'lucide-vue-next';
+import {
+  Search,
+  Star,
+  StarOff,
+  Trash2,
+  Eye,
+  EyeOff,
+  CircleArrowUp,
+  X,
+  MessageSquare,
+} from 'lucide-vue-next';
 import { ref, computed, onMounted, onUnmounted, onBeforeUnmount } from 'vue';
 import { formatTimeAgoIntl, refDebounced } from '@vueuse/core';
 import { numberToHexUnpadded } from '@noble/curves/utils.js';
