@@ -27,7 +27,12 @@
           {{ hwModelText }}
         </Message>
       </FormRow>
-      <FormRow label="Long Name" for-id="longName" description="Full node name (1-40 characters)." :error="useGetError(v$.longName)">
+      <FormRow
+        label="Long Name"
+        for-id="longName"
+        description="Full node name (1-40 characters)."
+        :error="useGetError(v$.longName)"
+      >
         <InputGroup>
           <InputText
             id="longName"
@@ -121,7 +126,6 @@ const truncateByByte = (str: string, maxBytes: number) => {
     if (encoder.encode(temp).length > maxBytes - 1) break;
     result = temp;
   }
-  console.log(result);
   return result;
 };
 
