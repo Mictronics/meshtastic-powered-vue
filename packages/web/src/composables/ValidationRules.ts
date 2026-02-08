@@ -93,3 +93,15 @@ export const DeviceRules = {
     nodeInfoBroadcastSecs: { required, integer, minValue: minValue(3600), maxValue: maxValue(604800) },
     tzdef: { minLength: minLength(0), maxLength: maxLength(64) }
 }
+
+export const PositionRules = {
+    gpsMode: { required, integer, minValue: minValue(0), maxValue: maxValue(2) },
+    gpsUpdateInterval: { required, integer, minValue: minValue(0), maxValue: maxValue(604800) },
+    positionBroadcastSecs: { required, integer, minValue: minValue(0), maxValue: maxValue(604800) },
+    broadcastSmartMinimumIntervalSecs: { required, integer, minValue: minValue(0), maxValue: maxValue(604800) },
+    broadcastSmartMinimumDistance: { required, integer, minValue: minValue(50), maxValue: maxValue(100000) },
+    txGpio: { required, integer, minValue: minValue(0), maxValue: maxValue(65535) },
+    rxGpio: { required, integer, minValue: minValue(0), maxValue: maxValue(65535) },
+    gpsEnGpio: { required, integer, minValue: minValue(0), maxValue: maxValue(65535) },
+    positionFlags: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
+}
