@@ -24,7 +24,21 @@
         <AccordionHeader>
           <DirtyHeader title="Device" :dirty="isDeviceDirty" />
         </AccordionHeader>
-        <AccordionContent></AccordionContent>
+        <AccordionContent>
+          <DeviceSettings
+            v-model:buttonGpio="deviceConfig.buttonGpio"
+            v-model:buzzerGpio="deviceConfig.buzzerGpio"
+            v-model:buzzerMode="deviceConfig.buzzerMode"
+            v-model:disableTripleClick="deviceConfig.disableTripleClick"
+            v-model:doubleTapAsButtonPress="deviceConfig.doubleTapAsButtonPress"
+            v-model:ledHeartbeatDisabled="deviceConfig.ledHeartbeatDisabled"
+            v-model:nodeInfoBroadcastSecs="deviceConfig.nodeInfoBroadcastSecs"
+            v-model:rebroadcastMode="deviceConfig.rebroadcastMode"
+            v-model:role="deviceConfig.role"
+            v-model:tzdef="deviceConfig.tzdef"
+            :v$="deviceV$"
+          />
+        </AccordionContent>
       </AccordionPanel>
       <AccordionPanel value="position">
         <AccordionHeader>
@@ -69,11 +83,12 @@ import { useVuelidate } from '@vuelidate/core';
 import SettingsLayout from './components/SettingsLayout.vue';
 import DirtyHeader from './components/DirtyHeader.vue';
 import UserSettings from './subforms/UserSettings.vue';
+import DeviceSettings from './subforms/DeviceSettings.vue';
 import BluetoothSettings from './subforms/BluetoothSettings.vue';
 import { useConfigSave } from '@/composables/useConfigSave';
 import { useDeviceStore } from '@/composables/stores/device/useDeviceStore';
 import { useNodeDBStore } from '@/composables/stores/nodeDB/useNodeDBStore';
-import { UserRules, BluetoothRules } from '@/composables/ValidationRules';
+import { UserRules, BluetoothRules, DeviceRules } from '@/composables/ValidationRules';
 
 const device = useDeviceStore().device;
 const database = useNodeDBStore().nodeDatabase;
@@ -87,6 +102,11 @@ const bluetoothConfig = ref<Protobuf.Config.Config_BluetoothConfig>(
   create(Protobuf.Config.Config_BluetoothConfigSchema)
 );
 const bluetoothV$ = useVuelidate(BluetoothRules, bluetoothConfig);
+
+const deviceConfig = ref<Protobuf.Config.Config_DeviceConfig>(
+  create(Protobuf.Config.Config_DeviceConfigSchema)
+);
+const deviceV$ = useVuelidate(DeviceRules, deviceConfig);
 
 watchEffect(() => {
   const node = database.value?.getMyNode();
@@ -104,6 +124,11 @@ watchEffect(() => {
   bluetoothConfig.value = {
     ...bluetoothConfig.value,
     ...device.value?.config.bluetooth,
+  };
+
+  deviceConfig.value = {
+    ...deviceConfig.value,
+    ...device.value?.config.device,
   };
 });
 
