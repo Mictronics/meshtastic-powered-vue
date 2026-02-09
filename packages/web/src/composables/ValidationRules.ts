@@ -105,3 +105,13 @@ export const PositionRules = {
     gpsEnGpio: { required, integer, minValue: minValue(0), maxValue: maxValue(65535) },
     positionFlags: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
 }
+
+export const PowerRules = {
+    onBatteryShutdownAfterSecs: { required, integer, minValue: minValue(0), maxValue: maxValue(3600) },
+    adcMultiplierOverride: { required, integer, minValue: minValue(-4), maxValue: maxValue(4) },
+    waitBluetoothSecs: { required, integer, minValue: minValue(0), maxValue: maxValue(3600) },
+    deviceBatteryInaAddress: { required, integer, minValue: minValue(0), maxValue: maxValue(255) },
+    sdsSecs: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
+    lsSecs: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
+    minWakeSecs: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
+}
