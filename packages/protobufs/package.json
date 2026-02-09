@@ -24,8 +24,8 @@
     "build": "pnpm run clean && pnpm run gen"
   },
   "devDependencies": {
-    "@bufbuild/protoc-gen-es": "^1.9.0",
-    "rimraf": "^6.0.0"
+    "@bufbuild/protoc-gen-es": "^1.10.1",
+    "rimraf": "^6.1.2"
   },
   "sideEffects": false
 }
