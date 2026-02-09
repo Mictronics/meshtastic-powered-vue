@@ -239,7 +239,7 @@ const device = computed(() => {
   return deviceStore.device.value;
 });
 const firmwareVersion = computed(() => {
-  return device.value?.metadata.firmwareVersion || undefined;
+  return device.value?.metadata.firmwareVersion || 'N/A';
 });
 const ownLongName = computed(() => myNode.value?.user?.longName);
 const ownShortName = computed(() => myNode.value?.user?.shortName);
@@ -259,7 +259,7 @@ const nodeCount = computed(() => {
   if (nm) {
     return Object.entries(nm).length;
   }
-  return undefined;
+  return '-';
 });
 
 // Device mutates internally; deep tracking required
