@@ -68,7 +68,19 @@
       </AccordionPanel>
       <AccordionPanel value="power">
         <AccordionHeader><DirtyHeader title="Power" :dirty="isPowerDirty" /></AccordionHeader>
-        <AccordionContent></AccordionContent>
+        <AccordionContent>
+          <PowerSettings
+            v-model:adcMultiplierOverride="powerConfig.adcMultiplierOverride"
+            v-model:deviceBatteryInaAddress="powerConfig.deviceBatteryInaAddress"
+            v-model:isPowerSaving="powerConfig.isPowerSaving"
+            v-model:lsSecs="powerConfig.lsSecs"
+            v-model:sdsSecs="powerConfig.sdsSecs"
+            v-model:minWakeSecs="powerConfig.minWakeSecs"
+            v-model:onBatteryShutdownAfterSecs="powerConfig.onBatteryShutdownAfterSecs"
+            v-model:waitBluetoothSecs="powerConfig.waitBluetoothSecs"
+            :v$="powerV$"
+          />
+        </AccordionContent>
       </AccordionPanel>
       <AccordionPanel value="network">
         <AccordionHeader><DirtyHeader title="Network" :dirty="isNetworkDirty" /></AccordionHeader>
@@ -106,6 +118,7 @@ import UserSettings from './subforms/UserSettings.vue';
 import DeviceSettings from './subforms/DeviceSettings.vue';
 import PositionSettings from './subforms/PositionSettings.vue';
 import BluetoothSettings from './subforms/BluetoothSettings.vue';
+import PowerSettings from './subforms/PowerSettings.vue';
 import { useConfigSave } from '@/composables/useConfigSave';
 import { useDeviceStore } from '@/composables/stores/device/useDeviceStore';
 import { useNodeDBStore } from '@/composables/stores/nodeDB/useNodeDBStore';
@@ -114,6 +127,7 @@ import {
   BluetoothRules,
   DeviceRules,
   PositionRules,
+  PowerRules,
 } from '@/composables/ValidationRules';
 
 const device = useDeviceStore().device;
@@ -140,10 +154,14 @@ const positionConfig = ref<Protobuf.Config.Config_PositionConfig>(
 const positionV$ = useVuelidate(PositionRules, positionConfig);
 
 const currentPosition = ref<Protobuf.Mesh.Position>(create(Protobuf.Mesh.PositionSchema));
-
 const latitude = ref<number>(0);
 const longitude = ref<number>(0);
 const altitude = ref<number>(0);
+
+const powerConfig = ref<Protobuf.Config.Config_PowerConfig>(
+  create(Protobuf.Config.Config_PowerConfigSchema)
+);
+const powerV$ = useVuelidate(PowerRules, powerConfig);
 
 watchEffect(() => {
   const node = database.value?.getMyNode();
@@ -176,6 +194,11 @@ watchEffect(() => {
   positionConfig.value = {
     ...positionConfig.value,
     ...device.value?.config.position,
+  };
+
+  powerConfig.value = {
+    ...powerConfig.value,
+    ...device.value?.config.power,
   };
 });
 
