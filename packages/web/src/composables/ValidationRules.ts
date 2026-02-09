@@ -1,4 +1,4 @@
-import { required, numeric, between, integer, helpers, minValue, maxValue, minLength, maxLength } from '@vuelidate/validators';
+import { required, numeric, between, integer, helpers, minValue, maxValue, minLength, maxLength, ipAddress } from '@vuelidate/validators';
 
 export const LoraRules = {
     region: { required, integer, minValue: 0 },
@@ -114,4 +114,20 @@ export const PowerRules = {
     sdsSecs: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
     lsSecs: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
     minWakeSecs: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
+}
+
+export const NetworkRules = {
+    wifiSsid: { minLength: minLength(0), maxLength: maxLength(33) },
+    wifiPsk: { minLength: minLength(0), maxLength: maxLength(64) },
+    ntpServer: { minLength: minLength(0), maxLength: maxLength(33) },
+    addressMode: { required, integer, minValue: minValue(0), maxValue: maxValue(1) },
+    rsyslogServer: { minLength: minLength(0), maxLength: maxLength(33) },
+    enabledProtocols: { required, integer, minValue: minValue(0), maxValue: maxValue(1) },
+}
+
+export const Ipv4Rules = {
+    ip: { required, ipAddress },
+    gateway: { required, ipAddress },
+    subnet: { required, ipAddress },
+    dns: { required, ipAddress },
 }
