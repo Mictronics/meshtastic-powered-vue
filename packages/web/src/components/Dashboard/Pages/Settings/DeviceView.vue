@@ -84,7 +84,24 @@
       </AccordionPanel>
       <AccordionPanel value="network">
         <AccordionHeader><DirtyHeader title="Network" :dirty="isNetworkDirty" /></AccordionHeader>
-        <AccordionContent></AccordionContent>
+        <AccordionContent>
+          <NetworkSettings
+            v-model:addressMode="networkConfig.addressMode"
+            v-model:enabledProtocols="networkConfig.enabledProtocols"
+            v-model:ethEnabled="networkConfig.ethEnabled"
+            v-model:ntpServer="networkConfig.ntpServer"
+            v-model:rsyslogServer="networkConfig.rsyslogServer"
+            v-model:wifiEnabled="networkConfig.wifiEnabled"
+            v-model:wifiPsk="networkConfig.wifiPsk"
+            v-model:wifiSsid="networkConfig.wifiSsid"
+            v-model:ip="ipConfig.ip"
+            v-model:dns="ipConfig.dns"
+            v-model:gateway="ipConfig.gateway"
+            v-model:subnet="ipConfig.subnet"
+            :ipV$="ipV$"
+            :networkV$="networkV$"
+          />
+        </AccordionContent>
       </AccordionPanel>
       <AccordionPanel value="display">
         <AccordionHeader><DirtyHeader title="Display" :dirty="isDisplayDirty" /></AccordionHeader>
@@ -119,6 +136,7 @@ import DeviceSettings from './subforms/DeviceSettings.vue';
 import PositionSettings from './subforms/PositionSettings.vue';
 import BluetoothSettings from './subforms/BluetoothSettings.vue';
 import PowerSettings from './subforms/PowerSettings.vue';
+import NetworkSettings from './subforms/NetworkSettings.vue';
 import { useConfigSave } from '@/composables/useConfigSave';
 import { useDeviceStore } from '@/composables/stores/device/useDeviceStore';
 import { useNodeDBStore } from '@/composables/stores/nodeDB/useNodeDBStore';
@@ -128,7 +146,10 @@ import {
   DeviceRules,
   PositionRules,
   PowerRules,
+  NetworkRules,
+  Ipv4Rules,
 } from '@/composables/ValidationRules';
+import { convertIntToIpAddress, convertIpAddressToInt } from '@/composables/useIpConvert';
 
 const device = useDeviceStore().device;
 const database = useNodeDBStore().nodeDatabase;
@@ -162,6 +183,19 @@ const powerConfig = ref<Protobuf.Config.Config_PowerConfig>(
   create(Protobuf.Config.Config_PowerConfigSchema)
 );
 const powerV$ = useVuelidate(PowerRules, powerConfig);
+
+const networkConfig = ref<Protobuf.Config.Config_NetworkConfig>(
+  create(Protobuf.Config.Config_NetworkConfigSchema)
+);
+const networkV$ = useVuelidate(NetworkRules, networkConfig);
+
+const ipConfig = ref({
+  ip: '',
+  dns: '',
+  gateway: '',
+  subnet: '',
+});
+const ipV$ = useVuelidate(Ipv4Rules, ipConfig);
 
 watchEffect(() => {
   const node = database.value?.getMyNode();
@@ -200,6 +234,17 @@ watchEffect(() => {
     ...powerConfig.value,
     ...device.value?.config.power,
   };
+
+  networkConfig.value = {
+    ...networkConfig.value,
+    ...device.value?.config.network,
+  };
+
+  const ipc = device.value?.config.network?.ipv4Config;
+  ipConfig.value.ip = convertIntToIpAddress(ipc?.ip ?? 0);
+  ipConfig.value.dns = convertIntToIpAddress(ipc?.dns ?? 0);
+  ipConfig.value.gateway = convertIntToIpAddress(ipc?.gateway ?? 0);
+  ipConfig.value.subnet = convertIntToIpAddress(ipc?.subnet ?? 0);
 });
 
 const isUserDirty = computed(() => {
