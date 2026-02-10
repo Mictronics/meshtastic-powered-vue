@@ -192,6 +192,7 @@ import type { Validation } from '@vuelidate/core';
 import FormGrid from '../components/FormGrid.vue';
 import FormRow from '../components/FormRow.vue';
 import { useGetError } from '@/composables/useGetError';
+import { useEnumOptions } from '@/composables/useEnumOptions';
 
 const props = defineProps<{
   v$: Validation;
@@ -260,24 +261,7 @@ const nodeInfoBroadcastSecsInput = computed<string>({
   },
 });
 
-const roleOptions = Object.entries(Protobuf.Config.Config_DeviceConfig_Role)
-  .filter(([_, value]) => typeof value === 'number')
-  .map(([key, value]) => ({
-    label: key.replaceAll('_', ' '),
-    value: value as Protobuf.Config.Config_DeviceConfig_Role,
-  }));
-
-const rebroadcastModeOptions = Object.entries(Protobuf.Config.Config_DeviceConfig_RebroadcastMode)
-  .filter(([_, value]) => typeof value === 'number')
-  .map(([key, value]) => ({
-    label: key.replaceAll('_', ' '),
-    value: value as Protobuf.Config.Config_DeviceConfig_RebroadcastMode,
-  }));
-
-const buzzerModeOptions = Object.entries(Protobuf.Config.Config_DeviceConfig_BuzzerMode)
-  .filter(([_, value]) => typeof value === 'number')
-  .map(([key, value]) => ({
-    label: key.replaceAll('_', ' '),
-    value: value as Protobuf.Config.Config_DeviceConfig_BuzzerMode,
-  }));
+const roleOptions = useEnumOptions(Protobuf.Config.Config_DeviceConfig_Role);
+const rebroadcastModeOptions = useEnumOptions(Protobuf.Config.Config_DeviceConfig_RebroadcastMode);
+const buzzerModeOptions = useEnumOptions(Protobuf.Config.Config_DeviceConfig_BuzzerMode);
 </script>

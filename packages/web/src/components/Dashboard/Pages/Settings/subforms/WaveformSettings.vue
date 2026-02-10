@@ -110,6 +110,7 @@ import FormGrid from '../components/FormGrid.vue';
 import FormRow from '../components/FormRow.vue';
 import type { Validation } from '@vuelidate/core';
 import { useGetError } from '@/composables/useGetError';
+import { useEnumOptions } from '@/composables/useEnumOptions';
 
 defineProps<{
   v$: Validation;
@@ -148,10 +149,5 @@ const codingRateInput = computed<string>({
   },
 });
 
-const modemPresetOptions = Object.entries(Protobuf.Config.Config_LoRaConfig_ModemPreset)
-  .filter(([_, value]) => typeof value === 'number')
-  .map(([key, value]) => ({
-    label: key.replaceAll('_', ' '),
-    value: value as Protobuf.Config.Config_LoRaConfig_ModemPreset,
-  }));
+const modemPresetOptions = useEnumOptions(Protobuf.Config.Config_LoRaConfig_ModemPreset);
 </script>

@@ -261,6 +261,7 @@ import FormRow from '../components/FormRow.vue';
 import FormGeoCoordinate from '../components/FormGeoCoordinate.vue';
 import FormPositionFlags from '../components/FormPositionFlags.vue';
 import { useGetError } from '@/composables/useGetError';
+import { useEnumOptions } from '@/composables/useEnumOptions';
 
 defineProps<{
   v$: Validation;
@@ -282,12 +283,7 @@ const latitude = defineModel<number>('latitude');
 const longitude = defineModel<number>('longitude');
 const altitude = defineModel<number>('altitude');
 
-const gpsModeOptions = Object.entries(Protobuf.Config.Config_PositionConfig_GpsMode)
-  .filter(([_, value]) => typeof value === 'number')
-  .map(([key, value]) => ({
-    label: key.replaceAll('_', ' '),
-    value: value as Protobuf.Config.Config_PositionConfig_GpsMode,
-  }));
+const gpsModeOptions = useEnumOptions(Protobuf.Config.Config_PositionConfig_GpsMode);
 
 const broadcastSmartMinimumDistanceInput = computed<string>({
   get() {

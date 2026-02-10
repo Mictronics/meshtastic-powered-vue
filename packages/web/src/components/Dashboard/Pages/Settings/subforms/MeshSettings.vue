@@ -92,6 +92,7 @@ import FormGrid from '../components/FormGrid.vue';
 import FormRow from '../components/FormRow.vue';
 import type { Validation } from '@vuelidate/core';
 import { useGetError } from '@/composables/useGetError';
+import { useEnumOptions } from '@/composables/useEnumOptions';
 
 defineProps<{
   v$: Validation;
@@ -124,10 +125,5 @@ const hopLimitOptions: { label: string; value: HopLimit }[] = [
   { label: '7 hops', value: 7 },
 ];
 
-const regionOptions = Object.entries(Protobuf.Config.Config_LoRaConfig_RegionCode)
-  .filter(([_, value]) => typeof value === 'number')
-  .map(([key, value]) => ({
-    label: key,
-    value: value as Protobuf.Config.Config_LoRaConfig_RegionCode,
-  }));
+const regionOptions = useEnumOptions(Protobuf.Config.Config_LoRaConfig_RegionCode);
 </script>

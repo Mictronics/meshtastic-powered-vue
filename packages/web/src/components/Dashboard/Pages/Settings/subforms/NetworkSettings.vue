@@ -231,6 +231,7 @@ import type { Validation } from '@vuelidate/core';
 import FormGrid from '../components/FormGrid.vue';
 import FormRow from '../components/FormRow.vue';
 import { useGetError } from '@/composables/useGetError';
+import { useEnumOptions } from '@/composables/useEnumOptions';
 
 defineProps<{
   v$: Validation;
@@ -249,17 +250,7 @@ const gateway = defineModel<string>('gateway');
 const subnet = defineModel<string>('subnet');
 const dns = defineModel<string>('dns');
 
-const addressModeOptions = Object.entries(Protobuf.Config.Config_NetworkConfig_AddressMode)
-  .filter(([_, value]) => typeof value === 'number')
-  .map(([key, value]) => ({
-    label: key.replaceAll('_', ' '),
-    value: value as Protobuf.Config.Config_NetworkConfig_AddressMode,
-  }));
+const addressModeOptions = useEnumOptions(Protobuf.Config.Config_NetworkConfig_AddressMode);
 
-const enabledProtocolsOptions = Object.entries(Protobuf.Config.Config_NetworkConfig_ProtocolFlags)
-  .filter(([_, value]) => typeof value === 'number')
-  .map(([key, value]) => ({
-    label: key.replaceAll('_', ' '),
-    value: value as Protobuf.Config.Config_NetworkConfig_ProtocolFlags,
-  }));
+const enabledProtocolsOptions = useEnumOptions(Protobuf.Config.Config_NetworkConfig_ProtocolFlags);
 </script>

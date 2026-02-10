@@ -61,6 +61,7 @@ import type { Validation } from '@vuelidate/core';
 import FormGrid from '../components/FormGrid.vue';
 import FormRow from '../components/FormRow.vue';
 import { useGetError } from '@/composables/useGetError';
+import { useEnumOptions } from '@/composables/useEnumOptions';
 
 defineProps<{
   v$: Validation;
@@ -80,10 +81,5 @@ const fixedPinInput = computed<string>({
   },
 });
 
-const modeOptions = Object.entries(Protobuf.Config.Config_BluetoothConfig_PairingMode)
-  .filter(([_, value]) => typeof value === 'number')
-  .map(([key, value]) => ({
-    label: key.replaceAll('_', ' '),
-    value: value as Protobuf.Config.Config_BluetoothConfig_PairingMode,
-  }));
+const modeOptions = useEnumOptions(Protobuf.Config.Config_BluetoothConfig_PairingMode);
 </script>
