@@ -249,22 +249,17 @@ const gateway = defineModel<string>('gateway');
 const subnet = defineModel<string>('subnet');
 const dns = defineModel<string>('dns');
 
-const addressModeOptions: {
-  label: string;
-  value: Protobuf.Config.Config_NetworkConfig_AddressMode;
-}[] = [
-  { label: 'DHCP', value: Protobuf.Config.Config_NetworkConfig_AddressMode.DHCP },
-  { label: 'Static', value: Protobuf.Config.Config_NetworkConfig_AddressMode.STATIC },
-];
+const addressModeOptions = Object.entries(Protobuf.Config.Config_NetworkConfig_AddressMode)
+  .filter(([_, value]) => typeof value === 'number')
+  .map(([key, value]) => ({
+    label: key.replaceAll('_', ' '),
+    value: value as Protobuf.Config.Config_NetworkConfig_AddressMode,
+  }));
 
-const enabledProtocolsOptions: {
-  label: string;
-  value: Protobuf.Config.Config_NetworkConfig_ProtocolFlags;
-}[] = [
-  { label: 'No broadcast', value: Protobuf.Config.Config_NetworkConfig_ProtocolFlags.NO_BROADCAST },
-  {
-    label: 'UDP broadcast',
-    value: Protobuf.Config.Config_NetworkConfig_ProtocolFlags.UDP_BROADCAST,
-  },
-];
+const enabledProtocolsOptions = Object.entries(Protobuf.Config.Config_NetworkConfig_ProtocolFlags)
+  .filter(([_, value]) => typeof value === 'number')
+  .map(([key, value]) => ({
+    label: key.replaceAll('_', ' '),
+    value: value as Protobuf.Config.Config_NetworkConfig_ProtocolFlags,
+  }));
 </script>

@@ -260,54 +260,24 @@ const nodeInfoBroadcastSecsInput = computed<string>({
   },
 });
 
-const roleOptions: { label: string; value: Protobuf.Config.Config_DeviceConfig_Role }[] = [
-  { label: 'Client', value: Protobuf.Config.Config_DeviceConfig_Role.CLIENT },
-  { label: 'Client Mute', value: Protobuf.Config.Config_DeviceConfig_Role.CLIENT_MUTE },
-  { label: 'Client Base', value: Protobuf.Config.Config_DeviceConfig_Role.CLIENT_BASE },
-  { label: 'Client Hidden', value: Protobuf.Config.Config_DeviceConfig_Role.CLIENT_HIDDEN },
-  { label: 'Sensor', value: Protobuf.Config.Config_DeviceConfig_Role.SENSOR },
-  { label: 'Tracker', value: Protobuf.Config.Config_DeviceConfig_Role.TRACKER },
-  { label: 'TAK', value: Protobuf.Config.Config_DeviceConfig_Role.TAK },
-  { label: 'TAK Tracker', value: Protobuf.Config.Config_DeviceConfig_Role.TAK_TRACKER },
-  { label: 'Lost and Found', value: Protobuf.Config.Config_DeviceConfig_Role.LOST_AND_FOUND },
-  { label: 'Router', value: Protobuf.Config.Config_DeviceConfig_Role.ROUTER },
-  { label: 'Route Late', value: Protobuf.Config.Config_DeviceConfig_Role.ROUTER_LATE },
-  //{ label: 'Router Client', value: Protobuf.Config.Config_DeviceConfig_Role.ROUTER_CLIENT },
-  //{ label: 'Repeater', value: Protobuf.Config.Config_DeviceConfig_Role.REPEATER },
-];
+const roleOptions = Object.entries(Protobuf.Config.Config_DeviceConfig_Role)
+  .filter(([_, value]) => typeof value === 'number')
+  .map(([key, value]) => ({
+    label: key.replaceAll('_', ' '),
+    value: value as Protobuf.Config.Config_DeviceConfig_Role,
+  }));
 
-const rebroadcastModeOptions: {
-  label: string;
-  value: Protobuf.Config.Config_DeviceConfig_RebroadcastMode;
-}[] = [
-  { label: 'All', value: Protobuf.Config.Config_DeviceConfig_RebroadcastMode.ALL },
-  {
-    label: 'All, skip decoding',
-    value: Protobuf.Config.Config_DeviceConfig_RebroadcastMode.ALL_SKIP_DECODING,
-  },
-  {
-    label: 'Core port numbers only',
-    value: Protobuf.Config.Config_DeviceConfig_RebroadcastMode.CORE_PORTNUMS_ONLY,
-  },
-  { label: 'Known only', value: Protobuf.Config.Config_DeviceConfig_RebroadcastMode.KNOWN_ONLY },
-  { label: 'Local only', value: Protobuf.Config.Config_DeviceConfig_RebroadcastMode.LOCAL_ONLY },
-  { label: 'None', value: Protobuf.Config.Config_DeviceConfig_RebroadcastMode.NONE },
-];
+const rebroadcastModeOptions = Object.entries(Protobuf.Config.Config_DeviceConfig_RebroadcastMode)
+  .filter(([_, value]) => typeof value === 'number')
+  .map(([key, value]) => ({
+    label: key.replaceAll('_', ' '),
+    value: value as Protobuf.Config.Config_DeviceConfig_RebroadcastMode,
+  }));
 
-const buzzerModeOptions: {
-  label: string;
-  value: Protobuf.Config.Config_DeviceConfig_BuzzerMode;
-}[] = [
-  { label: 'Disabled', value: Protobuf.Config.Config_DeviceConfig_BuzzerMode.DISABLED },
-  { label: 'All', value: Protobuf.Config.Config_DeviceConfig_BuzzerMode.ALL_ENABLED },
-  { label: 'System only', value: Protobuf.Config.Config_DeviceConfig_BuzzerMode.SYSTEM_ONLY },
-  {
-    label: 'Direct Messages only',
-    value: Protobuf.Config.Config_DeviceConfig_BuzzerMode.DIRECT_MSG_ONLY,
-  },
-  {
-    label: 'Notification only',
-    value: Protobuf.Config.Config_DeviceConfig_BuzzerMode.NOTIFICATIONS_ONLY,
-  },
-];
+const buzzerModeOptions = Object.entries(Protobuf.Config.Config_DeviceConfig_BuzzerMode)
+  .filter(([_, value]) => typeof value === 'number')
+  .map(([key, value]) => ({
+    label: key.replaceAll('_', ' '),
+    value: value as Protobuf.Config.Config_DeviceConfig_BuzzerMode,
+  }));
 </script>

@@ -282,11 +282,12 @@ const latitude = defineModel<number>('latitude');
 const longitude = defineModel<number>('longitude');
 const altitude = defineModel<number>('altitude');
 
-const gpsModeOptions: { label: string; value: Protobuf.Config.Config_PositionConfig_GpsMode }[] = [
-  { label: 'Not present', value: Protobuf.Config.Config_PositionConfig_GpsMode.NOT_PRESENT },
-  { label: 'Disabled', value: Protobuf.Config.Config_PositionConfig_GpsMode.DISABLED },
-  { label: 'Enabled', value: Protobuf.Config.Config_PositionConfig_GpsMode.ENABLED },
-];
+const gpsModeOptions = Object.entries(Protobuf.Config.Config_PositionConfig_GpsMode)
+  .filter(([_, value]) => typeof value === 'number')
+  .map(([key, value]) => ({
+    label: key.replaceAll('_', ' '),
+    value: value as Protobuf.Config.Config_PositionConfig_GpsMode,
+  }));
 
 const broadcastSmartMinimumDistanceInput = computed<string>({
   get() {

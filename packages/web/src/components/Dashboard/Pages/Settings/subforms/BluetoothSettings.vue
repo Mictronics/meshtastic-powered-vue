@@ -80,10 +80,10 @@ const fixedPinInput = computed<string>({
   },
 });
 
-const modeOptions: { label: string; value: Protobuf.Config.Config_BluetoothConfig_PairingMode }[] =
-  [
-    { label: 'Random Pin', value: Protobuf.Config.Config_BluetoothConfig_PairingMode.RANDOM_PIN },
-    { label: 'Fixed Pin', value: Protobuf.Config.Config_BluetoothConfig_PairingMode.FIXED_PIN },
-    { label: 'No Pin', value: Protobuf.Config.Config_BluetoothConfig_PairingMode.NO_PIN },
-  ];
+const modeOptions = Object.entries(Protobuf.Config.Config_BluetoothConfig_PairingMode)
+  .filter(([_, value]) => typeof value === 'number')
+  .map(([key, value]) => ({
+    label: key.replaceAll('_', ' '),
+    value: value as Protobuf.Config.Config_BluetoothConfig_PairingMode,
+  }));
 </script>
