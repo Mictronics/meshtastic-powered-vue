@@ -59,6 +59,7 @@
 
     <div>
       <h4 class="scroll-m-20 text-xl tracking-tight font-medium">Network Settings</h4>
+      <p class="text-slate-400">General network settings.</p>
     </div>
     <FormGrid>
       <FormRow
