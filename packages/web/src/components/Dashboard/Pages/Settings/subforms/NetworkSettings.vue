@@ -16,17 +16,22 @@
         <ToggleSwitch input-id="wifiEnabled" v-model="wifiEnabled" />
       </FormRow>
 
-      <FormRow label="SSID" for-id="wifiSsid" description="SSID." :error="useGetError(v$.wifiSsid)">
+      <FormRow
+        label="SSID"
+        for-id="wifiSsid"
+        description="SSID."
+        :error="useGetError(networkV$.wifiSsid)"
+      >
         <InputText
           id="wifiSsid"
-          class="dark:bg-slate-800 dark:text-slate-400"
+          class="dark:bg-slate-800 dark:text-slate-400 w-full"
           size="small"
           v-model="wifiSsid"
           type="text"
           minlength="0"
           maxlength="33"
-          :invalid="v$.wifiSsid.$invalid"
-          @blur="v$.wifiSsid.$touch()"
+          :invalid="networkV$.wifiSsid.$invalid"
+          @blur="networkV$.wifiSsid.$touch()"
           :disabled="!wifiEnabled"
         />
       </FormRow>
@@ -35,18 +40,18 @@
         label="PSK"
         for-id="wifiPsk"
         description="Network password."
-        :error="useGetError(v$.onBatteryShutdownAfterSecs)"
+        :error="useGetError(networkV$.onBatteryShutdownAfterSecs)"
       >
         <InputText
           id="wifiPsk"
-          class="dark:bg-slate-800 dark:text-slate-400"
+          class="dark:bg-slate-800 dark:text-slate-400 w-full"
           size="small"
           v-model="wifiPsk"
           type="password"
           minlength="0"
           maxlength="64"
-          :invalid="v$.wifiPsk.$invalid"
-          @blur="v$.wifiPsk.$touch()"
+          :invalid="networkV$.wifiPsk.$invalid"
+          @blur="networkV$.wifiPsk.$touch()"
           :disabled="!wifiEnabled"
         />
       </FormRow>
@@ -68,7 +73,7 @@
         label="IP address mode"
         for-id="addrMode"
         description="Address assignment selection."
-        :error="useGetError(v$.addressMode)"
+        :error="useGetError(networkV$.addressMode)"
       >
         <Select
           aria-labelledby="addrMode"
@@ -80,15 +85,15 @@
           optionLabel="label"
           optionValue="value"
           placeholder="Select address mode"
-          :invalid="v$.addressMode.$invalid"
-          @blur="v$.addressMode.$touch()"
+          :invalid="networkV$.addressMode.$invalid"
+          @blur="networkV$.addressMode.$touch()"
         />
       </FormRow>
 
-      <FormRow label="IP" for-id="ip" description="IP Address." :error="useGetError(v$.ip)">
+      <FormRow label="IP" for-id="ip" description="IP Address." :error="useGetError(ipV$.ip)">
         <InputText
           id="ip"
-          class="dark:bg-slate-800 dark:text-slate-400"
+          class="dark:bg-slate-800 dark:text-slate-400 w-full"
           size="small"
           v-model="ip"
           type="text"
@@ -97,8 +102,8 @@
           pattern="^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$"
           minlength="0"
           maxlength="15"
-          :invalid="v$.ip.$invalid"
-          @blur="v$.ip.$touch()"
+          :invalid="ipV$.ip.$invalid"
+          @blur="ipV$.ip.$touch()"
         />
       </FormRow>
 
@@ -106,11 +111,11 @@
         label="Gateway"
         for-id="gateway"
         description="Default Gateway."
-        :error="useGetError(v$.gateway)"
+        :error="useGetError(ipV$.gateway)"
       >
         <InputText
           id="gateway"
-          class="dark:bg-slate-800 dark:text-slate-400"
+          class="dark:bg-slate-800 dark:text-slate-400 w-full"
           size="small"
           v-model="gateway"
           type="text"
@@ -119,8 +124,8 @@
           pattern="^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$"
           minlength="0"
           maxlength="15"
-          :invalid="v$.gateway.$invalid"
-          @blur="v$.gateway.$touch()"
+          :invalid="ipV$.gateway.$invalid"
+          @blur="ipV$.gateway.$touch()"
         />
       </FormRow>
 
@@ -128,11 +133,11 @@
         label="Subnet"
         for-id="subnet"
         description="Subnet Mask."
-        :error="useGetError(v$.subnet)"
+        :error="useGetError(ipV$.subnet)"
       >
         <InputText
           id="subnet"
-          class="dark:bg-slate-800 dark:text-slate-400"
+          class="dark:bg-slate-800 dark:text-slate-400 w-full"
           size="small"
           v-model="subnet"
           type="text"
@@ -141,15 +146,15 @@
           pattern="^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$"
           minlength="0"
           maxlength="15"
-          :invalid="v$.subnet.$invalid"
-          @blur="v$.subnet.$touch()"
+          :invalid="ipV$.subnet.$invalid"
+          @blur="ipV$.subnet.$touch()"
         />
       </FormRow>
 
-      <FormRow label="DNS" for-id="ip" description="DNS server." :error="useGetError(v$.dns)">
+      <FormRow label="DNS" for-id="ip" description="DNS server." :error="useGetError(ipV$.dns)">
         <InputText
           id="ip"
-          class="dark:bg-slate-800 dark:text-slate-400"
+          class="dark:bg-slate-800 dark:text-slate-400 w-full"
           size="small"
           v-model="dns"
           type="text"
@@ -158,8 +163,8 @@
           pattern="^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$"
           minlength="0"
           maxlength="15"
-          :invalid="v$.ip.$invalid"
-          @blur="v$.dns.$touch()"
+          :invalid="ipV$.ip.$invalid"
+          @blur="ipV$.dns.$touch()"
         />
       </FormRow>
 
@@ -167,7 +172,7 @@
         label="Mesh via UDP"
         for-id="enabledProtocols"
         description="Mesh over UDP mode."
-        :error="useGetError(v$.enabledProtocols)"
+        :error="useGetError(networkV$.enabledProtocols)"
       >
         <Select
           aria-labelledby="enabledProtocols"
@@ -179,8 +184,8 @@
           optionLabel="label"
           optionValue="value"
           placeholder="Select UDP mode"
-          :invalid="v$.enabledProtocols.$invalid"
-          @blur="v$.enabledProtocols.$touch()"
+          :invalid="networkV$.enabledProtocols.$invalid"
+          @blur="networkV$.enabledProtocols.$touch()"
         />
       </FormRow>
 
@@ -188,18 +193,18 @@
         label="NTP Server"
         for-id="ntpServer"
         description="NTP server address."
-        :error="useGetError(v$.ntpServer)"
+        :error="useGetError(networkV$.ntpServer)"
       >
         <InputText
           id="ntpServer"
-          class="dark:bg-slate-800 dark:text-slate-400"
+          class="dark:bg-slate-800 dark:text-slate-400 w-full"
           size="small"
           v-model="ntpServer"
           type="text"
           minlength="0"
           maxlength="33"
-          :invalid="v$.ntpServer.$invalid"
-          @blur="v$.ntpServer.$touch()"
+          :invalid="networkV$.ntpServer.$invalid"
+          @blur="networkV$.ntpServer.$touch()"
         />
       </FormRow>
 
@@ -207,18 +212,18 @@
         label="Rsyslog Server"
         for-id="rsyslogServer"
         description="Rsyslog server address."
-        :error="useGetError(v$.rsyslogServer)"
+        :error="useGetError(networkV$.rsyslogServer)"
       >
         <InputText
           id="rsyslogServer"
-          class="dark:bg-slate-800 dark:text-slate-400"
+          class="dark:bg-slate-800 dark:text-slate-400 w-full"
           size="small"
           v-model="rsyslogServer"
           type="text"
           minlength="0"
           maxlength="33"
-          :invalid="v$.rsyslogServer.$invalid"
-          @blur="v$.rsyslogServer.$touch()"
+          :invalid="networkV$.rsyslogServer.$invalid"
+          @blur="networkV$.rsyslogServer.$touch()"
         />
       </FormRow>
     </FormGrid>
@@ -234,7 +239,8 @@ import { useGetError } from '@/composables/useGetError';
 import { useEnumOptions } from '@/composables/useEnumOptions';
 
 defineProps<{
-  v$: Validation;
+  networkV$: Validation;
+  ipV$: Validation;
 }>();
 
 const wifiEnabled = defineModel<boolean>('wifiEnabled');
