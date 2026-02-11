@@ -1,7 +1,6 @@
 import { create } from "@bufbuild/protobuf";
 import { validateIncomingNode } from "@/composables/stores/nodeDB/nodeValidation";
 import { Protobuf, type Types } from "@meshtastic/core";
-import type { DBSchema } from "idb";
 import {
     IDB_NODESDB_STORE,
     useIndexedDB
