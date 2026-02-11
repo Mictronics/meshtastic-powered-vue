@@ -221,48 +221,6 @@ const displayConfig = ref<Protobuf.Config.Config_DisplayConfig>(
 );
 const displayV$ = useVuelidate(DisplayRules, displayConfig);
 
-watch(
-  () => database.value?.getMyNode(),
-  (node) => {
-    if (!node) return;
-    Object.assign(userConfig.value, node.user);
-    const pos = node.position;
-    latitude.value = pos?.latitudeI ? pos.latitudeI / 1e7 : 0;
-    longitude.value = pos?.longitudeI ? pos.longitudeI / 1e7 : 0;
-    altitude.value = pos?.altitude ?? 0;
-  },
-  { immediate: true }
-);
-
-watch(
-  () => device.value?.config,
-  (config) => {
-    if (!config) return;
-
-    if (!isBluetoothDirty.value) {
-      Object.assign(bluetoothConfig.value, config.bluetooth);
-    }
-    if (!isDeviceDirty.value) {
-      Object.assign(deviceConfig.value, config.device);
-    }
-    if (!isPositionDirty.value) {
-      Object.assign(positionConfig.value, config.position);
-    }
-    if (!isPowerDirty.value) {
-      Object.assign(powerConfig.value, config.power);
-    }
-    if (!isNetworkDirty.value) {
-      Object.assign(networkConfig.value, config.network);
-      const ipc = config.network?.ipv4Config;
-      ipConfig.value.ip = convertIntToIpAddress(ipc?.ip ?? 0);
-      ipConfig.value.dns = convertIntToIpAddress(ipc?.dns ?? 0);
-      ipConfig.value.gateway = convertIntToIpAddress(ipc?.gateway ?? 0);
-      ipConfig.value.subnet = convertIntToIpAddress(ipc?.subnet ?? 0);
-    }
-  },
-  { immediate: true }
-);
-
 type ConfigType = NonNullable<typeof device.value>['config'];
 const createDirtyComputed = <K extends keyof ConfigType>(
   localRef: Ref<ConfigType[K]>,
@@ -358,6 +316,39 @@ watch(
     }
   },
   { immediate: true }
+);
+
+watch(
+  () => database.value?.getMyNode(),
+  (node) => {
+    if (!node) return;
+    Object.assign(userConfig.value, node.user);
+    const pos = node.position;
+    latitude.value = pos?.latitudeI ? pos.latitudeI / 1e7 : 0;
+    longitude.value = pos?.longitudeI ? pos.longitudeI / 1e7 : 0;
+    altitude.value = pos?.altitude ?? 0;
+  },
+  { immediate: true, deep: true }
+);
+
+watch(
+  () => device.value?.config,
+  (config) => {
+    if (!config) return;
+
+    Object.assign(bluetoothConfig.value, config.bluetooth);
+    Object.assign(deviceConfig.value, config.device);
+    Object.assign(positionConfig.value, config.position);
+    Object.assign(powerConfig.value, config.power);
+    Object.assign(networkConfig.value, config.network);
+    Object.assign(displayConfig.value, config.display);
+    const ipc = config.network?.ipv4Config;
+    ipConfig.value.ip = convertIntToIpAddress(ipc?.ip ?? 0);
+    ipConfig.value.dns = convertIntToIpAddress(ipc?.dns ?? 0);
+    ipConfig.value.gateway = convertIntToIpAddress(ipc?.gateway ?? 0);
+    ipConfig.value.subnet = convertIntToIpAddress(ipc?.subnet ?? 0);
+  },
+  { immediate: true, deep: true }
 );
 
 const isAnyDirty = computed(

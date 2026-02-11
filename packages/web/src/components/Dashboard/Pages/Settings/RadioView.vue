@@ -103,30 +103,6 @@ const securityConfig = ref<Protobuf.Config.Config_SecurityConfig>(
 
 const loraV$ = useVuelidate(LoraRules, loraConfig);
 
-watch(
-  () => device.value,
-  (dev) => {
-    if (!dev) return;
-
-    const lora = dev.getEffectiveConfig('lora');
-    const security = dev.getEffectiveConfig('security');
-    if (!lora || !security) return;
-
-    if (!isLoraDirty.value) {
-      Object.assign(loraConfig.value, dev.config.lora);
-    }
-
-    if (!isSecurityDirty.value) {
-      Object.assign(securityConfig.value, dev.config.security);
-    }
-
-    if (!isChannelsDirty.value) {
-      allChannels.value = Object.values(dev.channels);
-    }
-  },
-  { immediate: true }
-);
-
 const isLoraDirty = computed(() => {
   if (!device.value?.config.lora) return false;
   return !useDeepCompareConfig(loraConfig.value, device.value?.config.lora, true);
@@ -148,6 +124,22 @@ const isSecurityDirty = computed(() => {
   if (!device.value?.config.security) return false;
   return !useDeepCompareConfig(securityConfig.value, device.value?.config.security, true);
 });
+
+watch(
+  () => device.value,
+  (dev) => {
+    if (!dev) return;
+
+    const lora = dev.getEffectiveConfig('lora');
+    const security = dev.getEffectiveConfig('security');
+    if (!lora || !security) return;
+
+    Object.assign(loraConfig.value, dev.config.lora);
+    Object.assign(securityConfig.value, dev.config.security);
+    allChannels.value = Object.values(dev.channels);
+  },
+  { immediate: true }
+);
 
 watch(
   isLoraDirty,
