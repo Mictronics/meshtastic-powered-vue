@@ -131,3 +131,12 @@ export const Ipv4Rules = {
     subnet: { required, ipAddress },
     dns: { required, ipAddress },
 }
+
+export const DisplayRules = {
+    autoScreenCarouselSecs: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
+    compassOrientation: { required, integer, minValue: minValue(0), maxValue: maxValue(7) },
+    displaymode: { required, integer, minValue: minValue(0), maxValue: maxValue(3) },
+    oled: { required, integer, minValue: minValue(0), maxValue: maxValue(4) },
+    screenOnSecs: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
+    units: { required, integer, minValue: minValue(0), maxValue: maxValue(1) },
+}
