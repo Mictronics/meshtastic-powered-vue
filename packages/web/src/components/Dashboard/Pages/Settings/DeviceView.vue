@@ -105,7 +105,24 @@
       </AccordionPanel>
       <AccordionPanel value="display">
         <AccordionHeader><DirtyHeader title="Display" :dirty="isDisplayDirty" /></AccordionHeader>
-        <AccordionContent></AccordionContent>
+        <AccordionContent>
+          <DisplaySettings
+            v-model:autoScreenCarouselSecs="displayConfig.autoScreenCarouselSecs"
+            v-model:compassNorthTop="displayConfig.compassNorthTop"
+            v-model:compassOrientation="displayConfig.compassOrientation"
+            v-model:displaymode="displayConfig.displaymode"
+            v-model:enableMessageBubbles="displayConfig.enableMessageBubbles"
+            v-model:flipScreen="displayConfig.flipScreen"
+            v-model:headingBold="displayConfig.headingBold"
+            v-model:oled="displayConfig.oled"
+            v-model:screenOnSecs="displayConfig.screenOnSecs"
+            v-model:units="displayConfig.units"
+            v-model:use12hClock="displayConfig.use12hClock"
+            v-model:useLongNodeName="displayConfig.useLongNodeName"
+            v-model:wakeOnTapOrMotion="displayConfig.wakeOnTapOrMotion"
+            :v$="displayV$"
+          />
+        </AccordionContent>
       </AccordionPanel>
       <AccordionPanel value="bluetooth">
         <AccordionHeader>
@@ -137,6 +154,7 @@ import PositionSettings from './subforms/PositionSettings.vue';
 import BluetoothSettings from './subforms/BluetoothSettings.vue';
 import PowerSettings from './subforms/PowerSettings.vue';
 import NetworkSettings from './subforms/NetworkSettings.vue';
+import DisplaySettings from './subforms/DisplaySettings.vue';
 import { useConfigSave } from '@/composables/useConfigSave';
 import { useDeviceStore } from '@/composables/stores/device/useDeviceStore';
 import { useNodeDBStore } from '@/composables/stores/nodeDB/useNodeDBStore';
@@ -148,6 +166,7 @@ import {
   PowerRules,
   NetworkRules,
   Ipv4Rules,
+  DisplayRules,
 } from '@/composables/ValidationRules';
 import { convertIntToIpAddress, convertIpAddressToInt } from '@/composables/useIpConvert';
 
@@ -196,6 +215,11 @@ const ipConfig = ref({
   subnet: '',
 });
 const ipV$ = useVuelidate(Ipv4Rules, ipConfig);
+
+const displayConfig = ref<Protobuf.Config.Config_DisplayConfig>(
+  create(Protobuf.Config.Config_DisplayConfigSchema)
+);
+const displayV$ = useVuelidate(DisplayRules, displayConfig);
 
 watchEffect(() => {
   const node = database.value?.getMyNode();
