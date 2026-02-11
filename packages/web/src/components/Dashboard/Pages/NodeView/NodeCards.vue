@@ -156,7 +156,11 @@
         </div>
         <div class="pt-6 border-t border-slate-100 dark:border-slate-600 flex gap-2">
           <Button asChild v-slot="slotProps" size="small" variant="outline" severity="secondary">
-            <router-link :to="'/chat/direct/' + selectedNode.nodeNumber" :class="slotProps.class">
+            <router-link
+              :to="'/chat/direct/' + selectedNode.nodeNumber"
+              :class="slotProps.class"
+              v-if="!selectedNode.isUnmessagable"
+            >
               <MessageSquare :size="15" class="my-1 text-slate-800 dark:text-slate-400 p-0" />
             </router-link>
           </Button>
