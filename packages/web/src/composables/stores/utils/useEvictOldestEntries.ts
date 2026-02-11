@@ -15,7 +15,7 @@ export function useEvictOldestEntries<T, K, V>(
         while (Object.keys(collection).length > maxSize) {
             const firstKey = Object.keys(collection).shift();
             if (firstKey !== undefined) {
-                delete collection.firstKey;
+                delete collection[firstKey];
             } else {
                 break;
             }
