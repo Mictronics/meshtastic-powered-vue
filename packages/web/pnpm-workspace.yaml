@@ -8,4 +8,5 @@ minimumReleaseAgeExclude:
 
 onlyBuiltDependencies:
   - core-js
+  - esbuild
   - vue-demi
