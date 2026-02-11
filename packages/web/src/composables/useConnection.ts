@@ -364,6 +364,8 @@ export const useConnection = createGlobalState(() => {
                 if (device) device.setConnectionPhase(ConnectionPhase.Configured);
                 setStatus(connectionId, ConnectionStatus.Configured);
 
+                nodeDB?.pruneStaleNodes();
+
                 // Switch from fast config heartbeat to slow maintenance heartbeat
                 runtime.isConfigured = true;
                 startHeartbeat(meshDevice, HEARTBEAT_INTERVAL_MS);

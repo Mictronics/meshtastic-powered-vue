@@ -171,9 +171,6 @@ class NodeDB implements INodeDB {
                 newNodeMap[nodeNum] = node;
             } else {
                 prunedCount++;
-                console.log(
-                    `[NodeDB] Pruning stale node ${nodeNum} (last heard ${Math.floor((nowSec - node.lastHeard) / 86400)} days ago)`,
-                );
             }
         }
         this.nodeMap = newNodeMap;
