@@ -72,7 +72,7 @@
 <script setup lang="ts">
 import { Protobuf } from '@meshtastic/core';
 import { create } from '@bufbuild/protobuf';
-import { ref, computed, watchEffect, toRaw } from 'vue';
+import { ref, computed, toRaw, watch } from 'vue';
 import { useVuelidate } from '@vuelidate/core';
 import { LoraRules } from '@/composables/ValidationRules';
 import SettingsLayout from './components/SettingsLayout.vue';
@@ -103,34 +103,33 @@ const securityConfig = ref<Protobuf.Config.Config_SecurityConfig>(
 
 const loraV$ = useVuelidate(LoraRules, loraConfig);
 
-watchEffect(() => {
-  if (!device.value) return;
+watch(
+  () => device.value,
+  (dev) => {
+    if (!dev) return;
 
-  const lora = device.value.getEffectiveConfig('lora');
-  const channels = device.value.channels;
-  const security = device.value.getEffectiveConfig('security');
-  if (!lora || !security) return;
+    const lora = dev.getEffectiveConfig('lora');
+    const security = dev.getEffectiveConfig('security');
+    if (!lora || !security) return;
 
-  loraConfig.value = {
-    ...loraConfig.value,
-    ...lora,
-  };
+    if (!isLoraDirty.value) {
+      Object.assign(loraConfig.value, dev.config.lora);
+    }
 
-  securityConfig.value = {
-    ...securityConfig.value,
-    ...security,
-  };
+    if (!isSecurityDirty.value) {
+      Object.assign(securityConfig.value, dev.config.security);
+    }
 
-  allChannels.value = Object.values(channels);
-});
+    if (!isChannelsDirty.value) {
+      allChannels.value = Object.values(dev.channels);
+    }
+  },
+  { immediate: true }
+);
 
 const isLoraDirty = computed(() => {
   if (!device.value?.config.lora) return false;
-  const dirty = !useDeepCompareConfig(loraConfig.value, device.value?.config.lora, true);
-  if (!dirty) {
-    device.value?.removeChange({ type: 'config', variant: 'lora' });
-  }
-  return dirty;
+  return !useDeepCompareConfig(loraConfig.value, device.value?.config.lora, true);
 });
 
 const channelDirtyFlags = computed(() => {
@@ -147,15 +146,33 @@ const isChannelsDirty = computed(() => channelDirtyFlags.value.some(Boolean));
 
 const isSecurityDirty = computed(() => {
   if (!device.value?.config.security) return false;
-  const dirty = !useDeepCompareConfig(securityConfig.value, device.value?.config.security, true);
-  if (!dirty) {
-    device.value?.removeChange({ type: 'config', variant: 'security' });
-  }
-  return dirty;
+  return !useDeepCompareConfig(securityConfig.value, device.value?.config.security, true);
 });
 
+watch(
+  isLoraDirty,
+  (dirty) => {
+    if (!dirty) {
+      device.value?.removeChange({ type: 'config', variant: 'lora' });
+    }
+  },
+  { immediate: true }
+);
+
+watch(
+  isSecurityDirty,
+  (dirty) => {
+    if (!dirty) {
+      device.value?.removeChange({ type: 'config', variant: 'security' });
+    }
+  },
+  { immediate: true }
+);
+
 const saveButtonDisable = computed(
-  () => !isLoraDirty.value && !isChannelsDirty.value && !isSecurityDirty.value
+  () =>
+    (!isLoraDirty.value && !isChannelsDirty.value && !isSecurityDirty.value) ||
+    loraV$.value.$invalid
 );
 
 const onSaveSettings = () => {
@@ -166,7 +183,7 @@ const onSaveSettings = () => {
   }
 
   if (isLoraDirty.value) {
-    const conf = toRaw(loraConfig.value);
+    const conf = structuredClone(toRaw(loraConfig.value));
     purgeUncloneableProperties(conf);
     device.value?.setChange({ type: 'config', variant: 'lora' }, conf);
   }
@@ -174,17 +191,17 @@ const onSaveSettings = () => {
   if (isChannelsDirty.value) {
     allChannels.value.forEach((channel, index) => {
       if (channelDirtyFlags.value[index]) {
-        const channelRaw = toRaw(channel);
+        const channelRaw = structuredClone(toRaw(channel));
         purgeUncloneableProperties(channelRaw);
         device.value?.setChange({ type: 'channel', index }, channelRaw);
       } else {
-        device.value?.removeChange({ type: 'channel', index: channel.index });
+        device.value?.removeChange({ type: 'channel', index });
       }
     });
   }
 
   if (isSecurityDirty.value) {
-    const conf = toRaw(securityConfig.value);
+    const conf = structuredClone(toRaw(securityConfig.value));
     purgeUncloneableProperties(conf);
     device.value?.setChange({ type: 'config', variant: 'security' }, conf);
   }
@@ -193,8 +210,11 @@ const onSaveSettings = () => {
 };
 
 const { open } = useConfirm();
+const hasPendingChanges = computed(
+  () => isLoraDirty.value || isChannelsDirty.value || isSecurityDirty.value
+);
 onBeforeRouteLeave(async (to, from, next) => {
-  if (saveConfigHandler.isSaving.value || !saveButtonDisable.value) {
+  if (saveConfigHandler.isSaving.value || hasPendingChanges.value) {
     const confirmed = await open({
       header: 'Discard pending changes?',
       message: 'Leaving the page will discard all changes.',

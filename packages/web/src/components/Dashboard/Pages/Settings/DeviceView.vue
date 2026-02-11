@@ -142,7 +142,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watchEffect } from 'vue';
+import { ref, computed, watch, type Ref } from 'vue';
 import { Protobuf } from '@meshtastic/core';
 import { create } from '@bufbuild/protobuf';
 import { useVuelidate } from '@vuelidate/core';
@@ -168,11 +168,11 @@ import {
   Ipv4Rules,
   DisplayRules,
 } from '@/composables/ValidationRules';
-import { convertIntToIpAddress, convertIpAddressToInt } from '@/composables/useIpConvert';
+import { convertIntToIpAddress } from '@/composables/useIpConvert';
+import { useDeepCompareConfig } from '@/composables/useDeepCompareConfig';
 
 const device = useDeviceStore().device;
 const database = useNodeDBStore().nodeDatabase;
-const saveButtonDisable = ref(true);
 const saveConfigHandler = useConfigSave();
 
 const userConfig = ref<Protobuf.Mesh.User>(create(Protobuf.Mesh.UserSchema));
@@ -221,78 +221,170 @@ const displayConfig = ref<Protobuf.Config.Config_DisplayConfig>(
 );
 const displayV$ = useVuelidate(DisplayRules, displayConfig);
 
-watchEffect(() => {
-  const node = database.value?.getMyNode();
-  if (!node) return;
+watch(
+  () => database.value?.getMyNode(),
+  (node) => {
+    if (!node) return;
+    Object.assign(userConfig.value, node.user);
+    const pos = node.position;
+    latitude.value = pos?.latitudeI ? pos.latitudeI / 1e7 : 0;
+    longitude.value = pos?.longitudeI ? pos.longitudeI / 1e7 : 0;
+    altitude.value = pos?.altitude ?? 0;
+  },
+  { immediate: true }
+);
 
-  userConfig.value = {
-    ...userConfig.value,
-    ...node.user,
-  };
+watch(
+  () => device.value?.config,
+  (config) => {
+    if (!config) return;
 
-  const currentPosition = node.position;
-  latitude.value = currentPosition?.latitudeI ? currentPosition.latitudeI / 1e7 : 0;
-  longitude.value = currentPosition?.latitudeI ? currentPosition.latitudeI / 1e7 : 0;
-  altitude.value = currentPosition?.altitude ?? 0;
-});
+    if (!isBluetoothDirty.value) {
+      Object.assign(bluetoothConfig.value, config.bluetooth);
+    }
+    if (!isDeviceDirty.value) {
+      Object.assign(deviceConfig.value, config.device);
+    }
+    if (!isPositionDirty.value) {
+      Object.assign(positionConfig.value, config.position);
+    }
+    if (!isPowerDirty.value) {
+      Object.assign(powerConfig.value, config.power);
+    }
+    if (!isNetworkDirty.value) {
+      Object.assign(networkConfig.value, config.network);
+      const ipc = config.network?.ipv4Config;
+      ipConfig.value.ip = convertIntToIpAddress(ipc?.ip ?? 0);
+      ipConfig.value.dns = convertIntToIpAddress(ipc?.dns ?? 0);
+      ipConfig.value.gateway = convertIntToIpAddress(ipc?.gateway ?? 0);
+      ipConfig.value.subnet = convertIntToIpAddress(ipc?.subnet ?? 0);
+    }
+  },
+  { immediate: true }
+);
 
-watchEffect(() => {
-  if (!device) return;
+type ConfigType = NonNullable<typeof device.value>['config'];
+const createDirtyComputed = <K extends keyof ConfigType>(
+  localRef: Ref<ConfigType[K]>,
+  devicePath: K
+) => {
+  return computed(() => {
+    const current = device.value?.config?.[devicePath];
+    if (!current) return false;
 
-  bluetoothConfig.value = {
-    ...bluetoothConfig.value,
-    ...device.value?.config.bluetooth,
-  };
-
-  deviceConfig.value = {
-    ...deviceConfig.value,
-    ...device.value?.config.device,
-  };
-
-  positionConfig.value = {
-    ...positionConfig.value,
-    ...device.value?.config.position,
-  };
-
-  powerConfig.value = {
-    ...powerConfig.value,
-    ...device.value?.config.power,
-  };
-
-  networkConfig.value = {
-    ...networkConfig.value,
-    ...device.value?.config.network,
-  };
-
-  const ipc = device.value?.config.network?.ipv4Config;
-  ipConfig.value.ip = convertIntToIpAddress(ipc?.ip ?? 0);
-  ipConfig.value.dns = convertIntToIpAddress(ipc?.dns ?? 0);
-  ipConfig.value.gateway = convertIntToIpAddress(ipc?.gateway ?? 0);
-  ipConfig.value.subnet = convertIntToIpAddress(ipc?.subnet ?? 0);
-});
+    return !useDeepCompareConfig(localRef.value, current, true);
+  });
+};
 
 const isUserDirty = computed(() => {
-  return false;
-});
-const isDeviceDirty = computed(() => {
-  return false;
-});
-const isPositionDirty = computed(() => {
-  return false;
-});
-const isPowerDirty = computed(() => {
-  return false;
-});
-const isNetworkDirty = computed(() => {
-  return false;
-});
-const isDisplayDirty = computed(() => {
-  return false;
-});
-const isBluetoothDirty = computed(() => {
-  return false;
+  const node = database.value?.getMyNode();
+  if (!node) return false;
+  return !useDeepCompareConfig(userConfig.value, node.user, true);
 });
 
+const isDeviceDirty = createDirtyComputed(deviceConfig, 'device');
+watch(
+  isDeviceDirty,
+  (dirty) => {
+    if (!dirty) {
+      device.value?.removeChange({ type: 'config', variant: 'device' });
+    }
+  },
+  { immediate: true }
+);
+
+const isPositionDirty = createDirtyComputed(positionConfig, 'position');
+watch(
+  isPositionDirty,
+  (dirty) => {
+    if (!dirty) {
+      device.value?.removeChange({ type: 'config', variant: 'position' });
+    }
+  },
+  { immediate: true }
+);
+
+const isPowerDirty = createDirtyComputed(powerConfig, 'power');
+watch(
+  isPowerDirty,
+  (dirty) => {
+    if (!dirty) {
+      device.value?.removeChange({ type: 'config', variant: 'power' });
+    }
+  },
+  { immediate: true }
+);
+
+const isNetworkDirty = createDirtyComputed(networkConfig, 'network');
+watch(
+  isNetworkDirty,
+  (dirty) => {
+    if (!dirty) {
+      device.value?.removeChange({ type: 'config', variant: 'network' });
+    }
+  },
+  { immediate: true }
+);
+
+const isIpDirty = computed(() => {
+  const ipc = device.value?.config.network?.ipv4Config;
+  if (!ipc) return false;
+
+  return (
+    ipConfig.value.ip !== convertIntToIpAddress(ipc.ip ?? 0) ||
+    ipConfig.value.dns !== convertIntToIpAddress(ipc.dns ?? 0) ||
+    ipConfig.value.gateway !== convertIntToIpAddress(ipc.gateway ?? 0) ||
+    ipConfig.value.subnet !== convertIntToIpAddress(ipc.subnet ?? 0)
+  );
+});
+
+const isDisplayDirty = createDirtyComputed(displayConfig, 'display');
+watch(
+  isDisplayDirty,
+  (dirty) => {
+    if (!dirty) {
+      device.value?.removeChange({ type: 'config', variant: 'display' });
+    }
+  },
+  { immediate: true }
+);
+
+const isBluetoothDirty = createDirtyComputed(bluetoothConfig, 'bluetooth');
+watch(
+  isBluetoothDirty,
+  (dirty) => {
+    if (!dirty) {
+      device.value?.removeChange({ type: 'config', variant: 'bluetooth' });
+    }
+  },
+  { immediate: true }
+);
+
+const isAnyDirty = computed(
+  () =>
+    isUserDirty.value ||
+    isDeviceDirty.value ||
+    isPositionDirty.value ||
+    isPowerDirty.value ||
+    isNetworkDirty.value ||
+    isIpDirty.value ||
+    isDisplayDirty.value ||
+    isBluetoothDirty.value
+);
+
+const isAnyInvalid = computed(
+  () =>
+    userV$.value.$invalid ||
+    deviceV$.value.$invalid ||
+    positionV$.value.$invalid ||
+    powerV$.value.$invalid ||
+    networkV$.value.$invalid ||
+    ipV$.value.$invalid ||
+    displayV$.value.$invalid ||
+    bluetoothV$.value.$invalid
+);
+
+const saveButtonDisable = computed(() => !isAnyDirty.value || isAnyInvalid.value);
 const onSaveSettings = () => {};
 </script>
 
