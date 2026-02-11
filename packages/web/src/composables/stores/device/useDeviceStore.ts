@@ -463,7 +463,7 @@ class Device implements IDevice {
     resetUnread(nodeNum: number) {
         this.unreadCounts[nodeNum] = 0;
         if (this.unreadCounts[nodeNum] === 0) {
-            delete this.unreadCounts.nodeNum;
+            delete this.unreadCounts[nodeNum];
         }
 
     };
