@@ -29,6 +29,7 @@
         placeholder="Enter position coordinates"
         :invalid="v$.$error"
         @blur="v$.$touch()"
+        :disabled="disabled"
       />
       <InputGroupAddon>
         <Button
@@ -55,6 +56,10 @@ import proj4 from 'proj4';
 
 type LatLon = { lat: number; lon: number };
 type GeoFormat = (typeof formats)[number];
+
+defineProps<{
+  disabled: boolean;
+}>();
 
 const latitude = defineModel<number>('latitude');
 const longitude = defineModel<number>('longitude');
