@@ -42,7 +42,7 @@
       </AccordionPanel>
       <AccordionPanel value="position">
         <AccordionHeader>
-          <DirtyHeader title="Position" :dirty="isPositionDirty" />
+          <DirtyHeader title="Position" :dirty="isPositionDirty || isFixedCoordinatesDirty" />
         </AccordionHeader>
         <AccordionContent>
           <PositionSettings
@@ -83,7 +83,9 @@
         </AccordionContent>
       </AccordionPanel>
       <AccordionPanel value="network">
-        <AccordionHeader><DirtyHeader title="Network" :dirty="isNetworkDirty" /></AccordionHeader>
+        <AccordionHeader>
+          <DirtyHeader title="Network" :dirty="isNetworkDirty || isIpDirty" />
+        </AccordionHeader>
         <AccordionContent>
           <NetworkSettings
             v-model:addressMode="networkConfig.addressMode"
@@ -142,7 +144,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, type Ref } from 'vue';
+import { ref, computed, watch, toRaw, type Ref } from 'vue';
 import { Protobuf } from '@meshtastic/core';
 import { create } from '@bufbuild/protobuf';
 import { useVuelidate } from '@vuelidate/core';
@@ -168,8 +170,11 @@ import {
   Ipv4Rules,
   DisplayRules,
 } from '@/composables/ValidationRules';
-import { convertIntToIpAddress } from '@/composables/useIpConvert';
+import { convertIntToIpAddress, convertIpAddressToInt } from '@/composables/useIpConvert';
 import { useDeepCompareConfig } from '@/composables/useDeepCompareConfig';
+import { purgeUncloneableProperties } from '@/composables/stores/utils/purgeUncloneable';
+import { onBeforeRouteLeave } from 'vue-router';
+import { useConfirm } from '@/composables/useConfirmDialog';
 
 const device = useDeviceStore().device;
 const database = useNodeDBStore().nodeDatabase;
@@ -192,11 +197,21 @@ const positionConfig = ref<Protobuf.Config.Config_PositionConfig>(
   create(Protobuf.Config.Config_PositionConfigSchema)
 );
 const positionV$ = useVuelidate(PositionRules, positionConfig);
-
-const currentPosition = ref<Protobuf.Mesh.Position>(create(Protobuf.Mesh.PositionSchema));
 const latitude = ref<number>(0);
 const longitude = ref<number>(0);
 const altitude = ref<number>(0);
+const isFixedCoordinatesDirty = computed(() => {
+  const node = database.value?.getMyNode();
+  if (!node?.position) return false;
+
+  const currentLat = node.position.latitudeI ? node.position.latitudeI / 1e7 : 0;
+  const currentLon = node.position.longitudeI ? node.position.longitudeI / 1e7 : 0;
+  const currentAlt = node.position.altitude ?? 0;
+
+  return (
+    latitude.value !== currentLat || longitude.value !== currentLon || altitude.value !== currentAlt
+  );
+});
 
 const powerConfig = ref<Protobuf.Config.Config_PowerConfig>(
   create(Protobuf.Config.Config_PowerConfigSchema)
@@ -228,7 +243,7 @@ const createDirtyComputed = <K extends keyof ConfigType>(
 ) => {
   return computed(() => {
     const current = device.value?.config?.[devicePath];
-    if (!current) return false;
+    if (current == null) return false;
 
     return !useDeepCompareConfig(localRef.value, current, true);
   });
@@ -285,8 +300,12 @@ watch(
 );
 
 const isIpDirty = computed(() => {
-  const ipc = device.value?.config.network?.ipv4Config;
-  if (!ipc) return false;
+  const ipc = device.value?.config.network?.ipv4Config ?? {
+    ip: 0,
+    dns: 0,
+    gateway: 0,
+    subnet: 0,
+  };
 
   return (
     ipConfig.value.ip !== convertIntToIpAddress(ipc.ip ?? 0) ||
@@ -356,6 +375,7 @@ const isAnyDirty = computed(
     isUserDirty.value ||
     isDeviceDirty.value ||
     isPositionDirty.value ||
+    isFixedCoordinatesDirty.value ||
     isPowerDirty.value ||
     isNetworkDirty.value ||
     isIpDirty.value ||
@@ -376,7 +396,110 @@ const isAnyInvalid = computed(
 );
 
 const saveButtonDisable = computed(() => !isAnyDirty.value || isAnyInvalid.value);
-const onSaveSettings = () => {};
+const onSaveSettings = () => {
+  if (!isAnyDirty.value) return;
+
+  if (isUserDirty.value) {
+    let conf = structuredClone(toRaw(userConfig.value));
+    purgeUncloneableProperties(conf);
+    const owner = create(Protobuf.Admin.AdminMessageSchema, {
+      payloadVariant: {
+        case: 'setOwner',
+        value: create(Protobuf.Mesh.UserSchema, {
+          longName: conf.longName,
+          shortName: conf.shortName,
+          isUnmessagable: conf.isUnmessagable,
+          isLicensed: conf.isLicensed,
+        }),
+      },
+    });
+    device.value?.queueAdminMessage(owner);
+  }
+
+  if (isDeviceDirty.value) {
+    const conf = structuredClone(toRaw(deviceConfig.value));
+    purgeUncloneableProperties(conf);
+    device.value?.setChange({ type: 'config', variant: 'device' }, conf);
+  }
+
+  if (isPowerDirty.value) {
+    const conf = structuredClone(toRaw(powerConfig.value));
+    purgeUncloneableProperties(conf);
+    device.value?.setChange({ type: 'config', variant: 'power' }, conf);
+  }
+
+  if (isNetworkDirty.value || isIpDirty.value) {
+    const ipv4 = create(Protobuf.Config.Config_NetworkConfig_IpV4ConfigSchema, {
+      ip: convertIpAddressToInt(ipConfig.value.ip ?? ''),
+      gateway: convertIpAddressToInt(ipConfig.value.gateway ?? ''),
+      subnet: convertIpAddressToInt(ipConfig.value.subnet ?? ''),
+      dns: convertIpAddressToInt(ipConfig.value.dns ?? ''),
+    });
+    Object.assign(networkConfig.value, { ipv4Config: ipv4 });
+    const conf = structuredClone(toRaw(networkConfig.value));
+    purgeUncloneableProperties(conf);
+    device.value?.setChange({ type: 'config', variant: 'network' }, conf);
+  }
+
+  if (isPositionDirty.value || isFixedCoordinatesDirty.value) {
+    const conf = structuredClone(toRaw(positionConfig.value));
+    purgeUncloneableProperties(conf);
+    device.value?.setChange({ type: 'config', variant: 'position' }, conf);
+
+    if (conf.fixedPosition && isFixedCoordinatesDirty.value) {
+      const message = create(Protobuf.Admin.AdminMessageSchema, {
+        payloadVariant: {
+          case: 'setFixedPosition',
+          value: create(Protobuf.Mesh.PositionSchema, {
+            latitudeI: Math.round(latitude.value * 1e7),
+            longitudeI: Math.round(longitude.value * 1e7),
+            altitude: altitude.value || 0,
+            time: Math.floor(Date.now() / 1000),
+          }),
+        },
+      });
+      device.value?.queueAdminMessage(message);
+    }
+  }
+
+  if (isDisplayDirty.value) {
+    const conf = structuredClone(toRaw(displayConfig.value));
+    purgeUncloneableProperties(conf);
+    device.value?.setChange({ type: 'config', variant: 'display' }, conf);
+  }
+
+  if (isBluetoothDirty.value) {
+    const conf = structuredClone(toRaw(bluetoothConfig.value));
+    purgeUncloneableProperties(conf);
+    device.value?.setChange({ type: 'config', variant: 'bluetooth' }, conf);
+  }
+  saveConfigHandler.save();
+};
+
+const { open } = useConfirm();
+onBeforeRouteLeave(async (to, from, next) => {
+  if (saveConfigHandler.isSaving.value) {
+    next(false);
+    return;
+  }
+
+  if (isAnyDirty.value) {
+    const confirmed = await open({
+      header: 'Discard pending changes?',
+      message: 'Leaving the page will discard all changes.',
+      acceptLabel: 'Leave',
+      cancelLabel: 'Cancel',
+    });
+
+    if (confirmed) {
+      next();
+    } else {
+      next(false);
+    }
+  } else {
+    next();
+  }
+});
 </script>
 
 <style lang="css" module>
