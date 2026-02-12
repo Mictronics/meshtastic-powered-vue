@@ -75,7 +75,7 @@ const toolsPanelItems = computed<ToolPanelItem[]>(() => [
         toast.add({
           severity: 'info',
           summary: 'Reconfiguration',
-          detail: 'Reconfiguration started.',
+          detail: 'Reconfiguration done.',
           life: 3000,
         });
       });
