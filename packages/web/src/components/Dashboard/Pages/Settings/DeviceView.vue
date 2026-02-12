@@ -328,7 +328,7 @@ watch(
     longitude.value = pos?.longitudeI ? pos.longitudeI / 1e7 : 0;
     altitude.value = pos?.altitude ?? 0;
   },
-  { immediate: true, deep: true }
+  { immediate: true, once: true }
 );
 
 watch(
@@ -348,7 +348,7 @@ watch(
     ipConfig.value.gateway = convertIntToIpAddress(ipc?.gateway ?? 0);
     ipConfig.value.subnet = convertIntToIpAddress(ipc?.subnet ?? 0);
   },
-  { immediate: true, deep: true }
+  { immediate: true, once: true }
 );
 
 const isAnyDirty = computed(

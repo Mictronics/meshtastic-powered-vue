@@ -138,7 +138,7 @@ watch(
     Object.assign(securityConfig.value, dev.config.security);
     allChannels.value = Object.values(dev.channels);
   },
-  { immediate: true }
+  { immediate: true, once: true }
 );
 
 watch(
