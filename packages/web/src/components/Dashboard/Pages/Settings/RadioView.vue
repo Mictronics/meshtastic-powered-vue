@@ -141,25 +141,17 @@ watch(
   { immediate: true, once: true }
 );
 
-watch(
-  isLoraDirty,
-  (dirty) => {
-    if (!dirty) {
-      device.value?.removeChange({ type: 'config', variant: 'lora' });
-    }
-  },
-  { immediate: true }
-);
+watch(isLoraDirty, (dirty) => {
+  if (!dirty) {
+    device.value?.removeChange({ type: 'config', variant: 'lora' });
+  }
+});
 
-watch(
-  isSecurityDirty,
-  (dirty) => {
-    if (!dirty) {
-      device.value?.removeChange({ type: 'config', variant: 'security' });
-    }
-  },
-  { immediate: true }
-);
+watch(isSecurityDirty, (dirty) => {
+  if (!dirty) {
+    device.value?.removeChange({ type: 'config', variant: 'security' });
+  }
+});
 
 const saveButtonDisable = computed(
   () =>

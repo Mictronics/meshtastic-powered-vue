@@ -256,48 +256,32 @@ const isUserDirty = computed(() => {
 });
 
 const isDeviceDirty = createDirtyComputed(deviceConfig, 'device');
-watch(
-  isDeviceDirty,
-  (dirty) => {
-    if (!dirty) {
-      device.value?.removeChange({ type: 'config', variant: 'device' });
-    }
-  },
-  { immediate: true }
-);
+watch(isDeviceDirty, (dirty) => {
+  if (!dirty) {
+    device.value?.removeChange({ type: 'config', variant: 'device' });
+  }
+});
 
 const isPositionDirty = createDirtyComputed(positionConfig, 'position');
-watch(
-  isPositionDirty,
-  (dirty) => {
-    if (!dirty) {
-      device.value?.removeChange({ type: 'config', variant: 'position' });
-    }
-  },
-  { immediate: true }
-);
+watch(isPositionDirty, (dirty) => {
+  if (!dirty) {
+    device.value?.removeChange({ type: 'config', variant: 'position' });
+  }
+});
 
 const isPowerDirty = createDirtyComputed(powerConfig, 'power');
-watch(
-  isPowerDirty,
-  (dirty) => {
-    if (!dirty) {
-      device.value?.removeChange({ type: 'config', variant: 'power' });
-    }
-  },
-  { immediate: true }
-);
+watch(isPowerDirty, (dirty) => {
+  if (!dirty) {
+    device.value?.removeChange({ type: 'config', variant: 'power' });
+  }
+});
 
 const isNetworkDirty = createDirtyComputed(networkConfig, 'network');
-watch(
-  isNetworkDirty,
-  (dirty) => {
-    if (!dirty) {
-      device.value?.removeChange({ type: 'config', variant: 'network' });
-    }
-  },
-  { immediate: true }
-);
+watch(isNetworkDirty, (dirty) => {
+  if (!dirty) {
+    device.value?.removeChange({ type: 'config', variant: 'network' });
+  }
+});
 
 const isIpDirty = computed(() => {
   const ipc = device.value?.config.network?.ipv4Config ?? {
@@ -316,26 +300,18 @@ const isIpDirty = computed(() => {
 });
 
 const isDisplayDirty = createDirtyComputed(displayConfig, 'display');
-watch(
-  isDisplayDirty,
-  (dirty) => {
-    if (!dirty) {
-      device.value?.removeChange({ type: 'config', variant: 'display' });
-    }
-  },
-  { immediate: true }
-);
+watch(isDisplayDirty, (dirty) => {
+  if (!dirty) {
+    device.value?.removeChange({ type: 'config', variant: 'display' });
+  }
+});
 
 const isBluetoothDirty = createDirtyComputed(bluetoothConfig, 'bluetooth');
-watch(
-  isBluetoothDirty,
-  (dirty) => {
-    if (!dirty) {
-      device.value?.removeChange({ type: 'config', variant: 'bluetooth' });
-    }
-  },
-  { immediate: true }
-);
+watch(isBluetoothDirty, (dirty) => {
+  if (!dirty) {
+    device.value?.removeChange({ type: 'config', variant: 'bluetooth' });
+  }
+});
 
 watch(
   () => database.value?.getMyNode(),
