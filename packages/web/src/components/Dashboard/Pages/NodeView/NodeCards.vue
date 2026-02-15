@@ -208,6 +208,16 @@
             Delete
           </Button>
         </div>
+        <div class="pt-6 border-t border-slate-100 dark:border-slate-600 flex gap-2">
+          <Button
+            severity="secondary"
+            size="small"
+            @click="requestNodeInfo(selectedNode.nodeNumber)"
+          >
+            <CircleQuestionMark :size="15" />
+            Request Node Info
+          </Button>
+        </div>
       </div>
     </Drawer>
   </div>
@@ -224,6 +234,7 @@ import {
   CircleArrowUp,
   X,
   MessageSquare,
+  CircleQuestionMark,
 } from 'lucide-vue-next';
 import { ref, computed, onMounted, onUnmounted, onBeforeUnmount } from 'vue';
 import { formatTimeAgoIntl, refDebounced } from '@vueuse/core';
@@ -247,6 +258,7 @@ import { type SortDir } from '@/components/Dashboard/Pages/NodeView/types';
 import { orderBy, filter, some } from 'lodash-es';
 import { useDeleteNode } from '@/composables/useDeleteNode';
 import { useConfirm } from '@/composables/useConfirmDialog';
+import { useRequest } from '@/composables/useRequest';
 
 const nodeDatabase = useFormattedNodeDatabase().nodeDatabase;
 const searchQuery = ref('');
@@ -495,6 +507,11 @@ const deleteNode = async (nodeNumber: number) => {
     useDeleteNode().deleteNode(nodeNumber);
     showDrawer.value = false;
   }
+};
+
+const requestNodeInfo = (nodeNumber: number) => {
+  useRequest().requestNodeInfo(nodeNumber);
+  showDrawer.value = false;
 };
 
 const virtualScrollerHeight = ref('0px');
