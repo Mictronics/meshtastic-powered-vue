@@ -159,7 +159,10 @@
             <router-link
               :to="'/chat/direct/' + selectedNode.nodeNumber"
               :class="slotProps.class"
-              v-if="!selectedNode.isUnmessagable"
+              v-if="
+                !selectedNode.isUnmessagable &&
+                selectedNode.encryptionStatus === EncryptionStatus.Encrypted
+              "
             >
               <MessageSquare :size="15" class="my-1 text-slate-800 dark:text-slate-400 p-0" />
             </router-link>
@@ -226,7 +229,10 @@ import { ref, computed, onMounted, onUnmounted, onBeforeUnmount } from 'vue';
 import { formatTimeAgoIntl, refDebounced } from '@vueuse/core';
 import { numberToHexUnpadded } from '@noble/curves/utils.js';
 import type { FormattedNode } from '@/composables/types';
-import { useFormattedNodeDatabase } from '@/composables/stores/nodeDB/useFormattedNodeDatabase';
+import {
+  EncryptionStatus,
+  useFormattedNodeDatabase,
+} from '@/composables/stores/nodeDB/useFormattedNodeDatabase';
 import NodeAvatar from '@/components/Dashboard/NodeAvatar.vue';
 import BatteryStatus from '@/components/Dashboard/BatteryStatus.vue';
 import NodeDetailsItem from '@/components/Dashboard/Pages/NodeView/NodeDetailsItem.vue';
