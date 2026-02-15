@@ -54,7 +54,7 @@
       class="valid-icon"
       v-tooltip.right="tooltipPreset('Encrypted')"
     />
-    <LockOpen
+    <KeyRoundQuestionMark
       v-else-if="node.encryptionStatus === EncryptionStatus.NotEncrypted"
       :size="20"
       class="warn-icon"
@@ -72,7 +72,6 @@
 <script setup lang="ts">
 import {
   Lock,
-  LockOpen,
   KeyRound,
   MessageSquareOff,
   ThermometerSun,
@@ -83,6 +82,7 @@ import {
   AirVent,
   ChartArea,
 } from 'lucide-vue-next';
+import KeyRoundQuestionMark from '@/components/Icons/KeyRoundQuestionMark.vue';
 import type { FormattedNode } from '@/composables/types';
 import { EncryptionStatus } from '@/composables/stores/nodeDB/useFormattedNodeDatabase';
 
