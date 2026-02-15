@@ -19,7 +19,6 @@ export const subscribeAll = (
   });
 
   connection.events.onRoutingPacket.subscribe((routingPacket) => {
-    console.log("onRoutingPacket");
     switch (routingPacket.data.variant.case) {
       case "errorReason": {
         if (
@@ -144,7 +143,6 @@ export const subscribeAll = (
   });
 
   connection.events.onRoutingPacket.subscribe((routingPacket) => {
-    console.log("onRoutingPacket");
     if (routingPacket.data.variant.case === "errorReason") {
       switch (routingPacket.data.variant.value) {
         case Protobuf.Mesh.Routing_Error.MAX_RETRANSMIT:
