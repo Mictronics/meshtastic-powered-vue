@@ -14,7 +14,7 @@ import { type MeshDevice, Protobuf, Types } from "@meshtastic/core";
 import { createSharedComposable, watchThrottled } from '@vueuse/core'
 import { toRaw, isReactive, ref } from 'vue'
 import { useGlobalToast, type ToastSeverity } from '@/composables/useGlobalToast';
-import { useEvictOldestEntries } from "@/composables/stores/utils/useEvictOldestEntries.ts";
+import { useEvictOldestEntries, useEvictOldestTraceRoutes } from "@/composables/stores/utils/useEvictOldestEntries.ts";
 import { purgeUncloneableProperties } from "@/composables/stores/utils/purgeUncloneable.ts";
 import {
     type ChangeRegistry,
@@ -436,7 +436,7 @@ class Device implements IDevice {
         this.traceroutes[traceroute.from] = routes;
         // Enforce retention limit, both in terms of targets (this.traceroutes) and routes per target (routes)
         useEvictOldestEntries(routes, TRACEROUTE_ROUTE_RETENTION_NUM);
-        useEvictOldestEntries(this.traceroutes, TRACEROUTE_TARGET_RETENTION_NUM,);
+        useEvictOldestTraceRoutes(this.traceroutes, TRACEROUTE_TARGET_RETENTION_NUM,);
     };
 
     setMessageDraft(message: string) {

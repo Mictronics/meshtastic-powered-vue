@@ -6,7 +6,7 @@ import {
 import { createSharedComposable, watchThrottled } from '@vueuse/core'
 import { toRaw, isReactive, ref } from 'vue'
 import { useGlobalToast, type ToastSeverity } from '@/composables/useGlobalToast';
-import { useEvictOldestEntries } from "@/composables/stores/utils/useEvictOldestEntries";
+import { useEvictOldestMessages } from "@/composables/stores/utils/useEvictOldestEntries";
 import { purgeUncloneableProperties } from "@/composables/stores/utils/purgeUncloneable";
 import type {
     ChannelId,
@@ -20,7 +20,7 @@ import type {
 } from "@/composables/stores/message/types";
 
 const MESSAGESTORE_RETENTION_NUM = 10;
-const MESSAGELOG_RETENTION_NUM = 1000; // Max messages per conversation/channel
+const MESSAGELOG_RETENTION_NUM = 500; // Max messages per conversation/channel
 
 export enum MessageState {
     Ack = 0,
@@ -138,7 +138,7 @@ class MessageStore implements IMessageStore {
 
         if (log) {
             // Enforce retention limit
-            useEvictOldestEntries(log, MESSAGELOG_RETENTION_NUM);
+            useEvictOldestMessages(log, MESSAGELOG_RETENTION_NUM);
         }
     };
 
