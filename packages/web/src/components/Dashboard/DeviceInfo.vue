@@ -44,7 +44,7 @@
     </div>
 
     <div
-      v-if="isSideBarVisible"
+      v-if="isSideBarVisible && !isPluggedIn"
       class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400"
     >
       <Battery :size="20" />
@@ -93,6 +93,10 @@ const batteryPercent = computed(() => {
 
 const firmware = computed(() => props.firmwareVersion ?? 'N/A');
 const connectionName = computed(() => props.connectionName ?? '');
+const isPluggedIn = computed(() => {
+  const level = props.batteryLevel;
+  return level !== undefined && level > 100;
+});
 
 const getStatusAttr = (status?: ConnectionStatus) => {
   switch (status) {
