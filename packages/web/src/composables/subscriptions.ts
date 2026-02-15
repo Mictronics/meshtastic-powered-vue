@@ -4,6 +4,7 @@ import { type IDevice } from '@/composables/stores/device/useDeviceStore'
 import { type IMessageStore, MessageType } from '@/composables/stores/message/useMessageStore'
 import { type INodeDB } from '@/composables/stores/nodeDB/useNodeDBStore'
 import { type MeshDevice, Protobuf } from "@meshtastic/core";
+import { useGlobalToast, type ToastSeverity } from '@/composables/useGlobalToast';
 export const subscribeAll = (
   device: IDevice,
   connection: MeshDevice,
@@ -11,6 +12,7 @@ export const subscribeAll = (
   nodeDB: INodeDB,
 ) => {
   let myNodeNum = 0;
+  const toast = useGlobalToast();
 
   connection.events.onDeviceMetadataPacket.subscribe((metadataPacket) => {
     device.addMetadata(metadataPacket.data);
@@ -36,6 +38,8 @@ export const subscribeAll = (
         console.info(`Route Request: ${routingPacket.data.variant.value}`);
         break;
       }
+      default:
+        break;
     }
   });
 
@@ -144,17 +148,14 @@ export const subscribeAll = (
     if (routingPacket.data.variant.case === "errorReason") {
       switch (routingPacket.data.variant.value) {
         case Protobuf.Mesh.Routing_Error.MAX_RETRANSMIT:
-          console.error(`Routing Error: ${routingPacket.data.variant.value}`);
           break;
         case Protobuf.Mesh.Routing_Error.NO_CHANNEL:
-          console.error(`Routing Error: ${routingPacket.data.variant.value}`);
           nodeDB.setNodeError(
             routingPacket.from,
             routingPacket?.data?.variant?.value,
           );
           break;
         case Protobuf.Mesh.Routing_Error.PKI_UNKNOWN_PUBKEY:
-          console.error(`Routing Error: ${routingPacket.data.variant.value}`);
           nodeDB.setNodeError(
             routingPacket.from,
             routingPacket?.data?.variant?.value,
@@ -163,6 +164,19 @@ export const subscribeAll = (
         default: {
           break;
         }
+      }
+
+      const errorValue = routingPacket.data.variant.value;
+      const errorName = (Protobuf.Mesh.Routing_Error[errorValue] || 'Unknown error').replaceAll('_', ' ');
+
+      if (errorValue !== Protobuf.Mesh.Routing_Error.NONE) {
+        console.error(`Routing Error: ${errorName}`);
+        toast.add({
+          severity: 'error',
+          summary: 'Routing Error',
+          detail: `Routing Error: ${errorName}`,
+          life: 6000,
+        });
       }
     }
   });
