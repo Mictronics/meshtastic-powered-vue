@@ -1,5 +1,6 @@
 import { toBinary, create } from "@bufbuild/protobuf";
 import { Protobuf } from "@meshtastic/core";
+import type { PacketError } from "node_modules/@meshtastic/core/src/types";
 import { useGlobalToast } from '@/composables/useGlobalToast';
 import { useDeviceStore } from "@/composables/stores/device/useDeviceStore";
 import { useNodeDBStore } from "@/composables/stores/nodeDB/useNodeDBStore"
@@ -18,6 +19,16 @@ export enum TelemetryType {
 export const useRequest = () => {
     const device = useDeviceStore().device.value;
     const nodeDatabase = useNodeDBStore().nodeDatabase.value;
+
+    const packetErrorToString = (value: number): string => {
+        if (value in Protobuf.Mesh.Routing_Error) {
+            const result = Protobuf.Mesh.Routing_Error[value];
+            if (typeof result === "string") {
+                return result.replaceAll('_', ' ');
+            }
+        }
+        return "Unknown routing error";
+    }
 
     const requestNodeInfo = async (nodeNumber: number) => {
         const myNodeInfo = nodeDatabase?.getMyNode();
@@ -41,9 +52,10 @@ export const useRequest = () => {
             });
 
         } catch (error) {
+            const errStr = packetErrorToString((error as PacketError).error);
             useGlobalToast().add({
                 severity: 'error',
-                summary: 'Node info request',
+                summary: `Error: ${errStr}`,
                 detail: `Failed to request node info for ${nodeNumber}.`,
                 life: 6000
             });
@@ -108,9 +120,10 @@ export const useRequest = () => {
             });
 
         } catch (error) {
+            const errStr = packetErrorToString((error as PacketError).error);
             useGlobalToast().add({
                 severity: 'error',
-                summary: 'Telemetry request',
+                summary: `Error: ${errStr}`,
                 detail: `Failed to request telemetry for ${nodeNumber}.`,
                 life: 6000
             });
