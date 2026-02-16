@@ -33,7 +33,7 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
 
         const nowSec = Math.floor(Date.now() / 1000);
         for (const node of Object.values(ndb.nodeMap)) {
-            if (node.$typeName !== 'meshtastic.NodeInfo') continue;
+            if (node.$typeName !== 'meshtastic.NodeInfo' || !node.user) continue;
             const names = formatName(node.num, node.user?.shortName, node.user?.longName);
             const formatted: FormattedNode = {
                 nodeNumber: node.num,
