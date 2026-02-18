@@ -58,7 +58,6 @@ export interface IDevice {
     hardware: Protobuf.Mesh.MyNodeInfo;
     metadata: Protobuf.Mesh.DeviceMetadata;
     connection?: MeshDevice;
-    activeNode: number;
     pendingSettingsChanges: boolean;
     messageDraft: string;
     unreadCounts: { [key: string]: number };
@@ -78,7 +77,6 @@ export interface IDevice {
         payloadVariant: K,
     ): Protobuf.LocalOnly.LocalModuleConfig[K] | undefined;
     setHardware: (hardware: Protobuf.Mesh.MyNodeInfo) => void;
-    setActiveNode: (node: number) => void;
     setPendingSettingsChanges: (state: boolean) => void;
     addChannel: (channel: Protobuf.Channel.Channel) => void;
     addWaypoint: (
@@ -154,7 +152,6 @@ class Device implements IDevice {
     hardware: Protobuf.Mesh.MyNodeInfo;
     metadata: Protobuf.Mesh.DeviceMetadata;
     connection?: MeshDevice;
-    activeNode: number;
     pendingSettingsChanges: boolean;
     messageDraft: string;
     unreadCounts: { [key: string]: number };
@@ -185,7 +182,6 @@ class Device implements IDevice {
         this.hardware = create(Protobuf.Mesh.MyNodeInfoSchema);
         this.metadata = create(Protobuf.Mesh.DeviceMetadataSchema);
         this.connection = undefined;
-        this.activeNode = 0;
         this.pendingSettingsChanges = false;
         this.messageDraft = '';
         this.unreadCounts = {};
@@ -416,10 +412,6 @@ class Device implements IDevice {
 
     getWaypoint(waypointId: number) {
         return this.waypoints.find((waypoint) => waypoint.id === waypointId);
-    };
-
-    setActiveNode(node: number) {
-        this.activeNode = node;
     };
 
     addConnection(connection?: MeshDevice) {
