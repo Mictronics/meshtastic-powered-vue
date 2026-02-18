@@ -70,7 +70,7 @@
 
 <script setup lang="ts">
 import { ref, nextTick, onBeforeUnmount, type ComponentPublicInstance, computed } from 'vue';
-import { createGlobalState, refAutoReset } from '@vueuse/core';
+import { createGlobalState, refAutoReset, useDebounceFn } from '@vueuse/core';
 import { Smile, Send } from 'lucide-vue-next';
 import { Types } from '@meshtastic/core';
 import { Picker, EmojiIndex } from 'emoji-mart-vue-fast/src';
@@ -107,6 +107,10 @@ if (messageStore) {
   drafts.value[props.to] = messageStore.getDraft(props.to) ?? '';
 }
 
+const debouncedSetDraft = useDebounceFn((val: string) => {
+  messageStore?.setDraft(props.to, val);
+}, 500);
+
 const draft = computed({
   get() {
     return drafts.value[props.to] ?? '';
@@ -116,7 +120,7 @@ const draft = computed({
 
     if (bytes <= props.maxBytes) {
       drafts.value[props.to] = val;
-      messageStore?.setDraft(props.to, val);
+      debouncedSetDraft(val);
       overflowAttempt.value = false;
     } else {
       overflowAttempt.value = true;
