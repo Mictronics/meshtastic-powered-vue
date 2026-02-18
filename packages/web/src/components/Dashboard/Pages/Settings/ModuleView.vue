@@ -124,25 +124,3 @@ const isPaxCounterDirty = computed(() => {
 
 const onSaveSettings = () => {};
 </script>
-
-<style lang="css" module>
-@keyframes bounce-3s {
-  0%,
-  20%,
-  50%,
-  80%,
-  100% {
-    transform: translateY(0);
-  }
-  40% {
-    transform: translateY(-10px);
-  }
-  60% {
-    transform: translateY(-5px);
-  }
-}
-
-.bounce-once {
-  animation: bounce-3s 3s ease;
-}
-</style>
