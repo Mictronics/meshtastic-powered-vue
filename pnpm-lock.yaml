@@ -14,9 +14,6 @@ importers:
       '@bufbuild/protobuf':
         specifier: ^2.11.0
         version: 2.11.0
-      '@meshtastic/protobufs':
-        specifier: npm:@jsr/meshtastic__protobufs@^2.7.18
-        version: '@jsr/meshtastic__protobufs@2.7.18'
       biome:
         specifier: ^0.3.3
         version: 0.3.3
@@ -29,6 +26,9 @@ importers:
 
   packages/core:
     dependencies:
+      '@meshtastic/protobufs':
+        specifier: link:../protobufs
+        version: link:../protobufs
       crc:
         specifier: npm:crc@^4.3.2
         version: 4.3.2
@@ -693,9 +693,6 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
-
-  '@jsr/meshtastic__protobufs@2.7.18':
-    resolution: {integrity: sha512-t68VQcrMvdHIfoG7V3Kudpa0KNfe3N4Noi7IVA+3J7WhD1OjiQFfur+PAhffqHmsz9X9hHQES7nftMOKP5EBNw==, tarball: https://npm.jsr.io/~/11/@jsr/meshtastic__protobufs/2.7.18.tgz}
 
   '@mapbox/geojson-rewind@0.5.2':
     resolution: {integrity: sha512-tJaT+RbYGJYStt7wI3cq4Nl4SXxG8W7JDG5DMJu97V25RnbNg3QtQtf+KD+VLjNpWKYsRvXDNmNrBgEETr1ifA==}
@@ -2448,8 +2445,8 @@ packages:
     engines: {node: '>=10.13.0'}
     hasBin: true
 
-  qs@6.5.3:
-    resolution: {integrity: sha512-qxXIEh4pCGfHICj1mAJQ2/2XVZkjCDTcEgfoSQxc/fYivUZxTkk7L3bDBJSoNrEzXI17oUO5Dp07ktqE5KzczA==}
+  qs@6.5.5:
+    resolution: {integrity: sha512-mzR4sElr1bfCaPJe7m8ilJ6ZXdDaGoObcYR0ZHSsktM/Lt21MVHj5De30GQH2eiZ1qGRTO7LCAzQsUeXTNexWQ==}
     engines: {node: '>=0.6'}
 
   queue-microtask@1.2.3:
@@ -3389,10 +3386,6 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
-
-  '@jsr/meshtastic__protobufs@2.7.18':
-    dependencies:
-      '@bufbuild/protobuf': 2.11.0
 
   '@mapbox/geojson-rewind@0.5.2':
     dependencies:
@@ -5076,7 +5069,7 @@ snapshots:
       pngjs: 5.0.0
       yargs: 15.4.1
 
-  qs@6.5.3: {}
+  qs@6.5.5: {}
 
   queue-microtask@1.2.3: {}
 
@@ -5118,7 +5111,7 @@ snapshots:
       mime-types: 2.1.35
       oauth-sign: 0.9.0
       performance-now: 2.1.0
-      qs: 6.5.3
+      qs: 6.5.5
       safe-buffer: 5.2.1
       tough-cookie: 2.5.0
       tunnel-agent: 0.6.0

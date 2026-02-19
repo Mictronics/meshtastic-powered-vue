@@ -26,7 +26,8 @@
     "publish:jsr": "pnpm run prepack && pnpm prepare:jsr && deno publish --allow-dirty --no-check"
   },
   "dependencies": {
-    "crc": "npm:crc@^4.3.2"
+    "crc": "npm:crc@^4.3.2",
+    "@meshtastic/protobufs": "link:../protobufs"
   },
   "devDependencies": {},
   "module": "./dist/mod.js",

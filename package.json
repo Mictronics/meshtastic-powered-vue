@@ -33,7 +33,6 @@
   "dependencies": {
     "@bufbuild/buf": "^1.65.0",
     "@bufbuild/protobuf": "^2.11.0",
-    "@meshtastic/protobufs": "npm:@jsr/meshtastic__protobufs@^2.7.18",
     "biome": "^0.3.3",
     "ste-simple-events": "^3.0.11",
     "tslog": "^4.10.2"
