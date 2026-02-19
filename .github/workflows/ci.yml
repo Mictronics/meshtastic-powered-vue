@@ -26,17 +26,5 @@ jobs:
       - name: Install monorepo dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Install web package dependencies
-        working-directory: packages/web
-        run: pnpm install --frozen-lockfile
-
-      - name: Type check web package
-        working-directory: packages/web
-        run: pnpm run type-check
-
-      - name: Build web package
-        working-directory: packages/web
-        run: pnpm run build
-
       - name: Build monorepo
         run: pnpm build:all
