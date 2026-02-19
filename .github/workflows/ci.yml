@@ -24,7 +24,11 @@ jobs:
           cache: pnpm
 
       - name: Install monorepo dependencies
-        run: pnpm install --no-cache --frozen-lockfile
+        run: pnpm install --frozen-lockfile
+
+      - name: Install web package dependencies
+        working-directory: packages/web
+        run: pnpm install --frozen-lockfile
 
       - name: Type check web package
         working-directory: packages/web
