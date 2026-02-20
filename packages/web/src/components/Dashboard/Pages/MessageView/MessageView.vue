@@ -164,14 +164,13 @@ const device = computed(() => {
 
 const getNodeMeta = (from: number) => {
   const node = nodeDatabase.value[from];
-  if (!node) return {};
 
   return {
-    shortName: node.shortName,
-    longName: node.longName,
-    isFavorite: node.isFavorite,
-    nodeNumber: node.nodeNumber,
-    hopsAway: node.hopsAway,
+    shortName: node?.shortName ?? from.toString(16).slice(-4).toUpperCase(),
+    longName: node?.longName ?? `Meshtastic ${from.toString(16).toUpperCase()}`,
+    isFavorite: node?.isFavorite ?? false,
+    nodeNumber: node?.nodeNumber ?? from,
+    hopsAway: node?.hopsAway,
   };
 };
 
