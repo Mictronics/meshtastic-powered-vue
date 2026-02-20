@@ -83,21 +83,13 @@
     </FormRow>
 
     <FormRow
-      label="Mute notifications"
-      for-id="muteNotes"
-      description="Mute notifications or alerts from this channel."
-    >
-      <ToggleSwitch input-id="muteNotes" v-model="formChannel.settings.mute" />
-    </FormRow>
-
-    <FormRow
       label="Mute channel"
       for-id="muteChannel"
       description="Mute the channel on phone or clients. Useful for noisy public channels you don't necessarily want to disable."
     >
       <ToggleSwitch
         input-id="muteChannel"
-        v-model="formChannel.settings.moduleSettings.isClientMuted"
+        v-model="formChannel.settings.moduleSettings.isMuted"
       />
     </FormRow>
   </FormGrid>
@@ -225,7 +217,7 @@ watchDebounced(
         moduleSettings: create(Protobuf.Channel.ModuleSettingsSchema, {
           ...channel.settings.moduleSettings,
           positionPrecision: channel.settings.moduleSettings.positionPrecision,
-          isClientMuted: channel.settings.moduleSettings.isClientMuted ?? false,
+          isMuted: channel.settings.moduleSettings.isMuted ?? false,
         }),
       }),
     });
