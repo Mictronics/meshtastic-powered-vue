@@ -78,6 +78,12 @@
         </AccordionHeader>
         <AccordionContent></AccordionContent>
       </AccordionPanel>
+      <AccordionPanel value="statusMessage">
+        <AccordionHeader>
+          <DirtyHeader title="Status Message" :dirty="isStatusMessageDirty" />
+        </AccordionHeader>
+        <AccordionContent></AccordionContent>
+      </AccordionPanel>
     </Accordion>
   </SettingsLayout>
 </template>
@@ -128,6 +134,9 @@ const isPaxCounterDirty = computed(() => {
   return false;
 });
 const isTrafficManagementDirty = computed(() => {
+  return false;
+});
+const isStatusMessageDirty = computed(() => {
   return false;
 });
 const onSaveSettings = () => {};
