@@ -45,6 +45,7 @@ import Password from 'primevue/password';
 import MeterGroup from 'primevue/metergroup';
 import InputMask from 'primevue/inputmask';
 import ListBox from 'primevue/listbox';
+import ColorPicker from 'primevue/colorpicker';
 
 import Toast from 'primevue/toast';
 import ToastService from 'primevue/toastservice';
@@ -123,7 +124,8 @@ try {
     Password,
     MeterGroup,
     InputMask,
-    ListBox
+    ListBox,
+    ColorPicker
 ].forEach(component => {
     app.component(component.name, component);
 });
