@@ -72,6 +72,12 @@
         </AccordionHeader>
         <AccordionContent></AccordionContent>
       </AccordionPanel>
+      <AccordionPanel value="trafficManagement">
+        <AccordionHeader>
+          <DirtyHeader title="Traffic Management" :dirty="isTrafficManagementDirty" />
+        </AccordionHeader>
+        <AccordionContent></AccordionContent>
+      </AccordionPanel>
     </Accordion>
   </SettingsLayout>
 </template>
@@ -121,6 +127,8 @@ const isDetectionSensorDirty = computed(() => {
 const isPaxCounterDirty = computed(() => {
   return false;
 });
-
+const isTrafficManagementDirty = computed(() => {
+  return false;
+});
 const onSaveSettings = () => {};
 </script>
