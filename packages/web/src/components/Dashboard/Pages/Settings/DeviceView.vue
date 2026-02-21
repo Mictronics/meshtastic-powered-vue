@@ -376,7 +376,7 @@ const onSaveSettings = () => {
   if (!isAnyDirty.value) return;
 
   if (isUserDirty.value) {
-    let conf = structuredClone(toRaw(userConfig.value));
+    const conf = structuredClone(toRaw(userConfig.value));
     purgeUncloneableProperties(conf);
     const owner = create(Protobuf.Admin.AdminMessageSchema, {
       payloadVariant: {

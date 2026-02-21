@@ -4,7 +4,7 @@ import { type IDevice } from '@/composables/stores/device/useDeviceStore'
 import { type IMessageStore, MessageType } from '@/composables/stores/message/useMessageStore'
 import { type INodeDB } from '@/composables/stores/nodeDB/useNodeDBStore'
 import { type MeshDevice, Protobuf } from "@meshtastic/core";
-import { useGlobalToast, type ToastSeverity } from '@/composables/useGlobalToast';
+import { useGlobalToast } from '@/composables/useGlobalToast';
 export const subscribeAll = (
   device: IDevice,
   connection: MeshDevice,
