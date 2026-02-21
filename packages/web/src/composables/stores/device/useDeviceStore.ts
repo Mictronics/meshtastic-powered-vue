@@ -36,6 +36,7 @@ import {
     hasUserChange,
     serializeKey,
 } from "@/composables/stores/device/changeRegistry.ts";
+import { DeviceUIConfigSchema, type DeviceUIConfig } from "@meshtastic/protobufs/device_ui_pb.js";
 
 const DEVICESTORE_RETENTION_NUM = 10;
 const TRACEROUTE_TARGET_RETENTION_NUM = 100; // Number of traceroutes targets to keep
@@ -62,6 +63,8 @@ export interface IDevice {
     messageDraft: string;
     unreadCounts: { [key: string]: number };
     clientNotifications: Protobuf.Mesh.ClientNotification[];
+    sessionKey: Protobuf.Config.Config_SessionkeyConfig;
+    deviceUIConfig: DeviceUIConfig;
 
     set: (obj: Partial<IDevice>) => void;
     get: () => any;
@@ -156,6 +159,8 @@ class Device implements IDevice {
     messageDraft: string;
     unreadCounts: { [key: string]: number };
     clientNotifications: Protobuf.Mesh.ClientNotification[];
+    sessionKey: Protobuf.Config.Config_SessionkeyConfig;
+    deviceUIConfig: DeviceUIConfig;
 
     constructor(id: number, data?: Partial<IDevice>) {
         this.id = id;
@@ -186,6 +191,8 @@ class Device implements IDevice {
         this.messageDraft = '';
         this.unreadCounts = {};
         this.clientNotifications = [];
+        this.sessionKey = create(Protobuf.Config.Config_SessionkeyConfigSchema);
+        this.deviceUIConfig = create(DeviceUIConfigSchema);
     }
 
     // Set class properties from [IndexedDB] object
@@ -243,7 +250,19 @@ class Device implements IDevice {
             }
             case "security": {
                 this.config.security = config.payloadVariant.value;
+                break;
             }
+            case "sessionkey": {
+                this.sessionKey = config.payloadVariant.value;
+                break;
+            }
+            case "deviceUi": {
+                this.deviceUIConfig = config.payloadVariant.value;
+                break;
+            }
+            default:
+                console.warn(`[useDeviceStore] Unknown configuration: ${config.payloadVariant.case}`);
+                break;
         }
     };
 
@@ -308,6 +327,13 @@ class Device implements IDevice {
                 this.moduleConfig.trafficManagement = config.payloadVariant.value;
                 break;
             }
+            case "remoteHardware": {
+                this.moduleConfig.remoteHardware = config.payloadVariant.value;
+                break;
+            }
+            default:
+                console.warn(`[useDeviceStore] Unknown module configuration: ${config.payloadVariant.case}`);
+                break;
         }
     };
 
