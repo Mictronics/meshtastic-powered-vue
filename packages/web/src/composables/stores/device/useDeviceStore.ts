@@ -300,6 +300,14 @@ class Device implements IDevice {
                 this.moduleConfig.paxcounter = config.payloadVariant.value;
                 break;
             }
+            case "statusmessage": {
+                this.moduleConfig.statusmessage = config.payloadVariant.value;
+                break;
+            }
+            case "trafficManagement": {
+                this.moduleConfig.trafficManagement = config.payloadVariant.value;
+                break;
+            }
         }
     };
 
