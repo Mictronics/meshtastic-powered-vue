@@ -20,44 +20,11 @@
     <mgl-geo-json-source
       source-id="nodes"
       :data="geoJsonNodes"
-      :cluster="true"
-      :clusterRadius="50"
-      :clusterMaxZoom="CLUSTER_MAX_ZOOM"
+      :cluster="false"
     >
-      <mgl-circle-layer
-        layer-id="cluster-circle"
-        :filter="['has', 'point_count']"
-        :paint="{
-          'circle-color': '#0084d1',
-          'circle-blur': 0.5,
-          'circle-radius': ['step', ['get', 'point_count'], 16, 10, 20, 30, 24],
-          'circle-opacity': [
-            'interpolate',
-            ['linear'],
-            ['zoom'],
-            CLUSTER_MAX_ZOOM - 0.2,
-            0.85,
-            CLUSTER_MAX_ZOOM + 0.2,
-            0,
-          ],
-        }"
-      />
-      <mgl-symbol-layer
-        layer-id="cluster-count"
-        :filter="['has', 'point_count']"
-        :layout="{
-          'text-field': '{point_count_abbreviated}',
-          'text-size': 12,
-          'text-font': ['Inter'],
-        }"
-        :paint="{
-          'text-color': '#ffffff',
-        }"
-      />
       <mgl-circle-layer
         layer-id="node-markers"
         :filter="['!', ['has', 'point_count']]"
-        :minzoom="CLUSTER_MAX_ZOOM"
         :paint="{
           'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 20, 8, 22, 12, 24, 16, 26],
           'circle-color': ['get', 'markerColor'],
@@ -84,14 +51,13 @@
       <mgl-symbol-layer
         layer-id="node-labels"
         :filter="['!', ['has', 'point_count']]"
-        :minzoom="CLUSTER_MAX_ZOOM"
         :layout="{
           'text-field': ['get', 'shortName'],
           'text-size': ['interpolate', ['linear'], ['zoom'], 5, 8, 8, 10, 12, 12, 16, 14],
           'text-offset': [0, 0],
           'text-anchor': 'center',
-          'text-allow-overlap': true,
-          'text-letter-spacing': 0.15,
+          'text-allow-overlap': false,
+          'text-letter-spacing': 0.1,
           'text-font': ['Inter'],
         }"
         :paint="{
