@@ -66,6 +66,12 @@
         </AccordionHeader>
         <AccordionContent></AccordionContent>
       </AccordionPanel>
+      <AccordionPanel value="remoteHardware">
+        <AccordionHeader>
+          <DirtyHeader title="Remote Hardware" :dirty="isRemoteHardwareDirty" />
+        </AccordionHeader>
+        <AccordionContent></AccordionContent>
+      </AccordionPanel>
       <AccordionPanel value="paxCounter">
         <AccordionHeader>
           <DirtyHeader title="Pax Counter" :dirty="isPaxCounterDirty" />
@@ -137,6 +143,9 @@ const isTrafficManagementDirty = computed(() => {
   return false;
 });
 const isStatusMessageDirty = computed(() => {
+  return false;
+});
+const isRemoteHardwareDirty = computed(() => {
   return false;
 });
 const onSaveSettings = () => {};
