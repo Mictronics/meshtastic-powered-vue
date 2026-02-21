@@ -139,6 +139,12 @@
           />
         </AccordionContent>
       </AccordionPanel>
+      <AccordionPanel value="deviceUI">
+        <AccordionHeader>
+          <DirtyHeader title="Device User Interface" :dirty="isDeviceUIDirty" />
+        </AccordionHeader>
+        <AccordionContent></AccordionContent>
+      </AccordionPanel>
     </Accordion>
   </SettingsLayout>
 </template>
@@ -311,6 +317,10 @@ watch(isBluetoothDirty, (dirty) => {
   if (!dirty) {
     device.value?.removeChange({ type: 'config', variant: 'bluetooth' });
   }
+});
+
+const isDeviceUIDirty = computed(() => {
+  return false;
 });
 
 watch(
