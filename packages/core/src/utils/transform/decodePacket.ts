@@ -116,34 +116,9 @@ export const decodePacket = (device: MeshDevice) =>
                   `⚠️ Received Config packet of variant: ${"UNK"}`,
                 );
               }
-
+              console.log(decodedMessage.payloadVariant.value);
               device.events.onConfigPacket.dispatch(
                 decodedMessage.payloadVariant.value,
-              );
-              break;
-            }
-
-            case "deviceuiConfig": {
-              if (decodedMessage.payloadVariant.case) {
-                device.log.trace(
-                  Types.Emitter[Types.Emitter.HandleFromRadio],
-                  `💾 Received Config packet of variant: ${decodedMessage.payloadVariant.case}`,
-                );
-              } else {
-                device.log.warn(
-                  Types.Emitter[Types.Emitter.HandleFromRadio],
-                  `⚠️ Received Config packet of variant: ${"UNK"}`,
-                );
-              }
-
-              device.events.onConfigPacket.dispatch(
-                {
-                  payloadVariant: {
-                    case: 'deviceUi',
-                    value: decodedMessage.payloadVariant.value
-                  },
-                  $typeName: 'meshtastic.Config',
-                }
               );
               break;
             }
