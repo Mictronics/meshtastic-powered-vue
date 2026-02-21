@@ -36,7 +36,7 @@ import {
     hasUserChange,
     serializeKey,
 } from "@/composables/stores/device/changeRegistry.ts";
-import { DeviceUIConfigSchema, type DeviceUIConfig } from "@meshtastic/protobufs/device_ui_pb.js";
+import { DeviceUIConfigSchema, type DeviceUIConfig } from "@meshtastic/protobufs/device_ui_pb.ts";
 
 const DEVICESTORE_RETENTION_NUM = 10;
 const TRACEROUTE_TARGET_RETENTION_NUM = 100; // Number of traceroutes targets to keep
