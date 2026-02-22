@@ -17,16 +17,12 @@
   >
     <mgl-navigation-control position="top-right" :showCompass="false" />
 
-    <mgl-geo-json-source
-      source-id="nodes"
-      :data="geoJsonNodes"
-      :cluster="false"
-    >
+    <mgl-geo-json-source source-id="nodes" :data="geoJsonNodes" :cluster="false">
       <mgl-circle-layer
         layer-id="node-markers"
         :filter="['!', ['has', 'point_count']]"
         :paint="{
-          'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 20, 8, 22, 12, 24, 16, 26],
+          'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 14, 8, 16, 12, 18, 16, 20],
           'circle-color': ['get', 'markerColor'],
           'circle-stroke-color': [
             'case',
@@ -53,7 +49,7 @@
         :filter="['!', ['has', 'point_count']]"
         :layout="{
           'text-field': ['get', 'shortName'],
-          'text-size': ['interpolate', ['linear'], ['zoom'], 5, 8, 8, 10, 12, 12, 16, 14],
+          'text-size': ['interpolate', ['linear'], ['zoom'], 5, 6, 8, 8, 12, 10, 16, 12],
           'text-offset': [0, 0],
           'text-anchor': 'center',
           'text-allow-overlap': false,
