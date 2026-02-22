@@ -116,7 +116,6 @@ export const decodePacket = (device: MeshDevice) =>
                   `⚠️ Received Config packet of variant: ${"UNK"}`,
                 );
               }
-              console.log(decodedMessage.payloadVariant.value);
               device.events.onConfigPacket.dispatch(
                 decodedMessage.payloadVariant.value,
               );
