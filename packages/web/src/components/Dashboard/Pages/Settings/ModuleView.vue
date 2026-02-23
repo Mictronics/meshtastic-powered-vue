@@ -82,7 +82,27 @@
         <AccordionHeader>
           <DirtyHeader title="Traffic Management" :dirty="isTrafficManagementDirty" />
         </AccordionHeader>
-        <AccordionContent></AccordionContent>
+        <AccordionContent>
+          <TrafficModule
+            v-model:dropUnknownEnabled="trafficManagementConfig.dropUnknownEnabled"
+            v-model:enabled="trafficManagementConfig.enabled"
+            v-model:exhaustHopPosition="trafficManagementConfig.exhaustHopPosition"
+            v-model:exhaustHopTelemetry="trafficManagementConfig.exhaustHopTelemetry"
+            v-model:nodeinfoDirectResponse="trafficManagementConfig.nodeinfoDirectResponse"
+            v-model:nodeinfoDirectResponseMaxHops="
+              trafficManagementConfig.nodeinfoDirectResponseMaxHops
+            "
+            v-model:positionDedupEnabled="trafficManagementConfig.positionDedupEnabled"
+            v-model:positionMinIntervalSecs="trafficManagementConfig.positionMinIntervalSecs"
+            v-model:positionPrecisionBits="trafficManagementConfig.positionPrecisionBits"
+            v-model:rateLimitEnabled="trafficManagementConfig.rateLimitEnabled"
+            v-model:rateLimitMaxPackets="trafficManagementConfig.rateLimitMaxPackets"
+            v-model:rateLimitWindowSecs="trafficManagementConfig.rateLimitWindowSecs"
+            v-model:routerPreserveHops="trafficManagementConfig.routerPreserveHops"
+            v-model:unknownPacketThreshold="trafficManagementConfig.unknownPacketThreshold"
+            :v$="trafficManagementV$"
+          />
+        </AccordionContent>
       </AccordionPanel>
       <AccordionPanel value="statusMessage">
         <AccordionHeader>
@@ -95,11 +115,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
+import { Protobuf } from '@meshtastic/core';
+import { create } from '@bufbuild/protobuf';
+import { useVuelidate } from '@vuelidate/core';
+import { TrafficManagementRules } from '@/composables/ValidationRules';
 import SettingsLayout from './components/SettingsLayout.vue';
 import DirtyHeader from './components/DirtyHeader.vue';
+import TrafficModule from './subforms/TrafficModule.vue';
+import { useDeviceStore } from '@/composables/stores/device/useDeviceStore';
+import { useDeepCompareConfig } from '@/composables/useDeepCompareConfig';
+import { purgeUncloneableProperties } from '@/composables/stores/utils/purgeUncloneable';
 import { useConfigSave } from '@/composables/useConfigSave';
+import { onBeforeRouteLeave } from 'vue-router';
+import { useConfirm } from '@/composables/useConfirmDialog';
 
+const device = useDeviceStore().device;
 const saveButtonDisable = ref(true);
 const saveConfigHandler = useConfigSave();
 
@@ -139,14 +170,39 @@ const isDetectionSensorDirty = computed(() => {
 const isPaxCounterDirty = computed(() => {
   return false;
 });
+
+const trafficManagementConfig = ref<Protobuf.ModuleConfig.ModuleConfig_TrafficManagementConfig>(
+  create(Protobuf.ModuleConfig.ModuleConfig_TrafficManagementConfigSchema)
+);
 const isTrafficManagementDirty = computed(() => {
-  return false;
+  if (!device.value?.moduleConfig.trafficManagement) return false;
+  return !useDeepCompareConfig(
+    trafficManagementConfig.value,
+    device.value?.moduleConfig.trafficManagement,
+    true
+  );
 });
+const trafficManagementV$ = useVuelidate(TrafficManagementRules, trafficManagementConfig);
+
 const isStatusMessageDirty = computed(() => {
   return false;
 });
 const isRemoteHardwareDirty = computed(() => {
   return false;
 });
+
+watch(
+  () => device.value,
+  (dev) => {
+    if (!dev) return;
+
+    const conf = dev.getEffectiveModuleConfig('trafficManagement');
+    if (conf) {
+      Object.assign(trafficManagementConfig.value, dev.moduleConfig.trafficManagement);
+    }
+  },
+  { immediate: true, once: true }
+);
+
 const onSaveSettings = () => {};
 </script>
