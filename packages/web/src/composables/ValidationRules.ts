@@ -140,3 +140,12 @@ export const DisplayRules = {
     screenOnSecs: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
     units: { required, integer, minValue: minValue(0), maxValue: maxValue(1) },
 }
+
+export const TrafficManagementRules = {
+    positionPrecisionBits: { required, integer, minValue: minValue(10), maxValue: maxValue(32) },
+    positionMinIntervalSecs: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
+    nodeinfoDirectResponseMaxHops: { required, integer, minValue: minValue(0), maxValue: maxValue(7) },
+    rateLimitWindowSecs: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
+    rateLimitMaxPackets: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
+    unknownPacketThreshold: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
+}
