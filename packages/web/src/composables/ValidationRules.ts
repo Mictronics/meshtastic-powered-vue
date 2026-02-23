@@ -149,3 +149,7 @@ export const TrafficManagementRules = {
     rateLimitMaxPackets: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
     unknownPacketThreshold: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
 }
+
+export const StatusMessageRules = {
+    nodeStatus: { minLength: minLength(0), maxLength: maxLength(80) },
+}
