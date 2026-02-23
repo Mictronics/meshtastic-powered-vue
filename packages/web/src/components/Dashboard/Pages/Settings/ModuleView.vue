@@ -108,7 +108,12 @@
         <AccordionHeader>
           <DirtyHeader title="Status Message" :dirty="isStatusMessageDirty" />
         </AccordionHeader>
-        <AccordionContent></AccordionContent>
+        <AccordionContent>
+          <NodeStatusModule
+            v-model:nodeStatus="statusMessageConfig.nodeStatus"
+            :v$="statusMessageV$"
+          />
+        </AccordionContent>
       </AccordionPanel>
     </Accordion>
   </SettingsLayout>
@@ -119,10 +124,11 @@ import { ref, computed, watch } from 'vue';
 import { Protobuf } from '@meshtastic/core';
 import { create } from '@bufbuild/protobuf';
 import { useVuelidate } from '@vuelidate/core';
-import { TrafficManagementRules } from '@/composables/ValidationRules';
+import { TrafficManagementRules, StatusMessageRules } from '@/composables/ValidationRules';
 import SettingsLayout from './components/SettingsLayout.vue';
 import DirtyHeader from './components/DirtyHeader.vue';
 import TrafficModule from './subforms/TrafficModule.vue';
+import NodeStatusModule from './subforms/NodeStatusModule.vue';
 import { useDeviceStore } from '@/composables/stores/device/useDeviceStore';
 import { useDeepCompareConfig } from '@/composables/useDeepCompareConfig';
 import { purgeUncloneableProperties } from '@/composables/stores/utils/purgeUncloneable';
@@ -184,9 +190,19 @@ const isTrafficManagementDirty = computed(() => {
 });
 const trafficManagementV$ = useVuelidate(TrafficManagementRules, trafficManagementConfig);
 
+const statusMessageConfig = ref<Protobuf.ModuleConfig.ModuleConfig_StatusMessageConfig>(
+  create(Protobuf.ModuleConfig.ModuleConfig_StatusMessageConfigSchema)
+);
 const isStatusMessageDirty = computed(() => {
-  return false;
+  if (!device.value?.moduleConfig.statusmessage) return false;
+  return !useDeepCompareConfig(
+    statusMessageConfig.value,
+    device.value?.moduleConfig.statusmessage,
+    true
+  );
 });
+const statusMessageV$ = useVuelidate(StatusMessageRules, statusMessageConfig);
+
 const isRemoteHardwareDirty = computed(() => {
   return false;
 });
@@ -196,9 +212,13 @@ watch(
   (dev) => {
     if (!dev) return;
 
-    const conf = dev.getEffectiveModuleConfig('trafficManagement');
+    let conf: any = dev.getEffectiveModuleConfig('trafficManagement');
     if (conf) {
       Object.assign(trafficManagementConfig.value, dev.moduleConfig.trafficManagement);
+    }
+    conf = dev.getEffectiveModuleConfig('statusmessage');
+    if (conf) {
+      Object.assign(statusMessageConfig.value, dev.moduleConfig.statusmessage);
     }
   },
   { immediate: true, once: true }
