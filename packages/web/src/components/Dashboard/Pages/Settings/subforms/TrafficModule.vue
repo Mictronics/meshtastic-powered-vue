@@ -10,7 +10,7 @@
         for-id="enableTrafficModule"
         description="enable for traffic management module."
       >
-        <ToggleSwitch input-id="enableTrafficModule" v-model="enable" />
+        <ToggleSwitch input-id="enableTrafficModule" v-model="enabled" />
       </FormRow>
 
       <FormRow
@@ -209,7 +209,7 @@ const nodeinfoDirectResponseMaxHops = defineModel<number>('nodeinfoDirectRespons
 const rateLimitWindowSecs = defineModel<number>('rateLimitWindowSecs');
 const rateLimitMaxPackets = defineModel<number>('rateLimitMaxPackets');
 const unknownPacketThreshold = defineModel<number>('unknownPacketThreshold');
-const enable = defineModel<boolean>('enable');
+const enabled = defineModel<boolean>('enabled');
 const positionDedupEnabled = defineModel<boolean>('positionDedupEnabled');
 const nodeinfoDirectResponse = defineModel<boolean>('nodeinfoDirectResponse');
 const rateLimitEnabled = defineModel<boolean>('rateLimitEnabled');
