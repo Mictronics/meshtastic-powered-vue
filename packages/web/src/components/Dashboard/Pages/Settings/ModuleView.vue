@@ -58,7 +58,16 @@
         <AccordionHeader>
           <DirtyHeader title="Ambient Light" :dirty="isAmbientLightDirty" />
         </AccordionHeader>
-        <AccordionContent></AccordionContent>
+        <AccordionContent>
+          <AmbientLightModule
+            v-model:blue="ambientLightConfig.blue"
+            v-model:green="ambientLightConfig.green"
+            v-model:red="ambientLightConfig.red"
+            v-model:current="ambientLightConfig.current"
+            v-model:ledState="ambientLightConfig.ledState"
+            :v$="ambientLightV$"
+          />
+        </AccordionContent>
       </AccordionPanel>
       <AccordionPanel value="detectionSensor">
         <AccordionHeader>
@@ -124,11 +133,16 @@ import { ref, computed, watch } from 'vue';
 import { Protobuf } from '@meshtastic/core';
 import { create } from '@bufbuild/protobuf';
 import { useVuelidate } from '@vuelidate/core';
-import { TrafficManagementRules, StatusMessageRules } from '@/composables/ValidationRules';
+import {
+  TrafficManagementRules,
+  StatusMessageRules,
+  AmbientLightRules,
+} from '@/composables/ValidationRules';
 import SettingsLayout from './components/SettingsLayout.vue';
 import DirtyHeader from './components/DirtyHeader.vue';
 import TrafficModule from './subforms/TrafficModule.vue';
 import NodeStatusModule from './subforms/NodeStatusModule.vue';
+import AmbientLightModule from './subforms/AmbientLightModule.vue';
 import { useDeviceStore } from '@/composables/stores/device/useDeviceStore';
 import { useDeepCompareConfig } from '@/composables/useDeepCompareConfig';
 import { purgeUncloneableProperties } from '@/composables/stores/utils/purgeUncloneable';
@@ -167,9 +181,20 @@ const isAudioDirty = computed(() => {
 const isNeighborInfoDirty = computed(() => {
   return false;
 });
+
+const ambientLightConfig = ref<Protobuf.ModuleConfig.ModuleConfig_AmbientLightingConfig>(
+  create(Protobuf.ModuleConfig.ModuleConfig_AmbientLightingConfigSchema)
+);
 const isAmbientLightDirty = computed(() => {
-  return false;
+  if (!device.value?.moduleConfig.ambientLighting) return false;
+  return !useDeepCompareConfig(
+    ambientLightConfig.value,
+    device.value?.moduleConfig.ambientLighting,
+    true
+  );
 });
+const ambientLightV$ = useVuelidate(AmbientLightRules, ambientLightConfig);
+
 const isDetectionSensorDirty = computed(() => {
   return false;
 });
@@ -219,6 +244,10 @@ watch(
     conf = dev.getEffectiveModuleConfig('statusmessage');
     if (conf) {
       Object.assign(statusMessageConfig.value, dev.moduleConfig.statusmessage);
+    }
+    conf = dev.getEffectiveModuleConfig('ambientLighting');
+    if (conf) {
+      Object.assign(ambientLightConfig.value, dev.moduleConfig.ambientLighting);
     }
   },
   { immediate: true, once: true }
