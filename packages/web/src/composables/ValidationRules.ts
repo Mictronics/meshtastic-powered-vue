@@ -153,3 +153,10 @@ export const TrafficManagementRules = {
 export const StatusMessageRules = {
     nodeStatus: { minLength: minLength(0), maxLength: maxLength(80) },
 }
+
+export const AmbientLightRules = {
+    current: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
+    red: { required, integer, minValue: minValue(0), maxValue: maxValue(255) },
+    green: { required, integer, minValue: minValue(0), maxValue: maxValue(255) },
+    blue: { required, integer, minValue: minValue(0), maxValue: maxValue(255) },
+}
