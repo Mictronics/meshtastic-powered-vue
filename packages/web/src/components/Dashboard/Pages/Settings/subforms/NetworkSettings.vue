@@ -1,7 +1,7 @@
 <template>
   <div class="pt-2">
     <div>
-      <h4 class="scroll-m-20 text-xl tracking-tight font-medium">Wifi Settings</h4>
+      <h4 class="scroll-m-20 text-xl tracking-tight font-medium">Wifi</h4>
       <p class="text-slate-400">Settings for the Wifi network</p>
       <p class="text-slate-400 text-xs">
         Some devices (ESP32) cannot use both Bluetooth and WiFi at the same time.
@@ -58,7 +58,7 @@
     </FormGrid>
 
     <div>
-      <h4 class="scroll-m-20 text-xl tracking-tight font-medium">Network Settings</h4>
+      <h4 class="scroll-m-20 text-xl tracking-tight font-medium">Network</h4>
       <p class="text-slate-400">General network settings.</p>
     </div>
     <FormGrid>

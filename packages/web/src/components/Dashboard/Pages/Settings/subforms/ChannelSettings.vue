@@ -1,8 +1,7 @@
 <template>
   <div>
     <div>
-      <h4 class="scroll-m-20 text-xl tracking-tight font-medium">Channel Settings</h4>
-      <p class="text-slate-400">Crypto, MQTT & misc settings</p>
+      <p class="text-slate-400">Channel settings</p>
     </div>
     <Tabs :value="selectedChannel" @update:value="handleChannelChange">
       <TabList>

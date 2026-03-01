@@ -1,7 +1,6 @@
 <template>
   <div class="pt-2">
     <div>
-      <h4 class="scroll-m-20 text-xl tracking-tight font-medium">Radio Settings</h4>
       <p class="text-slate-400">Settings for the LoRa radio</p>
     </div>
     <FormGrid>

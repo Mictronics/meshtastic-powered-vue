@@ -1,7 +1,7 @@
 <template>
   <div>
     <div>
-      <h4 class="scroll-m-20 text-xl tracking-tight font-medium">Security Settings</h4>
+      <h4 class="scroll-m-20 text-xl tracking-tight font-medium">Security</h4>
       <p class="text-slate-400">Settings for the Security configuration</p>
     </div>
     <FormGrid>
@@ -28,7 +28,7 @@
       </FormRow>
     </FormGrid>
     <div class="pt-2">
-      <h4 class="scroll-m-20 text-xl tracking-tight font-medium">Administration Settings</h4>
+      <h4 class="scroll-m-20 text-xl tracking-tight font-medium">Administration</h4>
       <p class="text-slate-400">Settings for remote administration</p>
     </div>
     <FormGrid>
@@ -82,7 +82,7 @@
       </FormRow>
     </FormGrid>
     <div class="pt-2">
-      <h4 class="scroll-m-20 text-xl tracking-tight font-medium">Logging Settings</h4>
+      <h4 class="scroll-m-20 text-xl tracking-tight font-medium">Logging</h4>
       <p class="text-slate-400">Settings for debug logging</p>
     </div>
     <FormGrid>

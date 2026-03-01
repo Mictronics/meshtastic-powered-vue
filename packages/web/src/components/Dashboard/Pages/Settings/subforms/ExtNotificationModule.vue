@@ -1,7 +1,6 @@
 <template>
   <div class="pt-2">
     <div>
-      <h4 class="scroll-m-20 text-xl tracking-tight font-medium">External Notification Module</h4>
       <p class="text-slate-400">Settings for external notification</p>
     </div>
     <FormGrid></FormGrid>

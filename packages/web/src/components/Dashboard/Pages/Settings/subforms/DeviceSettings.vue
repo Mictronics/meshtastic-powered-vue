@@ -1,7 +1,6 @@
 <template>
   <div class="pt-2">
     <div>
-      <h4 class="scroll-m-20 text-xl tracking-tight font-medium">Device Settings</h4>
       <p class="text-slate-400">General settings for the device</p>
     </div>
     <FormGrid>

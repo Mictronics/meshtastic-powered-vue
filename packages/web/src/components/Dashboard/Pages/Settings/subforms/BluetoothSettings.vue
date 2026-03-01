@@ -1,7 +1,6 @@
 <template>
   <div class="pt-2">
     <div>
-      <h4 class="scroll-m-20 text-xl tracking-tight font-medium">Bluetooth Settings</h4>
       <p class="text-slate-400">Settings for a Bluetooth module</p>
       <p class="text-slate-400 font-bold text-xs">
         Note: Some devices (ESP32) cannot use both Bluetooth and WiFi at the same time.
