@@ -126,9 +126,11 @@
       </AccordionPanel>
       <AccordionPanel value="tak">
         <AccordionHeader>
-          <DirtyHeader title="TAK/ATAK" :dirty="isTakDirty" />
+          <DirtyHeader title="TAK/ATAK" :dirty="isAtakDirty" />
         </AccordionHeader>
-        <AccordionContent></AccordionContent>
+        <AccordionContent>
+          <AtakModule v-model:role="atakConfig.role" v-model:team="atakConfig.team" :v$="atakV$" />
+        </AccordionContent>
       </AccordionPanel>
     </Accordion>
   </SettingsLayout>
@@ -143,12 +145,14 @@ import {
   TrafficManagementRules,
   StatusMessageRules,
   AmbientLightRules,
+  AtakRules,
 } from '@/composables/ValidationRules';
 import SettingsLayout from './components/SettingsLayout.vue';
 import DirtyHeader from './components/DirtyHeader.vue';
 import TrafficModule from './subforms/TrafficModule.vue';
 import NodeStatusModule from './subforms/NodeStatusModule.vue';
 import AmbientLightModule from './subforms/AmbientLightModule.vue';
+import AtakModule from './subforms/AtakModule.vue';
 import { useDeviceStore } from '@/composables/stores/device/useDeviceStore';
 import { useDeepCompareConfig } from '@/composables/useDeepCompareConfig';
 import { purgeUncloneableProperties } from '@/composables/stores/utils/purgeUncloneable';
@@ -238,9 +242,14 @@ const isRemoteHardwareDirty = computed(() => {
   return false;
 });
 
-const isTakDirty = computed(() => {
-  return false;
+const atakConfig = ref<Protobuf.ModuleConfig.ModuleConfig_TAKConfig>(
+  create(Protobuf.ModuleConfig.ModuleConfig_TAKConfigSchema)
+);
+const isAtakDirty = computed(() => {
+  if (!device.value?.moduleConfig.tak) return false;
+  return !useDeepCompareConfig(atakConfig.value, device.value?.moduleConfig.tak, true);
 });
+const atakV$ = useVuelidate(AtakRules, atakConfig);
 
 watch(
   () => device.value,
@@ -258,6 +267,10 @@ watch(
     conf = dev.getEffectiveModuleConfig('ambientLighting');
     if (conf) {
       Object.assign(ambientLightConfig.value, dev.moduleConfig.ambientLighting);
+    }
+    conf = dev.getEffectiveModuleConfig('tak');
+    if (conf) {
+      Object.assign(atakConfig.value, dev.moduleConfig.tak);
     }
   },
   { immediate: true, once: true }
