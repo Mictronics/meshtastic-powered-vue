@@ -331,6 +331,10 @@ class Device implements IDevice {
                 this.moduleConfig.remoteHardware = config.payloadVariant.value;
                 break;
             }
+            case "tak": {
+                this.moduleConfig.tak = config.payloadVariant.value;
+                break;
+            }
             default:
                 console.warn(`[useDeviceStore] Unknown module configuration: ${config.payloadVariant.case}`);
                 break;
