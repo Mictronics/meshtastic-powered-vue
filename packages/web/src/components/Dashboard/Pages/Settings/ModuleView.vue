@@ -46,7 +46,18 @@
       </AccordionPanel>
       <AccordionPanel value="audio">
         <AccordionHeader><DirtyHeader title="Audio" :dirty="isAudioDirty" /></AccordionHeader>
-        <AccordionContent></AccordionContent>
+        <AccordionContent>
+          <AudioModule
+            v-model:bitrate="audioConfig.bitrate"
+            v-model:codec2Enabled="audioConfig.codec2Enabled"
+            v-model:i2sDin="audioConfig.i2sDin"
+            v-model:i2sSck="audioConfig.i2sSck"
+            v-model:i2sSd="audioConfig.i2sSd"
+            v-model:i2sWs="audioConfig.i2sWs"
+            v-model:pttPin="audioConfig.pttPin"
+            :v$="audioV$"
+          />
+        </AccordionContent>
       </AccordionPanel>
       <AccordionPanel value="neighborInfo">
         <AccordionHeader>
@@ -146,6 +157,7 @@ import {
   StatusMessageRules,
   AmbientLightRules,
   AtakRules,
+  AudioRules,
 } from '@/composables/ValidationRules';
 import SettingsLayout from './components/SettingsLayout.vue';
 import DirtyHeader from './components/DirtyHeader.vue';
@@ -153,6 +165,7 @@ import TrafficModule from './subforms/TrafficModule.vue';
 import NodeStatusModule from './subforms/NodeStatusModule.vue';
 import AmbientLightModule from './subforms/AmbientLightModule.vue';
 import AtakModule from './subforms/AtakModule.vue';
+import AudioModule from './subforms/AudioModule.vue';
 import { useDeviceStore } from '@/composables/stores/device/useDeviceStore';
 import { useDeepCompareConfig } from '@/composables/useDeepCompareConfig';
 import { purgeUncloneableProperties } from '@/composables/stores/utils/purgeUncloneable';
@@ -185,9 +198,16 @@ const isTelemetryDirty = computed(() => {
 const isCannedMessagesDirty = computed(() => {
   return false;
 });
+
+const audioConfig = ref<Protobuf.ModuleConfig.ModuleConfig_AudioConfig>(
+  create(Protobuf.ModuleConfig.ModuleConfig_AudioConfigSchema)
+);
 const isAudioDirty = computed(() => {
-  return false;
+  if (!device.value?.moduleConfig.audio) return false;
+  return !useDeepCompareConfig(audioConfig.value, device.value?.moduleConfig.audio, true);
 });
+const audioV$ = useVuelidate(AudioRules, audioConfig);
+
 const isNeighborInfoDirty = computed(() => {
   return false;
 });
@@ -271,6 +291,10 @@ watch(
     conf = dev.getEffectiveModuleConfig('tak');
     if (conf) {
       Object.assign(atakConfig.value, dev.moduleConfig.tak);
+    }
+    conf = dev.getEffectiveModuleConfig('audio');
+    if (conf) {
+      Object.assign(audioConfig.value, dev.moduleConfig.audio);
     }
   },
   { immediate: true, once: true }
