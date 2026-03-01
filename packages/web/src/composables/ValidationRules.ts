@@ -160,3 +160,8 @@ export const AmbientLightRules = {
     green: { required, integer, minValue: minValue(0), maxValue: maxValue(255) },
     blue: { required, integer, minValue: minValue(0), maxValue: maxValue(255) },
 }
+
+export const AtakRules = {
+    role: { required, integer, minValue: minValue(0), maxValue: maxValue(8) },
+    team: { required, integer, minValue: minValue(0), maxValue: maxValue(14) },
+}
