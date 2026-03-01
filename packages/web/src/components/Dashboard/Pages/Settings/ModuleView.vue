@@ -124,6 +124,12 @@
           />
         </AccordionContent>
       </AccordionPanel>
+      <AccordionPanel value="tak">
+        <AccordionHeader>
+          <DirtyHeader title="TAK/ATAK" :dirty="isTakDirty" />
+        </AccordionHeader>
+        <AccordionContent></AccordionContent>
+      </AccordionPanel>
     </Accordion>
   </SettingsLayout>
 </template>
@@ -229,6 +235,10 @@ const isStatusMessageDirty = computed(() => {
 const statusMessageV$ = useVuelidate(StatusMessageRules, statusMessageConfig);
 
 const isRemoteHardwareDirty = computed(() => {
+  return false;
+});
+
+const isTakDirty = computed(() => {
   return false;
 });
 
