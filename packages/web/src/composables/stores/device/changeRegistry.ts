@@ -26,7 +26,8 @@ export type ValidModuleConfigType =
     | "paxcounter"
     | "remoteHardware"
     | "statusmessage"
-    | "trafficManagement";
+    | "trafficManagement"
+    | "tak";
 
 // Admin message types that can be queued
 export type ValidAdminMessageType = "setFixedPosition" | "other";
