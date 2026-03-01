@@ -165,3 +165,37 @@ export const AtakRules = {
     role: { required, integer, minValue: minValue(0), maxValue: maxValue(8) },
     team: { required, integer, minValue: minValue(0), maxValue: maxValue(14) },
 }
+
+export const AudioRules = {
+    pttPin: {
+        required,
+        integer,
+        minValue: minValue(0),
+        maxValue: maxValue(65535)
+    },
+    i2sWs: {
+        required,
+        integer,
+        minValue: minValue(0),
+        maxValue: maxValue(65535)
+    },
+    i2sSd: {
+        required,
+        integer,
+        minValue: minValue(0),
+        maxValue: maxValue(65535)
+    },
+    i2sDin: {
+        required,
+        integer,
+        minValue: minValue(0),
+        maxValue: maxValue(65535)
+    },
+    i2sSck: {
+        required,
+        integer,
+        minValue: minValue(0),
+        maxValue: maxValue(65535)
+    },
+    bitrate: { required, integer, minValue: minValue(0), maxValue: maxValue(8) },
+}
