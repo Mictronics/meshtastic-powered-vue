@@ -91,6 +91,8 @@ import { useFormattedNodeDatabase } from '@/composables/stores/nodeDB/useFormatt
 import type { FormattedNode } from '@/composables/types';
 import MapPopover from './MapPopover.vue';
 import { useColor } from '@/composables/useColor';
+import { useRoute } from 'vue-router';
+const route = useRoute();
 
 const appStore = useAppStore();
 const color = useColor();
@@ -207,6 +209,16 @@ const onMapLoad = (e: any) => {
   zoom.value = appStore.appData.mapZoom;
   center.value = appStore.appData.mapCenter;
 
+  const nodeFromQuery = route.query.node;
+  if (nodeFromQuery) {
+    const nodeNumber = Number(nodeFromQuery);
+    if (!isNaN(nodeNumber)) {
+      setTimeout(() => {
+        openNodeByNumber(nodeNumber);
+      }, 300);
+    }
+  }
+
   map.on('click', 'cluster-circle', async (e: any) => {
     const features = map.queryRenderedFeatures(e.point, {
       layers: ['cluster-circle'],
@@ -248,6 +260,23 @@ const updateHeight = useThrottleFn(() => {
 }, 100);
 
 useEventListener(window, 'resize', updateHeight);
+
+const openNodeByNumber = (nodeNumber: number) => {
+  const node = nodeDatabase.value[nodeNumber];
+  if (!node?.position) return;
+
+  selectedNodeNumber.value = nodeNumber;
+  popupNode.value = node;
+
+  const map = mapRef.value?.map;
+  if (!map) return;
+
+  map.easeTo({
+    center: [node.position.longitudeI!, node.position.latitudeI!],
+    duration: 500,
+    zoom: 14,
+  });
+};
 </script>
 
 <style lang="css">

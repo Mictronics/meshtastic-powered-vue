@@ -1,29 +1,45 @@
 <template>
   <div
-    class="p-2 rounded-xl border border-slate-100 dark:border-slate-600 bg-slate-50/50 dark:bg-slate-800 cursor-pointer relative overflow-hidden"
-    @click="nextMode"
-    title="Click to change coordinate format"
+    class="flex flex-row items-center justify-between p-2 rounded-xl border border-slate-100 dark:border-slate-600 bg-slate-50/50 dark:bg-slate-800 cursor-pointer relative overflow-hidden"
   >
-    <div
-      class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-700 tracking-wider mb-1"
-    >
-      {{ modes[modeIndex] }}
-    </div>
-    <transition name="fade-slide" mode="out-in">
-      <div :key="modeIndex" class="flex gap-2 text-sm text-slate-700 dark:text-slate-400">
-        <MapPinned :size="15" />
-        {{ displayValue }}
+    <div @click="nextMode" title="Click to change coordinate format">
+      <div
+        class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-700 tracking-wider mb-1"
+      >
+        {{ modes[modeIndex] }}
       </div>
-    </transition>
-    <div class="flex gap-2 text-sm text-slate-700 dark:text-slate-400 mt-1">
-      <MountainSnow :size="15" />
-      {{ altDisplay }}
+      <transition name="fade-slide" mode="out-in">
+        <div :key="modeIndex" class="flex gap-2 text-sm text-slate-700 dark:text-slate-400">
+          <MapPinned :size="15" />
+          {{ displayValue }}
+        </div>
+      </transition>
+      <div class="flex gap-2 text-sm text-slate-700 dark:text-slate-400 mt-1">
+        <MountainSnow :size="15" />
+        {{ altDisplay }}
+      </div>
     </div>
+    <router-link
+      v-if="props.nodeNumber"
+      :to="{ name: 'map.view', query: { node: props.nodeNumber } }"
+    >
+      <MapPinHouse
+        :size="24"
+        v-tooltip.left="{
+          value: 'Jump to map position',
+          showDelay: 300,
+          hideDelay: 300,
+          pt: {
+            text: 'bg-slate-50 dark:bg-slate-700 text-slate-700 dark:text-slate-400 text-sm',
+          },
+        }"
+      />
+    </router-link>
   </div>
 </template>
 
 <script setup lang="ts">
-import { MountainSnow, MapPinned } from 'lucide-vue-next';
+import { MountainSnow, MapPinned, MapPinHouse } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import proj4 from 'proj4';
 
@@ -31,6 +47,7 @@ type Props = {
   latitude?: number;
   longitude?: number;
   alt?: number;
+  nodeNumber?: number;
 };
 
 const props = defineProps<Props>();
