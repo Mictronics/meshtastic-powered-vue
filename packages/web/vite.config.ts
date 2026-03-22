@@ -34,7 +34,7 @@ export default defineConfig({
       patterns: ['src/**/*.*'],
     }),
     visualizer({
-      open: true,
+      open: false,
       gzipSize: true,
       brotliSize: false,
     })
