@@ -10,6 +10,7 @@
   <Dialog v-model:visible="visibleQRDialog" header="Channel QR Code">
     <QRDialog />
   </Dialog>
+  <input ref="fileInputRef" type="file" accept=".zip" class="hidden" @change="handleRestoreFile" />
 </template>
 
 <script setup lang="ts">
@@ -21,6 +22,8 @@ import {
   Trash,
   Factory,
   Eraser,
+  Archive,
+  ArchiveRestore,
 } from 'lucide-vue-next';
 import { ref, computed } from 'vue';
 import type { FunctionalComponent } from 'vue';
@@ -31,13 +34,57 @@ import { useMessageStore } from '@/composables/stores/message/useMessageStore';
 import { useIndexedDB } from '@/composables/stores/indexedDB';
 import { useGlobalToast } from '@/composables/useGlobalToast';
 import { useConfirm } from '@/composables/useConfirmDialog';
+import { useRouter } from 'vue-router';
 
+const router = useRouter();
 const device = useDeviceStore().device;
 const messages = useMessageStore().messageStore;
 const indexedDB = useIndexedDB();
 const toast = useGlobalToast();
 const visibleQRDialog = ref(false);
 const { open } = useConfirm();
+
+const fileInputRef = ref<HTMLInputElement | null>(null);
+const handleRestoreFile = async (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+
+  if (!file) return;
+
+  if (!file.name.endsWith('.zip')) {
+    toast.add({
+      severity: 'warn',
+      summary: 'Invalid file',
+      detail: 'Please select a ZIP backup file.',
+    });
+    return;
+  }
+
+  try {
+    await indexedDB.restoreBackup(file);
+
+    toast.add({
+      severity: 'success',
+      summary: 'Restore',
+      detail: 'Database restored. Reloading...',
+      life: 3000,
+    });
+
+    setTimeout(async () => {
+      await router.replace({ path: '/' });
+      window.location.reload(); // ensures clean state
+    }, 500);
+  } catch (err: any) {
+    toast.add({
+      severity: 'error',
+      summary: 'Restore failed',
+      detail: err?.message || 'Unknown error',
+      life: 4000,
+    });
+  } finally {
+    input.value = '';
+  }
+};
 
 type ToolPanelItem = {
   label: string;
@@ -238,6 +285,44 @@ const toolsPanelItems = computed<ToolPanelItem[]>(() => [
             life: 3000,
           });
         });
+      }
+    },
+  },
+  {
+    label: 'Backup Stores',
+    myIcon: Archive,
+    command: async (_event?: any) => {
+      const confirmed = await open({
+        header: 'Backup Database Stores?',
+        message: 'This will backup and download the entire persistent browser storage!',
+        acceptLabel: 'Backup',
+        cancelLabel: 'Cancel',
+      });
+
+      if (confirmed) {
+        await indexedDB.exportBackup();
+        toast.add({
+          severity: 'success',
+          summary: 'Backup',
+          detail: 'Backup complete.',
+          life: 3000,
+        });
+      }
+    },
+  },
+  {
+    label: 'Restore Stores',
+    myIcon: ArchiveRestore,
+    command: async () => {
+      const confirmed = await open({
+        header: 'Restore Database Stores?',
+        message: 'This will overwrite all persistent browser storage with the backup file.',
+        acceptLabel: 'Restore',
+        cancelLabel: 'Cancel',
+      });
+
+      if (confirmed) {
+        fileInputRef.value?.click();
       }
     },
   },
