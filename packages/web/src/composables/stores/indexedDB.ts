@@ -303,15 +303,14 @@ export const useIndexedDB = createSharedComposable(() => {
                 const hasInlineKey = store.keyPath !== null && store.keyPath !== undefined;
 
                 if (hasInlineKey) {
-                    // inject key if needed
                     if (typeof store.keyPath === "string" && item.key !== undefined) {
                         if (value[store.keyPath] === undefined) {
                             value[store.keyPath] = item.key;
                         }
                     }
-                    await store.put(value); // ✅ no key param
+                    await store.put(value);
                 } else {
-                    await store.put(value, item.key); // ✅ key required
+                    await store.put(item.value, item.key);
                 }
             }
             await tx.done;
