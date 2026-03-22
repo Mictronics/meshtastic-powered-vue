@@ -49,7 +49,7 @@ export const useAppStore = createSharedComposable(() => {
             ignorePrevAsyncUpdates();
         });
         useIndexedDB().get(IDB_APP_STORE, 'isSideBarVisible').then((v) => {
-            appData.isSideBarVisible = v;
+            appData.isSideBarVisible = v || true;
             ignorePrevAsyncUpdates();
         });
         useIndexedDB().get(IDB_APP_STORE, 'lastReadPerChat').then((v) => {
@@ -57,11 +57,11 @@ export const useAppStore = createSharedComposable(() => {
             ignorePrevAsyncUpdates();
         });
         useIndexedDB().get(IDB_APP_STORE, 'mapZoom').then((v) => {
-            appData.mapZoom = v || {};
+            appData.mapZoom = v || 6;
             ignorePrevAsyncUpdates();
         });
         useIndexedDB().get(IDB_APP_STORE, 'mapCenter').then((v) => {
-            appData.mapCenter = v || {};
+            appData.mapCenter = v || { lng: 10.447694, lat: 51.163361 };
             ignorePrevAsyncUpdates();
         });
     }
