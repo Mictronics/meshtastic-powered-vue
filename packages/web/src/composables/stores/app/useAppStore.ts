@@ -61,7 +61,7 @@ export const useAppStore = createSharedComposable(() => {
             ignorePrevAsyncUpdates();
         });
         useIndexedDB().get(IDB_APP_STORE, 'mapCenter').then((v) => {
-            appData.mapCenter = v || { lng: 10.447694, lat: 51.163361 };
+            appData.mapCenter = v || {};
             ignorePrevAsyncUpdates();
         });
     }

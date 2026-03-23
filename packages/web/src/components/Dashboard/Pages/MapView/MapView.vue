@@ -206,8 +206,18 @@ watch(popupNode, (node) => {
 
 const onMapLoad = (e: any) => {
   const map = e.map;
+
   zoom.value = appStore.appData.mapZoom;
+  if (typeof zoom.value !== 'number') {
+    zoom.value = 6;
+    appStore.appData.mapZoom = zoom.value;
+  }
+
   center.value = appStore.appData.mapCenter;
+  if (!center.value || !Object.hasOwn(center.value, 'lng') || !Object.hasOwn(center.value, 'lat')) {
+    center.value = { lng: 10.447694, lat: 51.163361 };
+    appStore.appData.mapCenter = center.value;
+  }
 
   const nodeFromQuery = route.query.node;
   if (nodeFromQuery) {
