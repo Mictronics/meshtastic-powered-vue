@@ -94,16 +94,40 @@
       >
         <ToggleSwitch input-id="paFanDisabled" v-model="paFanDisabled" />
       </FormRow>
+
+      <FormRow
+        label="FEM LNA Mode"
+        for-id="femLnaMode"
+        description="LoRa front-end module is enabled, disabled, or not present."
+        :error="useGetError(v$.femLnaMode)"
+        s
+      >
+        <Select
+          aria-labelledby="femLnaMode"
+          class="dark:bg-slate-800 dark:text-slate-400"
+          label-class="dark:bg-slate-800 dark:text-slate-400"
+          size="small"
+          v-model="femLnaMode"
+          :options="femLnaModeOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Select modem preset"
+          :invalid="v$.femLnaMode.$invalid"
+          @blur="v$.femLnaMode.$touch()"
+        />
+      </FormRow>
     </FormGrid>
   </div>
 </template>
 
 <script setup lang="ts">
+import { Protobuf } from '@meshtastic/core';
 import { computed } from 'vue';
 import FormGrid from '../components/FormGrid.vue';
 import FormRow from '../components/FormRow.vue';
 import type { Validation } from '@vuelidate/core';
 import { useGetError } from '@/composables/useGetError';
+import { useEnumOptions } from '@/composables/useEnumOptions';
 
 defineProps<{
   v$: Validation;
@@ -116,6 +140,8 @@ const frequencyOffset = defineModel<number>('frequencyOffset');
 const overrideFrequency = defineModel<number>('overrideFrequency');
 const sx126xRxBoostedGain = defineModel<boolean>('sx126xRxBoostedGain');
 const paFanDisabled = defineModel<boolean>('paFanDisabled');
+const femLnaMode = defineModel<number>('femLnaMode');
+const femLnaModeOptions = useEnumOptions(Protobuf.Config.Config_LoRaConfig_FEM_LNA_Mode);
 const txPowerInput = computed<string>({
   get() {
     return txPower.value?.toString() ?? '';

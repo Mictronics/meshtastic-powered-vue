@@ -35,6 +35,7 @@
             v-model:tx-enabled="loraConfig.txEnabled"
             v-model:tx-power="loraConfig.txPower"
             v-model:pa-fan-disabled="loraConfig.paFanDisabled"
+            v-model:fem-lna-mode="loraConfig.femLnaMode"
             :v$="loraV$"
           />
         </AccordionContent>
