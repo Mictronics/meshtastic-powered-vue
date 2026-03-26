@@ -27,6 +27,7 @@ export const LoraRules = {
     },
     sx126xRxBoostedGain: { required },
     paFanDisabled: { required },
+    femLnaMode: { required, integer, minValue: 0 },
 };
 
 const byteLength = (str: string) => {
