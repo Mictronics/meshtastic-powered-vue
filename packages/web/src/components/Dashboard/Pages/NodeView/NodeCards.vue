@@ -232,7 +232,7 @@ import {
   MessageSquare,
 } from 'lucide-vue-next';
 import { ref, computed, onMounted, onUnmounted, onBeforeUnmount } from 'vue';
-import { formatTimeAgoIntl, refDebounced } from '@vueuse/core';
+import { formatTimeAgoIntl, refDebounced, watchOnce } from '@vueuse/core';
 import { numberToHexUnpadded } from '@noble/curves/utils.js';
 import type { FormattedNode } from '@/composables/types';
 import {
@@ -254,7 +254,9 @@ import { type SortDir } from '@/components/Dashboard/Pages/NodeView/types';
 import { orderBy, filter, some } from 'lodash-es';
 import { useDeleteNode } from '@/composables/useDeleteNode';
 import { useConfirm } from '@/composables/useConfirmDialog';
+import { useGlobalToast } from '@/composables/useGlobalToast';
 
+const toast = useGlobalToast();
 const nodeDatabase = useFormattedNodeDatabase().nodeDatabase;
 const searchQuery = ref('');
 const debouncedQuery = refDebounced(searchQuery, 150);
@@ -473,14 +475,32 @@ const openQuickView = (node: FormattedNode) => {
  * Last heard needs a to be updated whenever the data table renders to
  * ensure the time ago string fits the numeric value and sorting order.
  */
+const hasFutureTime = ref(false);
 const formatLastHeard = (epoch?: number) => {
   const date = new Date(0);
   if (epoch === undefined) {
     return 'Unknown';
   }
+
   date.setUTCSeconds(epoch);
+  const now = new Date();
+  if (date > now) {
+    hasFutureTime.value = true;
+  }
   return formatTimeAgoIntl(date);
 };
+
+watchOnce(hasFutureTime, (val) => {
+  if (val) {
+    toast.add({
+      severity: 'warn',
+      summary: 'Future Time',
+      detail:
+        'Reported last heard time is in future. Check Meshtastic device or service time and browser time source.',
+      life: 30,
+    });
+  }
+});
 
 const onMarkFavorite = (nodeNumber: number, fav: boolean) => {
   useFavoriteNode().updateFavorite(nodeNumber, fav);
