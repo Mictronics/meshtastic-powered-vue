@@ -232,3 +232,9 @@ export const CannedMessagesRules = {
     inputbrokerEventPress: { required, integer, minValue: minValue(0), maxValue: maxValue(127) },
     allowInputSource: { minLength: minLength(0), maxLength: maxLength(16) },
 }
+
+export const StoreForwardRules = {
+    historyReturnMax: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
+    historyReturnWindow: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
+    records: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
+}
