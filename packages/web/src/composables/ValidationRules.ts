@@ -202,5 +202,9 @@ export const AudioRules = {
 }
 
 export const RangTestRules = {
-    sender: { required, integer, minValue: minValue(30), maxValue: maxValue(28800000) },
+    sender: { required, integer, minValue: minValue(30), maxValue: maxValue(28800) },
+}
+
+export const NeighborInfoRules = {
+    updateInterval: { required, integer, minValue: minValue(14400), maxValue: maxValue(4294967295) },
 }
