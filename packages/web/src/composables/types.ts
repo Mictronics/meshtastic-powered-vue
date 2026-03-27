@@ -23,6 +23,7 @@ export type FormattedNode = {
     publicKey?: string;
     isPublicKeyVerified: boolean;
     unreadCount: number;
+    distance?: number;
     deviceMetrics?: FormattedDeviceMetrics;
     environmentMetrics?: FormattedEnvironmentMetrics;
     powerMetrics?: FormattedPowerMetrics;

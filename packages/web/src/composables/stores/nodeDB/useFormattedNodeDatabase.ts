@@ -6,6 +6,7 @@ import humanizeDuration from 'humanize-duration';
 import { fromByteArray } from 'base64-js';
 import { Protobuf } from "@meshtastic/core";
 import { useNodeDBStore } from '@/composables/stores/nodeDB/useNodeDBStore';
+import { useDistanceToNode } from '@/composables/useDistanceToNode';
 import type {
     FormattedEnvironmentMetrics,
     FormattedPowerMetrics,
@@ -27,6 +28,7 @@ export enum EncryptionStatus {
 
 export const useFormattedNodeDatabase = createSharedComposable(() => {
     const nodeDatabase = ref<FormattedNodeMap>({});
+    const { calculateGreatCircleDistance } = useDistanceToNode();
 
     watchImmediate(useNodeDBStore().nodeDatabase, (ndb) => {
         if (!ndb?.nodeMap) return;
@@ -57,6 +59,7 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
                 publicKey: formatPublicKey(node.user?.publicKey),
                 isPublicKeyVerified: node.isKeyManuallyVerified,
                 unreadCount: 0,
+                distance: calculateGreatCircleDistance(node.num),
                 deviceMetrics: formatDeviceMetrics(node.deviceMetrics),
                 environmentMetrics: formatEnvironmentMetrics(node.environmentMetrics),
                 powerMetrics: formatPowerMetrics(node.powerMetrics),
