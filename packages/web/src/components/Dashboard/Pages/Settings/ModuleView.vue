@@ -111,7 +111,15 @@
         <AccordionHeader>
           <DirtyHeader title="Pax Counter" :dirty="isPaxCounterDirty" />
         </AccordionHeader>
-        <AccordionContent></AccordionContent>
+        <AccordionContent>
+          <PaxCounterModule
+            v-model:bleThreshold="paxCounterConfig.bleThreshold"
+            v-model:enabled="paxCounterConfig.enabled"
+            v-model:paxcounterUpdateInterval="paxCounterConfig.paxcounterUpdateInterval"
+            v-model:wifiThreshold="paxCounterConfig.wifiThreshold"
+            :v$="paxCounterV$"
+          />
+        </AccordionContent>
       </AccordionPanel>
       <AccordionPanel value="trafficManagement">
         <AccordionHeader>
@@ -175,6 +183,7 @@ import {
   AudioRules,
   RangTestRules,
   NeighborInfoRules,
+  PaxCounterRules,
 } from '@/composables/ValidationRules';
 import SettingsLayout from './components/SettingsLayout.vue';
 import DirtyHeader from './components/DirtyHeader.vue';
@@ -185,6 +194,7 @@ import AtakModule from './subforms/AtakModule.vue';
 import AudioModule from './subforms/AudioModule.vue';
 import RangeTestModule from './subforms/RangeTestModule.vue';
 import NeighborInfoModule from './subforms/NeighborInfoModule.vue';
+import PaxCounterModule from './subforms/PaxCounterModule.vue';
 import { useDeviceStore } from '@/composables/stores/device/useDeviceStore';
 import { useDeepCompareConfig } from '@/composables/useDeepCompareConfig';
 import { purgeUncloneableProperties } from '@/composables/stores/utils/purgeUncloneable';
@@ -238,9 +248,6 @@ const isAmbientLightDirty = computed(() => {
 const ambientLightV$ = useVuelidate(AmbientLightRules, ambientLightConfig);
 
 const isDetectionSensorDirty = computed(() => {
-  return false;
-});
-const isPaxCounterDirty = computed(() => {
   return false;
 });
 
@@ -305,6 +312,15 @@ const isNeighborInfoDirty = computed(() => {
 });
 const neighborInfoV$ = useVuelidate(NeighborInfoRules, neighborInfoConfig);
 
+const paxCounterConfig = ref<Protobuf.ModuleConfig.ModuleConfig_PaxcounterConfig>(
+  create(Protobuf.ModuleConfig.ModuleConfig_PaxcounterConfigSchema)
+);
+const isPaxCounterDirty = computed(() => {
+  if (!device.value?.moduleConfig.paxcounter) return false;
+  return !useDeepCompareConfig(paxCounterConfig.value, device.value?.moduleConfig.paxcounter, true);
+});
+const paxCounterV$ = useVuelidate(PaxCounterRules, paxCounterConfig);
+
 watch(
   () => device.value,
   (dev) => {
@@ -337,6 +353,10 @@ watch(
     conf = dev.getEffectiveModuleConfig('neighborInfo');
     if (conf) {
       Object.assign(neighborInfoConfig.value, dev.moduleConfig.neighborInfo);
+    }
+    conf = dev.getEffectiveModuleConfig('paxcounter');
+    if (conf) {
+      Object.assign(paxCounterConfig.value, dev.moduleConfig.paxcounter);
     }
   },
   { immediate: true, once: true }
