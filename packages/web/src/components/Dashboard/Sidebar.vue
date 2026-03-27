@@ -158,7 +158,7 @@
     </div>
   </aside>
   <Dialog v-model:visible="visibleToolDialog" modal header="Tools" class="min-h-1/2">
-    <ToolsDialog />
+    <ToolsDialog @tool-dialog:close="closeToolDialog" />
   </Dialog>
 </template>
 
@@ -253,6 +253,10 @@ const voltage = computed(() => myNode.value?.deviceMetrics?.voltage);
 const online = computed(() => myNode.value?.localStats?.numOnlineNodes || '-');
 const visibleToolDialog = ref(false);
 const isLargeScreen = useMediaQuery(`(min-width: ${BREAKPOINT_MD}px)`);
+
+const closeToolDialog = () => {
+  visibleToolDialog.value = false;
+};
 
 const nodeCount = computed(() => {
   const nm = nodeDBStore.nodeDatabase.value?.nodeMap;

@@ -36,6 +36,10 @@ import { useGlobalToast } from '@/composables/useGlobalToast';
 import { useConfirm } from '@/composables/useConfirmDialog';
 import { useRouter } from 'vue-router';
 
+const emit = defineEmits<{
+  (e: 'toolDialog:close'): void;
+}>();
+
 const router = useRouter();
 const device = useDeviceStore().device;
 const messages = useMessageStore().messageStore;
@@ -61,6 +65,7 @@ const handleRestoreFile = async (event: Event) => {
   }
 
   try {
+    emit('toolDialog:close');
     await indexedDB.restoreBackup(file);
 
     toast.add({
@@ -104,6 +109,7 @@ const toolsPanelItems = computed<ToolPanelItem[]>(() => [
     label: 'Enter DFU',
     myIcon: HardDriveDownload,
     command: (_event?: any) => {
+      emit('toolDialog:close');
       device.value?.connection?.enterDfuMode().then(() => {
         toast.add({
           severity: 'info',
@@ -118,6 +124,7 @@ const toolsPanelItems = computed<ToolPanelItem[]>(() => [
     label: 'Reconfiguration',
     myIcon: RefreshCw,
     command: (_event?: any) => {
+      emit('toolDialog:close');
       device.value?.connection?.configure().then(() => {
         toast.add({
           severity: 'info',
@@ -140,6 +147,7 @@ const toolsPanelItems = computed<ToolPanelItem[]>(() => [
       });
 
       if (confirmed) {
+        emit('toolDialog:close');
         device.value?.connection?.resetNodes().then(() => {
           toast.add({
             severity: 'info',
@@ -163,6 +171,7 @@ const toolsPanelItems = computed<ToolPanelItem[]>(() => [
       });
 
       if (confirmed) {
+        emit('toolDialog:close');
         device.value?.connection?.shutdown(2).then(() => {
           toast.add({
             severity: 'info',
@@ -186,6 +195,7 @@ const toolsPanelItems = computed<ToolPanelItem[]>(() => [
       });
 
       if (confirmed) {
+        emit('toolDialog:close');
         device.value?.connection?.reboot(2).then(() => {
           toast.add({
             severity: 'info',
@@ -209,6 +219,7 @@ const toolsPanelItems = computed<ToolPanelItem[]>(() => [
       });
 
       if (confirmed) {
+        emit('toolDialog:close');
         device.value?.connection?.factoryResetDevice().then(() => {
           toast.add({
             severity: 'info',
@@ -232,6 +243,7 @@ const toolsPanelItems = computed<ToolPanelItem[]>(() => [
       });
 
       if (confirmed) {
+        emit('toolDialog:close');
         device.value?.connection?.factoryResetConfig().then(() => {
           toast.add({
             severity: 'info',
@@ -255,6 +267,7 @@ const toolsPanelItems = computed<ToolPanelItem[]>(() => [
       });
 
       if (confirmed) {
+        emit('toolDialog:close');
         messages.value?.deleteAllMessages();
         toast.add({
           severity: 'info',
@@ -277,6 +290,7 @@ const toolsPanelItems = computed<ToolPanelItem[]>(() => [
       });
 
       if (confirmed) {
+        emit('toolDialog:close');
         indexedDB.clearAllStores().then(() => {
           toast.add({
             severity: 'info',
@@ -300,6 +314,7 @@ const toolsPanelItems = computed<ToolPanelItem[]>(() => [
       });
 
       if (confirmed) {
+        emit('toolDialog:close');
         await indexedDB.exportBackup();
         toast.add({
           severity: 'success',
@@ -322,6 +337,7 @@ const toolsPanelItems = computed<ToolPanelItem[]>(() => [
       });
 
       if (confirmed) {
+        emit('toolDialog:close');
         fileInputRef.value?.click();
       }
     },
