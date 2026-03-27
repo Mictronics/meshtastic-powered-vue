@@ -208,3 +208,9 @@ export const RangTestRules = {
 export const NeighborInfoRules = {
     updateInterval: { required, integer, minValue: minValue(14400), maxValue: maxValue(4294967295) },
 }
+
+export const PaxCounterRules = {
+    paxcounterUpdateInterval: { required, integer, minValue: minValue(3600), maxValue: maxValue(4294967295) },
+    wifiThreshold: { required, integer, minValue: minValue(-120), maxValue: maxValue(0) },
+    bleThreshold: { required, integer, minValue: minValue(-120), maxValue: maxValue(0) },
+}
