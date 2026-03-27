@@ -222,3 +222,13 @@ export const ExternalNotificationRules = {
     outputMs: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
     outputVibra: { required, integer, minValue: minValue(0), maxValue: maxValue(65535) },
 }
+
+export const CannedMessagesRules = {
+    inputbrokerPinA: { required, integer, minValue: minValue(0), maxValue: maxValue(65535) },
+    inputbrokerPinB: { required, integer, minValue: minValue(0), maxValue: maxValue(65535) },
+    inputbrokerPinPress: { required, integer, minValue: minValue(0), maxValue: maxValue(65535) },
+    inputbrokerEventCw: { required, integer, minValue: minValue(0), maxValue: maxValue(127) },
+    inputbrokerEventCcw: { required, integer, minValue: minValue(0), maxValue: maxValue(127) },
+    inputbrokerEventPress: { required, integer, minValue: minValue(0), maxValue: maxValue(127) },
+    allowInputSource: { minLength: minLength(0), maxLength: maxLength(16) },
+}
