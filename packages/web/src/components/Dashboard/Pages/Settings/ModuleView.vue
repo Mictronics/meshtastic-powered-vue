@@ -71,7 +71,14 @@
         <AccordionHeader>
           <DirtyHeader title="Neighbor Info" :dirty="isNeighborInfoDirty" />
         </AccordionHeader>
-        <AccordionContent></AccordionContent>
+        <AccordionContent>
+          <NeighborInfoModule
+            v-model:enabled="neighborInfoConfig.enabled"
+            v-model:transmitOverLora="neighborInfoConfig.transmitOverLora"
+            v-model:updateInterval="neighborInfoConfig.updateInterval"
+            :v$="neighborInfoV$"
+          />
+        </AccordionContent>
       </AccordionPanel>
       <AccordionPanel value="ambientLight">
         <AccordionHeader>
@@ -167,6 +174,7 @@ import {
   AtakRules,
   AudioRules,
   RangTestRules,
+  NeighborInfoRules,
 } from '@/composables/ValidationRules';
 import SettingsLayout from './components/SettingsLayout.vue';
 import DirtyHeader from './components/DirtyHeader.vue';
@@ -176,6 +184,7 @@ import AmbientLightModule from './subforms/AmbientLightModule.vue';
 import AtakModule from './subforms/AtakModule.vue';
 import AudioModule from './subforms/AudioModule.vue';
 import RangeTestModule from './subforms/RangeTestModule.vue';
+import NeighborInfoModule from './subforms/NeighborInfoModule.vue';
 import { useDeviceStore } from '@/composables/stores/device/useDeviceStore';
 import { useDeepCompareConfig } from '@/composables/useDeepCompareConfig';
 import { purgeUncloneableProperties } from '@/composables/stores/utils/purgeUncloneable';
@@ -214,10 +223,6 @@ const isAudioDirty = computed(() => {
   return !useDeepCompareConfig(audioConfig.value, device.value?.moduleConfig.audio, true);
 });
 const audioV$ = useVuelidate(AudioRules, audioConfig);
-
-const isNeighborInfoDirty = computed(() => {
-  return false;
-});
 
 const ambientLightConfig = ref<Protobuf.ModuleConfig.ModuleConfig_AmbientLightingConfig>(
   create(Protobuf.ModuleConfig.ModuleConfig_AmbientLightingConfigSchema)
@@ -287,6 +292,19 @@ const isRangeTestDirty = computed(() => {
 });
 const rangeTestV$ = useVuelidate(RangTestRules, rangeTestConfig);
 
+const neighborInfoConfig = ref<Protobuf.ModuleConfig.ModuleConfig_NeighborInfoConfig>(
+  create(Protobuf.ModuleConfig.ModuleConfig_NeighborInfoConfigSchema)
+);
+const isNeighborInfoDirty = computed(() => {
+  if (!device.value?.moduleConfig.neighborInfo) return false;
+  return !useDeepCompareConfig(
+    neighborInfoConfig.value,
+    device.value?.moduleConfig.neighborInfo,
+    true
+  );
+});
+const neighborInfoV$ = useVuelidate(NeighborInfoRules, neighborInfoConfig);
+
 watch(
   () => device.value,
   (dev) => {
@@ -311,6 +329,14 @@ watch(
     conf = dev.getEffectiveModuleConfig('audio');
     if (conf) {
       Object.assign(audioConfig.value, dev.moduleConfig.audio);
+    }
+    conf = dev.getEffectiveModuleConfig('rangeTest');
+    if (conf) {
+      Object.assign(rangeTestConfig.value, dev.moduleConfig.rangeTest);
+    }
+    conf = dev.getEffectiveModuleConfig('neighborInfo');
+    if (conf) {
+      Object.assign(neighborInfoConfig.value, dev.moduleConfig.neighborInfo);
     }
   },
   { immediate: true, once: true }
