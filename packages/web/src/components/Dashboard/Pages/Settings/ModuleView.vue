@@ -18,7 +18,26 @@
         <AccordionHeader>
           <DirtyHeader title="External Notification" :dirty="isExternalNotificationDirty" />
         </AccordionHeader>
-        <AccordionContent></AccordionContent>
+        <AccordionContent>
+          <ExtNotificationModule
+            v-model:active="externalNotificationConfig.active"
+            v-model:alertBell="externalNotificationConfig.alertBell"
+            v-model:alertBellBuzzer="externalNotificationConfig.alertBellBuzzer"
+            v-model:alertBellVibra="externalNotificationConfig.alertBellVibra"
+            v-model:alertMessage="externalNotificationConfig.alertMessage"
+            v-model:alertMessageBuzzer="externalNotificationConfig.alertMessageBuzzer"
+            v-model:alertMessageVibra="externalNotificationConfig.alertMessageVibra"
+            v-model:enabled="externalNotificationConfig.enabled"
+            v-model:nagTimeout="externalNotificationConfig.nagTimeout"
+            v-model:output="externalNotificationConfig.output"
+            v-model:outputBuzzer="externalNotificationConfig.outputBuzzer"
+            v-model:outputMs="externalNotificationConfig.outputMs"
+            v-model:outputVibra="externalNotificationConfig.outputVibra"
+            v-model:useI2sAsBuzzer="externalNotificationConfig.useI2sAsBuzzer"
+            v-model:usePwm="externalNotificationConfig.usePwm"
+            :v$="externalNotificationV$"
+          />
+        </AccordionContent>
       </AccordionPanel>
       <AccordionPanel value="storeForward">
         <AccordionHeader>
@@ -184,6 +203,7 @@ import {
   RangTestRules,
   NeighborInfoRules,
   PaxCounterRules,
+  ExternalNotificationRules,
 } from '@/composables/ValidationRules';
 import SettingsLayout from './components/SettingsLayout.vue';
 import DirtyHeader from './components/DirtyHeader.vue';
@@ -195,6 +215,7 @@ import AudioModule from './subforms/AudioModule.vue';
 import RangeTestModule from './subforms/RangeTestModule.vue';
 import NeighborInfoModule from './subforms/NeighborInfoModule.vue';
 import PaxCounterModule from './subforms/PaxCounterModule.vue';
+import ExtNotificationModule from './subforms/ExtNotificationModule.vue';
 import { useDeviceStore } from '@/composables/stores/device/useDeviceStore';
 import { useDeepCompareConfig } from '@/composables/useDeepCompareConfig';
 import { purgeUncloneableProperties } from '@/composables/stores/utils/purgeUncloneable';
@@ -210,9 +231,6 @@ const isMqttDirty = computed(() => {
   return false;
 });
 const isSerialDirty = computed(() => {
-  return false;
-});
-const isExternalNotificationDirty = computed(() => {
   return false;
 });
 const isStoreForwardDirty = computed(() => {
@@ -321,6 +339,20 @@ const isPaxCounterDirty = computed(() => {
 });
 const paxCounterV$ = useVuelidate(PaxCounterRules, paxCounterConfig);
 
+const externalNotificationConfig =
+  ref<Protobuf.ModuleConfig.ModuleConfig_ExternalNotificationConfig>(
+    create(Protobuf.ModuleConfig.ModuleConfig_ExternalNotificationConfigSchema)
+  );
+const isExternalNotificationDirty = computed(() => {
+  if (!device.value?.moduleConfig.externalNotification) return false;
+  return !useDeepCompareConfig(
+    externalNotificationConfig.value,
+    device.value?.moduleConfig.externalNotification,
+    true
+  );
+});
+const externalNotificationV$ = useVuelidate(ExternalNotificationRules, externalNotificationConfig);
+
 watch(
   () => device.value,
   (dev) => {
@@ -357,6 +389,10 @@ watch(
     conf = dev.getEffectiveModuleConfig('paxcounter');
     if (conf) {
       Object.assign(paxCounterConfig.value, dev.moduleConfig.paxcounter);
+    }
+    conf = dev.getEffectiveModuleConfig('externalNotification');
+    if (conf) {
+      Object.assign(externalNotificationConfig.value, dev.moduleConfig.externalNotification);
     }
   },
   { immediate: true, once: true }
