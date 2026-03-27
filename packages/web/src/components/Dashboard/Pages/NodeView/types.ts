@@ -22,6 +22,7 @@ export type ButtonsMap = {
     numSnr: ButtonConfig;
     batteryLevel: ButtonConfig;
     isOnline: ButtonConfig;
+    distance: ButtonConfig;
 };
 
 export type ButtonKey = keyof ButtonsMap;

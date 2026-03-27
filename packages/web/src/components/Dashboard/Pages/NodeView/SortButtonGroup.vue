@@ -43,6 +43,7 @@ import {
   Signal,
   Battery,
   SquareActivity,
+  Spline
 } from 'lucide-vue-next';
 import { watch, computed, ref, onMounted } from 'vue';
 import type { SortDir, SortState, ButtonKey, ButtonsMap } from './types';
@@ -61,6 +62,7 @@ const buttons: ButtonsMap = {
   numSnr: { icon: Signal, toolTip: 'Signal' },
   batteryLevel: { icon: Battery, toolTip: 'Battery Level' },
   isOnline: { icon: SquareActivity, toolTip: 'Online' },
+  distance: { icon: Spline, toolTip: 'Distance' },
 };
 
 const sortState = ref<Partial<Record<ButtonKey, SortState>>>({});
