@@ -69,7 +69,22 @@
         <AccordionHeader>
           <DirtyHeader title="Canned Messages" :dirty="isCannedMessagesDirty" />
         </AccordionHeader>
-        <AccordionContent></AccordionContent>
+        <AccordionContent>
+          <CannedMessageModule
+            v-model:allowInputSource="cannedMessagesConfig.allowInputSource"
+            v-model:enabled="cannedMessagesConfig.enabled"
+            v-model:inputbrokerEventCcw="cannedMessagesConfig.inputbrokerEventCcw"
+            v-model:inputbrokerEventCw="cannedMessagesConfig.inputbrokerEventCw"
+            v-model:inputbrokerPinA="cannedMessagesConfig.inputbrokerPinA"
+            v-model:inputbrokerPinB="cannedMessagesConfig.inputbrokerPinB"
+            v-model:inputbrokerPinPress="cannedMessagesConfig.inputbrokerPinPress"
+            v-model:rotary1Enabled="cannedMessagesConfig.rotary1Enabled"
+            v-model:sendBell="cannedMessagesConfig.sendBell"
+            v-model:updown1Enabled="cannedMessagesConfig.updown1Enabled"
+            v-model:inputbrokerEventPress="cannedMessagesConfig.inputbrokerEventPress"
+            :v$="cannedMessagesV$"
+          />
+        </AccordionContent>
       </AccordionPanel>
       <AccordionPanel value="audio">
         <AccordionHeader><DirtyHeader title="Audio" :dirty="isAudioDirty" /></AccordionHeader>
@@ -204,6 +219,7 @@ import {
   NeighborInfoRules,
   PaxCounterRules,
   ExternalNotificationRules,
+  CannedMessagesRules,
 } from '@/composables/ValidationRules';
 import SettingsLayout from './components/SettingsLayout.vue';
 import DirtyHeader from './components/DirtyHeader.vue';
@@ -216,6 +232,7 @@ import RangeTestModule from './subforms/RangeTestModule.vue';
 import NeighborInfoModule from './subforms/NeighborInfoModule.vue';
 import PaxCounterModule from './subforms/PaxCounterModule.vue';
 import ExtNotificationModule from './subforms/ExtNotificationModule.vue';
+import CannedMessageModule from './subforms/CannedMessageModule.vue';
 import { useDeviceStore } from '@/composables/stores/device/useDeviceStore';
 import { useDeepCompareConfig } from '@/composables/useDeepCompareConfig';
 import { purgeUncloneableProperties } from '@/composables/stores/utils/purgeUncloneable';
@@ -239,9 +256,19 @@ const isStoreForwardDirty = computed(() => {
 const isTelemetryDirty = computed(() => {
   return false;
 });
+
+const cannedMessagesConfig = ref<Protobuf.ModuleConfig.ModuleConfig_CannedMessageConfig>(
+  create(Protobuf.ModuleConfig.ModuleConfig_CannedMessageConfigSchema)
+);
 const isCannedMessagesDirty = computed(() => {
-  return false;
+  if (!device.value?.moduleConfig.cannedMessage) return false;
+  return !useDeepCompareConfig(
+    cannedMessagesConfig.value,
+    device.value?.moduleConfig.cannedMessage,
+    true
+  );
 });
+const cannedMessagesV$ = useVuelidate(CannedMessagesRules, cannedMessagesConfig);
 
 const audioConfig = ref<Protobuf.ModuleConfig.ModuleConfig_AudioConfig>(
   create(Protobuf.ModuleConfig.ModuleConfig_AudioConfigSchema)
@@ -393,6 +420,10 @@ watch(
     conf = dev.getEffectiveModuleConfig('externalNotification');
     if (conf) {
       Object.assign(externalNotificationConfig.value, dev.moduleConfig.externalNotification);
+    }
+    conf = dev.getEffectiveModuleConfig('cannedMessage');
+    if (conf) {
+      Object.assign(cannedMessagesConfig.value, dev.moduleConfig.cannedMessage);
     }
   },
   { immediate: true, once: true }
