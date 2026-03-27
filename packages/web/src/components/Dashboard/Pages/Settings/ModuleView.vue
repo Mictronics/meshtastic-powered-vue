@@ -30,7 +30,15 @@
         <AccordionHeader>
           <DirtyHeader title="Range Test" :dirty="isRangeTestDirty" />
         </AccordionHeader>
-        <AccordionContent></AccordionContent>
+        <AccordionContent>
+          <RangeTestModule
+            v-model:clearOnReboot="rangeTestConfig.clearOnReboot"
+            v-model:enabled="rangeTestConfig.enabled"
+            v-model:save="rangeTestConfig.save"
+            v-model:sender="rangeTestConfig.sender"
+            :v$="rangeTestV$"
+          />
+        </AccordionContent>
       </AccordionPanel>
       <AccordionPanel value="telemetry">
         <AccordionHeader>
@@ -158,6 +166,7 @@ import {
   AmbientLightRules,
   AtakRules,
   AudioRules,
+  RangTestRules,
 } from '@/composables/ValidationRules';
 import SettingsLayout from './components/SettingsLayout.vue';
 import DirtyHeader from './components/DirtyHeader.vue';
@@ -166,6 +175,7 @@ import NodeStatusModule from './subforms/NodeStatusModule.vue';
 import AmbientLightModule from './subforms/AmbientLightModule.vue';
 import AtakModule from './subforms/AtakModule.vue';
 import AudioModule from './subforms/AudioModule.vue';
+import RangeTestModule from './subforms/RangeTestModule.vue';
 import { useDeviceStore } from '@/composables/stores/device/useDeviceStore';
 import { useDeepCompareConfig } from '@/composables/useDeepCompareConfig';
 import { purgeUncloneableProperties } from '@/composables/stores/utils/purgeUncloneable';
@@ -187,9 +197,6 @@ const isExternalNotificationDirty = computed(() => {
   return false;
 });
 const isStoreForwardDirty = computed(() => {
-  return false;
-});
-const isRangeTestDirty = computed(() => {
   return false;
 });
 const isTelemetryDirty = computed(() => {
@@ -270,6 +277,15 @@ const isAtakDirty = computed(() => {
   return !useDeepCompareConfig(atakConfig.value, device.value?.moduleConfig.tak, true);
 });
 const atakV$ = useVuelidate(AtakRules, atakConfig);
+
+const rangeTestConfig = ref<Protobuf.ModuleConfig.ModuleConfig_RangeTestConfig>(
+  create(Protobuf.ModuleConfig.ModuleConfig_RangeTestConfigSchema)
+);
+const isRangeTestDirty = computed(() => {
+  if (!device.value?.moduleConfig.rangeTest) return false;
+  return !useDeepCompareConfig(rangeTestConfig.value, device.value?.moduleConfig.rangeTest, true);
+});
+const rangeTestV$ = useVuelidate(RangTestRules, rangeTestConfig);
 
 watch(
   () => device.value,
