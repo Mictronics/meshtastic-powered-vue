@@ -43,7 +43,17 @@
         <AccordionHeader>
           <DirtyHeader title="Store and Forward" :dirty="isStoreForwardDirty" />
         </AccordionHeader>
-        <AccordionContent></AccordionContent>
+        <AccordionContent>
+          <StoreForwardModule
+            v-model:enabled="storeForwardConfig.enabled"
+            v-model:heartbeat="storeForwardConfig.heartbeat"
+            v-model:historyReturnMax="storeForwardConfig.historyReturnMax"
+            v-model:historyReturnWindow="storeForwardConfig.historyReturnWindow"
+            v-model:isServer="storeForwardConfig.isServer"
+            v-model:records="storeForwardConfig.records"
+            :v$="storeForwardV$"
+          />
+        </AccordionContent>
       </AccordionPanel>
       <AccordionPanel value="rangeTest">
         <AccordionHeader>
@@ -220,6 +230,7 @@ import {
   PaxCounterRules,
   ExternalNotificationRules,
   CannedMessagesRules,
+  StoreForwardRules,
 } from '@/composables/ValidationRules';
 import SettingsLayout from './components/SettingsLayout.vue';
 import DirtyHeader from './components/DirtyHeader.vue';
@@ -233,6 +244,7 @@ import NeighborInfoModule from './subforms/NeighborInfoModule.vue';
 import PaxCounterModule from './subforms/PaxCounterModule.vue';
 import ExtNotificationModule from './subforms/ExtNotificationModule.vue';
 import CannedMessageModule from './subforms/CannedMessageModule.vue';
+import StoreForwardModule from './subforms/StoreForwardModule.vue';
 import { useDeviceStore } from '@/composables/stores/device/useDeviceStore';
 import { useDeepCompareConfig } from '@/composables/useDeepCompareConfig';
 import { purgeUncloneableProperties } from '@/composables/stores/utils/purgeUncloneable';
@@ -250,12 +262,22 @@ const isMqttDirty = computed(() => {
 const isSerialDirty = computed(() => {
   return false;
 });
-const isStoreForwardDirty = computed(() => {
-  return false;
-});
 const isTelemetryDirty = computed(() => {
   return false;
 });
+
+const storeForwardConfig = ref<Protobuf.ModuleConfig.ModuleConfig_StoreForwardConfig>(
+  create(Protobuf.ModuleConfig.ModuleConfig_StoreForwardConfigSchema)
+);
+const isStoreForwardDirty = computed(() => {
+  if (!device.value?.moduleConfig.storeForward) return false;
+  return !useDeepCompareConfig(
+    storeForwardConfig.value,
+    device.value?.moduleConfig.storeForward,
+    true
+  );
+});
+const storeForwardV$ = useVuelidate(StoreForwardRules, storeForwardConfig);
 
 const cannedMessagesConfig = ref<Protobuf.ModuleConfig.ModuleConfig_CannedMessageConfig>(
   create(Protobuf.ModuleConfig.ModuleConfig_CannedMessageConfigSchema)
@@ -424,6 +446,10 @@ watch(
     conf = dev.getEffectiveModuleConfig('cannedMessage');
     if (conf) {
       Object.assign(cannedMessagesConfig.value, dev.moduleConfig.cannedMessage);
+    }
+    conf = dev.getEffectiveModuleConfig('storeForward');
+    if (conf) {
+      Object.assign(storeForwardConfig.value, dev.moduleConfig.storeForward);
     }
   },
   { immediate: true, once: true }
