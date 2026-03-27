@@ -147,6 +147,7 @@
             :longitude="selectedNode.position.longitudeI"
             :alt="selectedNode.position.altitude"
             :node-number="selectedNode.nodeNumber"
+            :distance="selectedNode.distance"
           />
         </div>
         <!-- Security -->

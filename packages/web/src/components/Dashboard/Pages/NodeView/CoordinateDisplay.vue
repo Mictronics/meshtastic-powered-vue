@@ -17,6 +17,8 @@
       <div class="flex gap-2 text-sm text-slate-700 dark:text-slate-400 mt-1">
         <MountainSnow :size="15" />
         {{ altDisplay }}
+        <Spline :size="15" />
+        {{ distance?.toFixed(0) }} km
       </div>
     </div>
     <router-link
@@ -39,7 +41,7 @@
 </template>
 
 <script setup lang="ts">
-import { MountainSnow, MapPinned, MapPinHouse } from 'lucide-vue-next';
+import { MountainSnow, MapPinned, MapPinHouse, Spline } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import proj4 from 'proj4';
 
@@ -48,6 +50,7 @@ type Props = {
   longitude?: number;
   alt?: number;
   nodeNumber?: number;
+  distance?: number;
 };
 
 const props = defineProps<Props>();
