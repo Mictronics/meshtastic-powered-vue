@@ -200,3 +200,7 @@ export const AudioRules = {
     },
     bitrate: { required, integer, minValue: minValue(0), maxValue: maxValue(8) },
 }
+
+export const RangTestRules = {
+    sender: { required, integer, minValue: minValue(30), maxValue: maxValue(28800000) },
+}
