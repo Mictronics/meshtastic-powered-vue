@@ -26,10 +26,9 @@
     "publish:jsr": "pnpm run prepack && pnpm prepare:jsr && deno publish --allow-dirty --no-check"
   },
   "dependencies": {
-    "@types/w3c-web-serial": "npm:@types/w3c-web-serial@^1.0.7",
-    "@meshtastic/core": "link:../core"
+    "@meshtastic/core": "link:../core",
+    "@types/w3c-web-serial": "^1.0.8"
   },
-  "devDependencies": {},
   "module": "./dist/mod.js",
   "tsdown": {
     "entry": "mod.ts",

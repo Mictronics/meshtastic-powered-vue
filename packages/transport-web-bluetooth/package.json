@@ -26,10 +26,9 @@
     "publish:jsr": "pnpm run prepack && pnpm prepare:jsr && deno publish --allow-dirty --no-check"
   },
   "dependencies": {
-    "@types/web-bluetooth": "npm:@types/web-bluetooth@^0.0.20",
-    "@meshtastic/core": "link:../core"
+    "@meshtastic/core": "link:../core",
+    "@types/web-bluetooth": "^0.0.21"
   },
-  "devDependencies": {},
   "module": "./dist/mod.js",
   "tsdown": {
     "entry": "mod.ts",

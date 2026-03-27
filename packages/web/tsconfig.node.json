@@ -13,7 +13,6 @@
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
     "lib": ["ESNext", "DOM"],
     "types": ["node", "@types/w3c-web-serial", "@types/web-bluetooth"],
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     }
