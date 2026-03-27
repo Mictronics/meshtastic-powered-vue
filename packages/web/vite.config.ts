@@ -5,7 +5,6 @@ import tailwindcss from '@tailwindcss/vite'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import unusedCode from 'vite-plugin-unused-code'
-import { visualizer } from "rollup-plugin-visualizer"
 
 let hash = "";
 let version = "";
@@ -33,11 +32,6 @@ export default defineConfig({
     unusedCode({
       patterns: ['src/**/*.*'],
     }),
-    visualizer({
-      open: false,
-      gzipSize: true,
-      brotliSize: false,
-    })
   ],
   define: {
     'import.meta.env.VITE_APP_NAME': JSON.stringify('meshtastic-powered-vue'),
