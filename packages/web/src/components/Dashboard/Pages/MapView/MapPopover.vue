@@ -25,6 +25,7 @@
       </div>
 
       <div class="flex justify-between gap-3 text-xs text-slate-500">
+        <span v-if="node?.distance">{{ node?.distance.toFixed(0) }} km</span>
         <span>{{ node?.hopsAway }} {{ lastHeard }}</span>
         <BatteryStatus
           v-if="!!node?.deviceMetrics"
