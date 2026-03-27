@@ -214,3 +214,11 @@ export const PaxCounterRules = {
     wifiThreshold: { required, integer, minValue: minValue(-120), maxValue: maxValue(0) },
     bleThreshold: { required, integer, minValue: minValue(-120), maxValue: maxValue(0) },
 }
+
+export const ExternalNotificationRules = {
+    nagTimeout: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
+    output: { required, integer, minValue: minValue(0), maxValue: maxValue(65535) },
+    outputBuzzer: { required, integer, minValue: minValue(0), maxValue: maxValue(65535) },
+    outputMs: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
+    outputVibra: { required, integer, minValue: minValue(0), maxValue: maxValue(65535) },
+}
