@@ -32,7 +32,7 @@
         :error="useGetError(v$.team)"
       >
         <Select
-          aria-labelledby="mode"
+          aria-labelledby="team"
           class="dark:bg-slate-800 dark:text-slate-400 w-full"
           label-class="dark:bg-slate-800 dark:text-slate-400"
           size="small"
