@@ -75,7 +75,7 @@
                   </div>
                   <div class="flex justify-between text-xs text-slate-500">
                     <span>
-                      <span v-if="node.distance">{{ node.distance.toFixed(0) }} km with&nbsp;</span>
+                      <span v-if="node.distance">{{ node.distance.toFixed(0) }} km&nbsp;</span>
                       {{ node.hopsAway }} {{ formatLastHeard(node.lastHeard) }}
                     </span>
                     <BatteryStatus
