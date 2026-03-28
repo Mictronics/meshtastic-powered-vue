@@ -274,6 +274,7 @@ import { purgeUncloneableProperties } from '@/composables/stores/utils/purgeUncl
 import { useConfigSave } from '@/composables/useConfigSave';
 import { onBeforeRouteLeave } from 'vue-router';
 import { useConfirm } from '@/composables/useConfirmDialog';
+import type { ValidModuleConfigType } from '@/composables/stores/device/changeRegistry';
 
 const device = useDeviceStore().device;
 const saveButtonDisable = ref(true);
@@ -449,59 +450,30 @@ watch(
   (dev) => {
     if (!dev) return;
 
-    let conf: any = dev.getEffectiveModuleConfig('trafficManagement');
-    if (conf) {
-      Object.assign(trafficManagementConfig.value, dev.moduleConfig.trafficManagement);
-    }
-    conf = dev.getEffectiveModuleConfig('statusmessage');
-    if (conf) {
-      Object.assign(statusMessageConfig.value, dev.moduleConfig.statusmessage);
-    }
-    conf = dev.getEffectiveModuleConfig('ambientLighting');
-    if (conf) {
-      Object.assign(ambientLightConfig.value, dev.moduleConfig.ambientLighting);
-    }
-    conf = dev.getEffectiveModuleConfig('tak');
-    if (conf) {
-      Object.assign(atakConfig.value, dev.moduleConfig.tak);
-    }
-    conf = dev.getEffectiveModuleConfig('audio');
-    if (conf) {
-      Object.assign(audioConfig.value, dev.moduleConfig.audio);
-    }
-    conf = dev.getEffectiveModuleConfig('rangeTest');
-    if (conf) {
-      Object.assign(rangeTestConfig.value, dev.moduleConfig.rangeTest);
-    }
-    conf = dev.getEffectiveModuleConfig('neighborInfo');
-    if (conf) {
-      Object.assign(neighborInfoConfig.value, dev.moduleConfig.neighborInfo);
-    }
-    conf = dev.getEffectiveModuleConfig('paxcounter');
-    if (conf) {
-      Object.assign(paxCounterConfig.value, dev.moduleConfig.paxcounter);
-    }
-    conf = dev.getEffectiveModuleConfig('externalNotification');
-    if (conf) {
-      Object.assign(externalNotificationConfig.value, dev.moduleConfig.externalNotification);
-    }
-    conf = dev.getEffectiveModuleConfig('cannedMessage');
-    if (conf) {
-      Object.assign(cannedMessagesConfig.value, dev.moduleConfig.cannedMessage);
-    }
-    conf = dev.getEffectiveModuleConfig('storeForward');
-    if (conf) {
-      Object.assign(storeForwardConfig.value, dev.moduleConfig.storeForward);
-    }
-    conf = dev.getEffectiveModuleConfig('mqtt');
-    if (conf) {
-      Object.assign(mqttConfig.value, dev.moduleConfig.mqtt);
-      if (
-        mqttConfig.value.mapReportSettings &&
-        Object.keys(mqttConfig.value.mapReportSettings).length > 0
-      ) {
-        Object.assign(mapReportConfig.value, dev.moduleConfig.mqtt?.mapReportSettings);
+    const assignIfExists = (key: ValidModuleConfigType, target: any) => {
+      const conf = dev.getEffectiveModuleConfig(key);
+      if (conf && dev.moduleConfig[key]) {
+        Object.assign(target.value, dev.moduleConfig[key]);
       }
+    };
+
+    assignIfExists('trafficManagement', trafficManagementConfig);
+    assignIfExists('statusmessage', statusMessageConfig);
+    assignIfExists('ambientLighting', ambientLightConfig);
+    assignIfExists('tak', atakConfig);
+    assignIfExists('audio', audioConfig);
+    assignIfExists('rangeTest', rangeTestConfig);
+    assignIfExists('neighborInfo', neighborInfoConfig);
+    assignIfExists('paxcounter', paxCounterConfig);
+    assignIfExists('externalNotification', externalNotificationConfig);
+    assignIfExists('cannedMessage', cannedMessagesConfig);
+    assignIfExists('storeForward', storeForwardConfig);
+    assignIfExists('mqtt', mqttConfig);
+    if (
+      mqttConfig.value.mapReportSettings &&
+      Object.keys(mqttConfig.value.mapReportSettings).length > 0
+    ) {
+      Object.assign(mapReportConfig.value, dev.moduleConfig.mqtt?.mapReportSettings);
     }
   },
   { immediate: true, once: true }
