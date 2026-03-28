@@ -7,8 +7,28 @@
     <template #title>Modules</template>
     <Accordion>
       <AccordionPanel value="mqtt">
-        <AccordionHeader><DirtyHeader title="MQTT" :dirty="isMqttDirty" /></AccordionHeader>
-        <AccordionContent></AccordionContent>
+        <AccordionHeader>
+          <DirtyHeader title="MQTT" :dirty="isMqttDirty || isMapReportDirty" />
+        </AccordionHeader>
+        <AccordionContent>
+          <MqttModule
+            v-model:address="mqttConfig.address"
+            v-model:enabled="mqttConfig.enabled"
+            v-model:encryptionEnabled="mqttConfig.encryptionEnabled"
+            v-model:jsonEnabled="mqttConfig.jsonEnabled"
+            v-model:mapReportingEnabled="mqttConfig.mapReportingEnabled"
+            v-model:password="mqttConfig.password"
+            v-model:positionPrecision="mapReportConfig.positionPrecision"
+            v-model:proxyToClientEnabled="mqttConfig.proxyToClientEnabled"
+            v-model:publishIntervalSecs="mapReportConfig.publishIntervalSecs"
+            v-model:root="mqttConfig.root"
+            v-model:shouldReportLocation="mapReportConfig.shouldReportLocation"
+            v-model:tlsEnabled="mqttConfig.tlsEnabled"
+            v-model:username="mqttConfig.username"
+            :mqttV$="mqttV$"
+            :mapReportV$="mapReportV$"
+          />
+        </AccordionContent>
       </AccordionPanel>
       <AccordionPanel value="serial">
         <AccordionHeader><DirtyHeader title="Serial" :dirty="isSerialDirty" /></AccordionHeader>
@@ -225,12 +245,14 @@ import {
   AmbientLightRules,
   AtakRules,
   AudioRules,
-  RangTestRules,
+  RangeTestRules,
   NeighborInfoRules,
   PaxCounterRules,
   ExternalNotificationRules,
   CannedMessagesRules,
   StoreForwardRules,
+  MqttRules,
+  MapReportRules,
 } from '@/composables/ValidationRules';
 import SettingsLayout from './components/SettingsLayout.vue';
 import DirtyHeader from './components/DirtyHeader.vue';
@@ -245,6 +267,7 @@ import PaxCounterModule from './subforms/PaxCounterModule.vue';
 import ExtNotificationModule from './subforms/ExtNotificationModule.vue';
 import CannedMessageModule from './subforms/CannedMessageModule.vue';
 import StoreForwardModule from './subforms/StoreForwardModule.vue';
+import MqttModule from './subforms/MqttModule.vue';
 import { useDeviceStore } from '@/composables/stores/device/useDeviceStore';
 import { useDeepCompareConfig } from '@/composables/useDeepCompareConfig';
 import { purgeUncloneableProperties } from '@/composables/stores/utils/purgeUncloneable';
@@ -256,15 +279,34 @@ const device = useDeviceStore().device;
 const saveButtonDisable = ref(true);
 const saveConfigHandler = useConfigSave();
 
-const isMqttDirty = computed(() => {
-  return false;
-});
 const isSerialDirty = computed(() => {
   return false;
 });
 const isTelemetryDirty = computed(() => {
   return false;
 });
+
+const mqttConfig = ref<Protobuf.ModuleConfig.ModuleConfig_MQTTConfig>(
+  create(Protobuf.ModuleConfig.ModuleConfig_MQTTConfigSchema)
+);
+const isMqttDirty = computed(() => {
+  if (!device.value?.moduleConfig.mqtt) return false;
+  return !useDeepCompareConfig(mqttConfig.value, device.value?.moduleConfig.mqtt, true);
+});
+const mqttV$ = useVuelidate(MqttRules, mqttConfig);
+
+const mapReportConfig = ref<Protobuf.ModuleConfig.ModuleConfig_MapReportSettings>(
+  create(Protobuf.ModuleConfig.ModuleConfig_MapReportSettingsSchema)
+);
+const isMapReportDirty = computed(() => {
+  if (!device.value?.moduleConfig.mqtt?.mapReportSettings) return false;
+  return !useDeepCompareConfig(
+    mapReportConfig.value,
+    device.value?.moduleConfig.mqtt.mapReportSettings,
+    true
+  );
+});
+const mapReportV$ = useVuelidate(MapReportRules, mapReportConfig);
 
 const storeForwardConfig = ref<Protobuf.ModuleConfig.ModuleConfig_StoreForwardConfig>(
   create(Protobuf.ModuleConfig.ModuleConfig_StoreForwardConfigSchema)
@@ -364,7 +406,7 @@ const isRangeTestDirty = computed(() => {
   if (!device.value?.moduleConfig.rangeTest) return false;
   return !useDeepCompareConfig(rangeTestConfig.value, device.value?.moduleConfig.rangeTest, true);
 });
-const rangeTestV$ = useVuelidate(RangTestRules, rangeTestConfig);
+const rangeTestV$ = useVuelidate(RangeTestRules, rangeTestConfig);
 
 const neighborInfoConfig = ref<Protobuf.ModuleConfig.ModuleConfig_NeighborInfoConfig>(
   create(Protobuf.ModuleConfig.ModuleConfig_NeighborInfoConfigSchema)
@@ -450,6 +492,16 @@ watch(
     conf = dev.getEffectiveModuleConfig('storeForward');
     if (conf) {
       Object.assign(storeForwardConfig.value, dev.moduleConfig.storeForward);
+    }
+    conf = dev.getEffectiveModuleConfig('mqtt');
+    if (conf) {
+      Object.assign(mqttConfig.value, dev.moduleConfig.mqtt);
+      if (
+        mqttConfig.value.mapReportSettings &&
+        Object.keys(mqttConfig.value.mapReportSettings).length > 0
+      ) {
+        Object.assign(mapReportConfig.value, dev.moduleConfig.mqtt?.mapReportSettings);
+      }
     }
   },
   { immediate: true, once: true }
