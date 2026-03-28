@@ -201,7 +201,7 @@ export const AudioRules = {
     bitrate: { required, integer, minValue: minValue(0), maxValue: maxValue(8) },
 }
 
-export const RangTestRules = {
+export const RangeTestRules = {
     sender: { required, integer, minValue: minValue(30), maxValue: maxValue(28800) },
 }
 
@@ -237,4 +237,16 @@ export const StoreForwardRules = {
     historyReturnMax: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
     historyReturnWindow: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
     records: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
+}
+
+export const MqttRules = {
+    address: { minLength: minLength(0), maxLength: maxLength(64) },
+    username: { minLength: minLength(0), maxLength: maxLength(64) },
+    password: { minLength: minLength(0), maxLength: maxLength(32) },
+    root: { minLength: minLength(0), maxLength: maxLength(32) },
+}
+
+export const MapReportRules = {
+    positionPrecision: { integer, minValue: minValue(0), maxValue: maxValue(32) },
+    publishIntervalSecs: { integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
 }
