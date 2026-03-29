@@ -11,6 +11,9 @@ class PacketToMessageDTO {
     state: MessageState;
     message: string;
     type: MessageType;
+    replyId: number;
+    bitfield: number;
+    emoji: number;
 
     constructor(data: Types.PacketMetadata<string>, nodeNum: number) {
         this.channel = data.channel;
@@ -36,6 +39,9 @@ class PacketToMessageDTO {
             );
         }
         this.date = dateTimestamp;
+        this.replyId = data.replyId ?? 0;
+        this.bitfield = data.bitfield ?? 0;
+        this.emoji = data.emoji ?? 0;
     }
 
     toMessage(): Message {
@@ -48,6 +54,9 @@ class PacketToMessageDTO {
             state: this.state,
             message: this.message,
             type: this.type,
+            replyId: this.replyId,
+            bitfield: this.bitfield,
+            emoji: this.emoji,
         };
     }
 }
