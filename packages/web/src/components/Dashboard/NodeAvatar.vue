@@ -1,5 +1,5 @@
 <template>
-  <div class="avatar-wrap dark:brightness-75">
+  <div class="avatar-wrap dark:brightness-75 text-nowrap">
     <Avatar
       shape="circle"
       class="text-xs font-light bg-[rgb(var(--bg-r),var(--bg-g),var(--bg-b))] node-avatar"
