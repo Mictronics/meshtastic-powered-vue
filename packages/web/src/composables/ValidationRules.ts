@@ -250,3 +250,11 @@ export const MapReportRules = {
     positionPrecision: { integer, minValue: minValue(0), maxValue: maxValue(32) },
     publishIntervalSecs: { integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
 }
+
+export const SerialRules = {
+    baud: { required, integer, minValue: minValue(0), maxValue: maxValue(65535) },
+    mode: { required, integer, minValue: minValue(0), maxValue: maxValue(65535) },
+    rxd: { required, integer, minValue: minValue(0), maxValue: maxValue(65535) },
+    txd: { required, integer, minValue: minValue(0), maxValue: maxValue(65535) },
+    timeout: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
+}
