@@ -32,7 +32,19 @@
       </AccordionPanel>
       <AccordionPanel value="serial">
         <AccordionHeader><DirtyHeader title="Serial" :dirty="isSerialDirty" /></AccordionHeader>
-        <AccordionContent></AccordionContent>
+        <AccordionContent>
+          <SerialModule
+            v-model:baud="serialConfig.baud"
+            v-model:echo="serialConfig.echo"
+            v-model:enabled="serialConfig.enabled"
+            v-model:mode="serialConfig.mode"
+            v-model:overrideConsoleSerialPort="serialConfig.overrideConsoleSerialPort"
+            v-model:rxd="serialConfig.rxd"
+            v-model:timeout="serialConfig.timeout"
+            v-model:txd="serialConfig.txd"
+            :v$="serialV$"
+          />
+        </AccordionContent>
       </AccordionPanel>
       <AccordionPanel value="externalNotification">
         <AccordionHeader>
@@ -253,6 +265,7 @@ import {
   StoreForwardRules,
   MqttRules,
   MapReportRules,
+  SerialRules,
 } from '@/composables/ValidationRules';
 import SettingsLayout from './components/SettingsLayout.vue';
 import DirtyHeader from './components/DirtyHeader.vue';
@@ -268,6 +281,7 @@ import ExtNotificationModule from './subforms/ExtNotificationModule.vue';
 import CannedMessageModule from './subforms/CannedMessageModule.vue';
 import StoreForwardModule from './subforms/StoreForwardModule.vue';
 import MqttModule from './subforms/MqttModule.vue';
+import SerialModule from './subforms/SerialModule.vue';
 import { useDeviceStore } from '@/composables/stores/device/useDeviceStore';
 import { useDeepCompareConfig } from '@/composables/useDeepCompareConfig';
 import { purgeUncloneableProperties } from '@/composables/stores/utils/purgeUncloneable';
@@ -280,12 +294,18 @@ const device = useDeviceStore().device;
 const saveButtonDisable = ref(true);
 const saveConfigHandler = useConfigSave();
 
-const isSerialDirty = computed(() => {
-  return false;
-});
 const isTelemetryDirty = computed(() => {
   return false;
 });
+
+const serialConfig = ref<Protobuf.ModuleConfig.ModuleConfig_SerialConfig>(
+  create(Protobuf.ModuleConfig.ModuleConfig_SerialConfigSchema)
+);
+const isSerialDirty = computed(() => {
+  if (!device.value?.moduleConfig.serial) return false;
+  return !useDeepCompareConfig(serialConfig.value, device.value?.moduleConfig.serial, true);
+});
+const serialV$ = useVuelidate(SerialRules, serialConfig);
 
 const mqttConfig = ref<Protobuf.ModuleConfig.ModuleConfig_MQTTConfig>(
   create(Protobuf.ModuleConfig.ModuleConfig_MQTTConfigSchema)
@@ -475,6 +495,7 @@ watch(
     ) {
       Object.assign(mapReportConfig.value, dev.moduleConfig.mqtt?.mapReportSettings);
     }
+    assignIfExists('serial', serialConfig);
   },
   { immediate: true, once: true }
 );
