@@ -112,7 +112,7 @@ const isEmojiOnly = computed(() => {
   if (!text) return false;
   // Matches exactly one emoji
   const emojiRegex = /^(?:\p{Extended_Pictographic}|\p{Emoji_Presentation})(?:\uFE0F)?$/u;
-  return emojiRegex.test(text);
+  return emojiRegex.test(text) || (props.message.emoji ?? 0) > 0;
 });
 </script>
 
