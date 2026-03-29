@@ -61,6 +61,9 @@ export interface PacketMetadata<T> {
   to: number;
   channel: ChannelNumber;
   data: T;
+  replyId?: number,
+  emoji?: number,
+  bitfield?: number,
 }
 
 export enum EmitterScope {
