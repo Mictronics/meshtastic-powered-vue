@@ -130,6 +130,9 @@
         <!-- Environment -->
         <SectionDivider v-if="environmentMetricsItems.length" title="Environment" />
         <MetricsGrid :items="environmentMetricsItems" />
+        <!-- Air Quality -->
+        <SectionDivider v-if="airQualityItems.length" title="Air Quality" />
+        <MetricsGrid :items="airQualityItems" />
         <!-- Power -->
         <SectionDivider v-if="powerMetricsItems.length" title="Power" />
         <MetricsGrid :items="powerMetricsItems" />
@@ -404,7 +407,23 @@ const localStatsItems = computed(() => {
 const airQualityItems = computed(() => {
   const m = selectedNode.value?.airQualityMetrics;
   if (!m) return [];
-  return [];
+  return [
+    { label: 'TPS', value: m.pm?.tps },
+    { label: '0.3 um', value: m.particles?.['0.3um'] },
+    { label: '0.5 um', value: m.particles?.['0.5um'] },
+    { label: '1.0 um', value: m.particles?.['1.0um'] },
+    { label: '2.5 um', value: m.particles?.['2.5um'] },
+    { label: '4 um', value: m.particles?.['4.0um'] },
+    { label: '5 um', value: m.particles?.['5.0um'] },
+    { label: '10 um', value: m.particles?.['10.0um'] },
+    { label: 'PM10', value: m.pm?.environmental?.pm10 || m.pm?.standard?.pm10 },
+    { label: 'PM25', value: m.pm?.environmental?.pm25 || m.pm?.standard?.pm25 },
+    { label: 'PM100', value: m.pm?.environmental?.pm100 || m.pm?.standard?.pm100 },
+    { label: 'VOC', value: m.pm?.vocIdx },
+    { label: 'NOx', value: m.pm?.noxIdx },
+    { label: 'CO2 ppm', value: m.co2?.ppm },
+    { label: 'Formaldehyde ppb', value: m.formaldehyde?.ppb },
+  ];
 });
 
 const isFavorite = computed(() => {
