@@ -15,6 +15,9 @@ interface MessageBase {
   messageId: number;
   state: MessageState;
   message: string;
+  replyId?: number,
+  emoji?: number,
+  bitfield?: number,
 }
 
 interface GenericMessage<T extends MessageType> extends MessageBase {
