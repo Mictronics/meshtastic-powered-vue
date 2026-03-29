@@ -118,6 +118,8 @@ type ChatMessage = Message & {
   nodeNumber?: number;
   isSelf?: boolean;
   hopsAway?: string;
+  replyTo?: ChatMessage;
+  reactions?: ChatMessage[];
 };
 
 export type MessageWithDivider = DividerMessage | ChatMessage;
@@ -178,8 +180,9 @@ const groupedMessages = computedWithControl(
   [messageStore, numericChatId, chatType, lastReadTimestamp],
   () => {
     const grouped: MessageWithDivider[] = [];
-    let lastDate: string = '';
+    let lastDate = '';
     let messages: Message[] = [];
+    const messageMap = new Map<number, ChatMessage>();
 
     switch (chatType.value) {
       case MessageType.Broadcast:
@@ -203,10 +206,44 @@ const groupedMessages = computedWithControl(
         return [];
     }
 
+    const myNodeNum = device.value?.myNodeNum ?? 0;
+
+    // 1. Build map
+    messages.forEach((msg) => {
+      messageMap.set(msg.messageId, {
+        ...msg,
+        groupedType: 'message',
+        ...getNodeMeta(msg.from),
+        isSelf: msg.from === myNodeNum,
+        reactions: [],
+      });
+    });
+
+    // 2. Link replies and reactions
+    messages.forEach((msg) => {
+      const current = messageMap.get(msg.messageId);
+      if (!current || !msg.replyId) return;
+
+      const original = messageMap.get(msg.replyId);
+      if (!original) return;
+
+      if (msg.emoji) {
+        original.reactions?.push(current);
+      } else {
+        current.replyTo = original;
+      }
+    });
+
+    // 3. Hide emoji-only messages)
+    const visibleMessages = messages
+      .map((m) => messageMap.get(m.messageId)!)
+      .filter((m) => !m.emoji);
+
+    // 4. Build grouped UI
     let unreadDividerInserted = false;
     const lastRead = lastReadTimestamp.value;
 
-    messages.forEach((msg) => {
+    visibleMessages.forEach((msg) => {
       const date = new Date(msg.date).toLocaleDateString(undefined, {
         weekday: 'long',
         year: 'numeric',
@@ -214,7 +251,7 @@ const groupedMessages = computedWithControl(
         day: 'numeric',
       });
 
-      // Insert date divider
+      // Date divider
       if (date !== lastDate) {
         grouped.push({
           groupedType: 'divider',
@@ -224,7 +261,7 @@ const groupedMessages = computedWithControl(
         lastDate = date;
       }
 
-      // Insert UNREAD divider once
+      // Unread divider
       if (!unreadDividerInserted && lastRead !== undefined && msg.date > lastRead) {
         grouped.push({
           groupedType: 'divider',
@@ -235,14 +272,7 @@ const groupedMessages = computedWithControl(
         unreadDividerInserted = true;
       }
 
-      const myNodeNum = device.value?.myNodeNum ?? 0;
-
-      grouped.push({
-        ...msg,
-        groupedType: 'message',
-        ...getNodeMeta(msg.from),
-        isSelf: msg.from === myNodeNum,
-      });
+      grouped.push(msg);
     });
 
     return grouped;
