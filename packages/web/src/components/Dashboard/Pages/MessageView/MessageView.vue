@@ -419,7 +419,7 @@ const setMessageStateSafe = (messageId: number, newState: MessageState, channelV
   }
 };
 
-const sendMessage = async (message: string) => {
+const sendMessage = async (message: string, replyTo?: number, emoji?: number) => {
   const toValue: Types.Destination =
     chatType.value === MessageType.Direct ? numericChatId.value : 'broadcast';
   const channelValue =
@@ -427,7 +427,14 @@ const sendMessage = async (message: string) => {
 
   let messageId: number | undefined;
   try {
-    messageId = await device.value?.connection?.sendText(message, toValue, true, channelValue);
+    messageId = await device.value?.connection?.sendText(
+      message,
+      toValue,
+      true,
+      channelValue,
+      replyTo,
+      emoji
+    );
     if (messageId !== undefined) {
       setMessageStateSafe(messageId, MessageState.Ack, channelValue);
     } else {
