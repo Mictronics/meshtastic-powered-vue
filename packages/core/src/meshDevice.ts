@@ -107,8 +107,7 @@ export class MeshDevice {
   ): Promise<number> {
     this.log.debug(
       Emitter[Emitter.SendText],
-      `📤 Sending message to ${destination ?? "broadcast"} on channel ${
-        channel?.toString() ?? 0
+      `📤 Sending message to ${destination ?? "broadcast"} on channel ${channel?.toString() ?? 0
       }`,
     );
 
@@ -137,8 +136,7 @@ export class MeshDevice {
   ): Promise<number> {
     this.log.debug(
       Emitter[Emitter.SendWaypoint],
-      `📤 Sending waypoint to ${destination} on channel ${
-        channel?.toString() ?? 0
+      `📤 Sending waypoint to ${destination} on channel ${channel?.toString() ?? 0
       }`,
     );
 
@@ -619,7 +617,7 @@ export class MeshDevice {
     const resetNodes = create(Protobuf.Admin.AdminMessageSchema, {
       payloadVariant: {
         case: "nodedbReset",
-        value: 1,
+        value: true,
       },
     });
 
@@ -943,6 +941,9 @@ export class MeshDevice {
         this.events.onMessagePacket.dispatch({
           ...packetMetadata,
           data: new TextDecoder().decode(dataPacket.payload),
+          replyId: dataPacket.replyId,
+          emoji: dataPacket.emoji,
+          bitfield: dataPacket.bitfield,
         });
         break;
       }
@@ -1071,8 +1072,7 @@ export class MeshDevice {
           default: {
             this.log.error(
               Emitter[Emitter.HandleMeshPacket],
-              `⚠️ Received unhandled AdminMessage, type ${
-                adminMessage.payloadVariant.case ?? "undefined"
+              `⚠️ Received unhandled AdminMessage, type ${adminMessage.payloadVariant.case ?? "undefined"
               }`,
               dataPacket.payload,
             );
