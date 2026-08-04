@@ -1,26 +1,26 @@
-import { fileURLToPath, URL } from 'node:url'
-import { execSync } from "node:child_process";
-import { defineConfig } from 'vite'
-import tailwindcss from '@tailwindcss/vite'
-import vue from '@vitejs/plugin-vue'
-import vueDevTools from 'vite-plugin-vue-devtools'
-import unusedCode from 'vite-plugin-unused-code'
+import { fileURLToPath, URL } from 'node:url';
+import { execSync } from 'node:child_process';
+import { defineConfig } from 'vite';
+import tailwindcss from '@tailwindcss/vite';
+import vue from '@vitejs/plugin-vue';
+import vueDevTools from 'vite-plugin-vue-devtools';
+import unusedCode from 'vite-plugin-unused-code';
 
-let hash = "";
-let version = "";
+let hash = '';
+let version = '';
 try {
-  hash = execSync("git rev-parse --short HEAD", { encoding: "utf8" }).trim();
+  hash = execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim();
 } catch (error) {
-  console.error("Error getting git hash:", error);
-  hash = "DEV";
+  console.error('Error getting git hash:', error);
+  hash = 'DEV';
 }
 
 try {
-  version = execSync("git describe --tags --abbrev=0", {
-    encoding: "utf8",
+  version = execSync('git describe --tags --abbrev=0', {
+    encoding: 'utf8',
   }).trim();
 } catch {
-  console.error("Error getting git version.");
+  console.error('Error getting git version.');
 }
 
 // https://vite.dev/config/
@@ -43,5 +43,5 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
-  base: '/webclient/'
-})
+  base: '/',
+});
