@@ -40,7 +40,7 @@
         label="PSK"
         for-id="wifiPsk"
         description="Network password."
-        :error="useGetError(networkV$.onBatteryShutdownAfterSecs)"
+        :error="useGetError(networkV$.wifiPsk)"
       >
         <InputText
           id="wifiPsk"
@@ -152,9 +152,9 @@
         />
       </FormRow>
 
-      <FormRow label="DNS" for-id="ip" description="DNS server." :error="useGetError(ipV$.dns)">
+      <FormRow label="DNS" for-id="dns" description="DNS server." :error="useGetError(ipV$.dns)">
         <InputText
-          id="ip"
+          id="dns"
           class="dark:bg-slate-800 dark:text-slate-400 w-full"
           size="small"
           v-model="dns"
@@ -164,7 +164,7 @@
           pattern="^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$"
           minlength="0"
           maxlength="15"
-          :invalid="ipV$.ip.$invalid"
+          :invalid="ipV$.dns.$invalid"
           @blur="ipV$.dns.$touch()"
         />
       </FormRow>

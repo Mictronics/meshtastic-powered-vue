@@ -151,7 +151,7 @@
         label="Encoder Press Event"
         for-id="inputbrokerEventPress"
         description="Generate input event on Press of this kind."
-        :error="useGetError(v$.inputbrokerEventCcw)"
+        :error="useGetError(v$.inputbrokerEventPress)"
       >
         <Select
           aria-labelledby="inputbrokerEventPress"

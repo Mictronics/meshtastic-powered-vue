@@ -86,7 +86,7 @@
         label="Smart Position Minimum Interval"
         for-id="broadcastSmartMinimumIntervalSecs"
         description="Minimum interval (in seconds) that must pass before a smart position update is sent."
-        :error="useGetError(v$.positionBroadcastSecs)"
+        :error="useGetError(v$.broadcastSmartMinimumIntervalSecs)"
       >
         <InputGroup>
           <InputText

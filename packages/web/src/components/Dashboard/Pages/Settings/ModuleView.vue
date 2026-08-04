@@ -247,7 +247,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, toRaw } from 'vue';
 import { Protobuf } from '@meshtastic/core';
 import { create } from '@bufbuild/protobuf';
 import { useVuelidate } from '@vuelidate/core';
@@ -291,7 +291,6 @@ import { useConfirm } from '@/composables/useConfirmDialog';
 import type { ValidModuleConfigType } from '@/composables/stores/device/changeRegistry';
 
 const device = useDeviceStore().device;
-const saveButtonDisable = ref(true);
 const saveConfigHandler = useConfigSave();
 
 const isTelemetryDirty = computed(() => {
@@ -500,5 +499,154 @@ watch(
   { immediate: true, once: true }
 );
 
-const onSaveSettings = () => {};
+const isAnyDirty = computed(
+  () =>
+    isMqttDirty.value ||
+    isMapReportDirty.value ||
+    isSerialDirty.value ||
+    isExternalNotificationDirty.value ||
+    isStoreForwardDirty.value ||
+    isRangeTestDirty.value ||
+    isCannedMessagesDirty.value ||
+    isAudioDirty.value ||
+    isNeighborInfoDirty.value ||
+    isAmbientLightDirty.value ||
+    isPaxCounterDirty.value ||
+    isTrafficManagementDirty.value ||
+    isStatusMessageDirty.value ||
+    isAtakDirty.value
+);
+
+const isAnyInvalid = computed(
+  () =>
+    mqttV$.value.$invalid ||
+    mapReportV$.value.$invalid ||
+    serialV$.value.$invalid ||
+    externalNotificationV$.value.$invalid ||
+    storeForwardV$.value.$invalid ||
+    rangeTestV$.value.$invalid ||
+    cannedMessagesV$.value.$invalid ||
+    audioV$.value.$invalid ||
+    neighborInfoV$.value.$invalid ||
+    ambientLightV$.value.$invalid ||
+    paxCounterV$.value.$invalid ||
+    trafficManagementV$.value.$invalid ||
+    statusMessageV$.value.$invalid ||
+    atakV$.value.$invalid
+);
+
+const saveButtonDisable = computed(() => !isAnyDirty.value || isAnyInvalid.value);
+
+const onSaveSettings = () => {
+  if (!isAnyDirty.value) return;
+
+  if (isMqttDirty.value || isMapReportDirty.value) {
+    const conf = structuredClone(toRaw(mqttConfig.value));
+    purgeUncloneableProperties(conf);
+    if (isMapReportDirty.value) {
+      conf.mapReportSettings = structuredClone(toRaw(mapReportConfig.value));
+      purgeUncloneableProperties(conf.mapReportSettings);
+    }
+    device.value?.setChange({ type: 'moduleConfig', variant: 'mqtt' }, conf);
+  }
+
+  if (isSerialDirty.value) {
+    const conf = structuredClone(toRaw(serialConfig.value));
+    purgeUncloneableProperties(conf);
+    device.value?.setChange({ type: 'moduleConfig', variant: 'serial' }, conf);
+  }
+
+  if (isExternalNotificationDirty.value) {
+    const conf = structuredClone(toRaw(externalNotificationConfig.value));
+    purgeUncloneableProperties(conf);
+    device.value?.setChange({ type: 'moduleConfig', variant: 'externalNotification' }, conf);
+  }
+
+  if (isStoreForwardDirty.value) {
+    const conf = structuredClone(toRaw(storeForwardConfig.value));
+    purgeUncloneableProperties(conf);
+    device.value?.setChange({ type: 'moduleConfig', variant: 'storeForward' }, conf);
+  }
+
+  if (isRangeTestDirty.value) {
+    const conf = structuredClone(toRaw(rangeTestConfig.value));
+    purgeUncloneableProperties(conf);
+    device.value?.setChange({ type: 'moduleConfig', variant: 'rangeTest' }, conf);
+  }
+
+  if (isCannedMessagesDirty.value) {
+    const conf = structuredClone(toRaw(cannedMessagesConfig.value));
+    purgeUncloneableProperties(conf);
+    device.value?.setChange({ type: 'moduleConfig', variant: 'cannedMessage' }, conf);
+  }
+
+  if (isAudioDirty.value) {
+    const conf = structuredClone(toRaw(audioConfig.value));
+    purgeUncloneableProperties(conf);
+    device.value?.setChange({ type: 'moduleConfig', variant: 'audio' }, conf);
+  }
+
+  if (isNeighborInfoDirty.value) {
+    const conf = structuredClone(toRaw(neighborInfoConfig.value));
+    purgeUncloneableProperties(conf);
+    device.value?.setChange({ type: 'moduleConfig', variant: 'neighborInfo' }, conf);
+  }
+
+  if (isAmbientLightDirty.value) {
+    const conf = structuredClone(toRaw(ambientLightConfig.value));
+    purgeUncloneableProperties(conf);
+    device.value?.setChange({ type: 'moduleConfig', variant: 'ambientLighting' }, conf);
+  }
+
+  if (isPaxCounterDirty.value) {
+    const conf = structuredClone(toRaw(paxCounterConfig.value));
+    purgeUncloneableProperties(conf);
+    device.value?.setChange({ type: 'moduleConfig', variant: 'paxcounter' }, conf);
+  }
+
+  if (isTrafficManagementDirty.value) {
+    const conf = structuredClone(toRaw(trafficManagementConfig.value));
+    purgeUncloneableProperties(conf);
+    device.value?.setChange({ type: 'moduleConfig', variant: 'trafficManagement' }, conf);
+  }
+
+  if (isStatusMessageDirty.value) {
+    const conf = structuredClone(toRaw(statusMessageConfig.value));
+    purgeUncloneableProperties(conf);
+    device.value?.setChange({ type: 'moduleConfig', variant: 'statusmessage' }, conf);
+  }
+
+  if (isAtakDirty.value) {
+    const conf = structuredClone(toRaw(atakConfig.value));
+    purgeUncloneableProperties(conf);
+    device.value?.setChange({ type: 'moduleConfig', variant: 'tak' }, conf);
+  }
+
+  saveConfigHandler.save();
+};
+
+const { open } = useConfirm();
+onBeforeRouteLeave(async (to, from, next) => {
+  if (saveConfigHandler.isSaving.value) {
+    next(false);
+    return;
+  }
+
+  if (isAnyDirty.value) {
+    const confirmed = await open({
+      header: 'Discard pending changes?',
+      message: 'Leaving the page will discard all changes.',
+      acceptLabel: 'Leave',
+      cancelLabel: 'Cancel',
+    });
+
+    if (confirmed) {
+      next();
+    } else {
+      next(false);
+    }
+  } else {
+    next();
+  }
+});
 </script>
