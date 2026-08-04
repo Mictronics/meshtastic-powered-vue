@@ -56,7 +56,7 @@ Publishable packages (`core`, `transport-*`) each have `build:npm` (tsdown), `pu
 
 ### Linting note
 
-Two separate linters are in play: root **Biome** (`biome.json`) covers everything except `packages/web` (explicitly ignored in `files.ignore`), and `packages/web` has its **own ESLint** flat config (`packages/web/eslint.config.ts`) built on `@vue/eslint-config-typescript` + `eslint-plugin-vue`. When editing web app code, use `pnpm run lint` inside `packages/web`, not the root Biome scripts.
+Two separate linters are in play: root **Biome** (`biome.json`) applies across the workspace, including `packages/web` (its `files.ignore` excludes `packages/protobufs`, `dist`, `coverage`, etc., but not `packages/web`), and `packages/web` also has its **own ESLint** flat config (`packages/web/eslint.config.ts`) built on `@vue/eslint-config-typescript` + `eslint-plugin-vue`. When editing web app code, use `pnpm run lint` inside `packages/web` for Vue-aware linting; root Biome scripts will also touch web app files.
 
 ## Web app architecture (`packages/web/src`)
 
