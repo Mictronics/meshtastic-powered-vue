@@ -464,7 +464,7 @@ export const useNodeDBStore = createSharedComposable(() => {
         try {
             const nodeDBs = await useIndexedDB().getAllFromStore(IDB_NODESDB_STORE);
             if (nodeDBs) {
-                for (const oldDB of nodeDBs) {
+                for (const oldDB of nodeDBs.values()) {
                     if (oldDB.id === id) continue;
                     if (oldDB.myNodeNum === myNodeNum) {
                         // Start with shallow clones of plain-object maps
@@ -489,7 +489,8 @@ export const useNodeDBStore = createSharedComposable(() => {
                             }
 
                             const err = nodeDatabase.value?.getNodeError(num);
-                            if (err && !oldDB.hasNodeError(num)) {
+                            // oldDB is a plain object from IndexedDB, not a NodeDB instance - check nodeErrors directly
+                            if (err && !Object.prototype.hasOwnProperty.call(oldDB.nodeErrors ?? {}, num)) {
                                 mergedErrors[String(num)] = err;
                             }
                         }
@@ -510,14 +511,15 @@ export const useNodeDBStore = createSharedComposable(() => {
 
     async function loadAllNodeDBs() {
         try {
-            const all: NodeDB[] = await useIndexedDB().getAllFromStore(IDB_NODESDB_STORE);
+            const all = await useIndexedDB().getAllFromStore(IDB_NODESDB_STORE);
+            const entries = Array.from(all.values());
 
-            if (!all || all.length === 0) {
+            if (entries.length === 0) {
                 return;
             }
             const preferred =
-                all.values().find(db => db.myNodeNum !== undefined) ??
-                all[all.length - 1];
+                entries.find(db => db.myNodeNum !== undefined) ??
+                entries[entries.length - 1];
             if (preferred) {
                 nodeDatabase.value = new NodeDB(preferred.id, preferred);
             }

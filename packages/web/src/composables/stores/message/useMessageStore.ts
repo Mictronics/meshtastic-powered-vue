@@ -367,22 +367,22 @@ export const useMessageStore = createSharedComposable(() => {
             for (const [otherKey, oldStore] of ms.entries()) {
                 const otherIdNum = typeof otherKey === 'string' ? Number(otherKey) : otherKey;
                 if (otherIdNum === id || oldStore.myNodeNum !== myNodeNum) continue;
-                // Adopt broadcast conversations
-                if (oldStore.messages?.broadcast instanceof Map) {
-                    for (const [channelId, logMap] of oldStore.messages.broadcast.entries()) {
-                        messageStore.value.messages.broadcast[channelId as ChannelId] = logMap;
+                // Adopt broadcast conversations (messages/drafts are plain objects, not Maps, both live and after IndexedDB round-trip)
+                if (oldStore.messages?.broadcast) {
+                    for (const [channelId, logMap] of Object.entries(oldStore.messages.broadcast)) {
+                        messageStore.value.messages.broadcast[channelId as unknown as ChannelId] = logMap;
                     }
                 }
                 // Adopt direct conversations
-                if (oldStore.messages?.direct instanceof Map) {
-                    for (const [conversationId, logMap] of oldStore.messages.direct.entries()) {
+                if (oldStore.messages?.direct) {
+                    for (const [conversationId, logMap] of Object.entries(oldStore.messages.direct)) {
                         messageStore.value.messages.direct[conversationId] = logMap;
                     }
                 }
                 // Adopt drafts
-                if (oldStore.drafts instanceof Map) {
-                    for (const [destination, draftText] of oldStore.drafts.entries()) {
-                        messageStore.value.drafts[destination] = draftText;
+                if (oldStore.drafts) {
+                    for (const [destination, draftText] of Object.entries(oldStore.drafts)) {
+                        messageStore.value.drafts[destination as unknown as Types.Destination] = draftText;
                     }
                 }
                 idsToDelete.push(otherKey);

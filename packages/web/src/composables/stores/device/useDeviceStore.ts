@@ -403,7 +403,7 @@ class Device implements IDevice {
         } else if (
             // only add if set to never expire or not already expired
             waypoint.expire === 0 ||
-            (waypoint.expire !== 0 && waypoint.expire < Date.now())
+            (waypoint.expire !== 0 && waypoint.expire > Date.now())
         ) {
             this.waypoints.push({
                 ...waypoint,
@@ -687,7 +687,7 @@ export const useDeviceStore = createSharedComposable(() => {
             return device.value;
         }
         const all = await useIndexedDB().getAllFromStore(IDB_DEVICE_STORE);
-        const devObj = ([...all] as IDevice[]).find(c => c.connectionId === connectionId);
+        const devObj = Array.from(all.values()).find((c: IDevice) => c.connectionId === connectionId);
         const dev = new Device(0);
         if (devObj) {
             dev.set(devObj);
@@ -761,7 +761,10 @@ export const useDeviceStore = createSharedComposable(() => {
             toast('error', e.message);
             purgeUncloneableProperties(dev);
         }
-        device.value = dev;
+        // Guard against a stale throttled write resolving after the active device was switched.
+        if (device.value?.id === dev.id) {
+            device.value = dev;
+        }
         return dev;
     }
 
@@ -794,9 +797,10 @@ export const useDeviceStore = createSharedComposable(() => {
                     await deleteDevice(otherId);
                 }
             }
-            // Trim device store from the front (assuming oldest entries are at the start)
-            while (devs.length > DEVICESTORE_RETENTION_NUM) {
-                const first: IDevice = devs.shift();
+            // Trim device store from the front (assuming oldest entries are at the start); devs is a Map keyed by id
+            const remaining = Array.from(devs.values());
+            while (remaining.length > DEVICESTORE_RETENTION_NUM) {
+                const first: IDevice = remaining.shift();
                 deleteDevice(first.id);
             }
         } catch (e: any) {

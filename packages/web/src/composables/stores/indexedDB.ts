@@ -132,7 +132,7 @@ export const useIndexedDB = createSharedComposable(() => {
         return tx.done;
     }
 
-    async function getAllFromStore(storeName: string): Promise<any> {
+    async function getAllFromStore<T = any>(storeName: string): Promise<Map<IDBValidKey, T>> {
         const tx = (await db.value).transaction(storeName, "readonly");
         const all = await tx.objectStore(storeName).getAll();
         await tx.done;

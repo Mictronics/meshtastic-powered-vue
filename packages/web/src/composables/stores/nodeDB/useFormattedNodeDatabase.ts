@@ -269,10 +269,13 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
   const formatPosition = (p?: Protobuf.Mesh.Position): FormattedPosition | undefined => {
     if (!p) return undefined;
 
+    // (0,0) is the GPS "no fix" sentinel; a single coordinate being exactly 0 (e.g. near the equator/prime meridian) is a real fix.
+    const hasFix = p.latitudeI !== 0 || p.longitudeI !== 0;
+
     return {
       // Formatting is done in CoordinateDisplay
-      latitudeI: p.latitudeI ? p.latitudeI / 1e7 : undefined,
-      longitudeI: p.longitudeI ? p.longitudeI / 1e7 : undefined,
+      latitudeI: hasFix ? p.latitudeI / 1e7 : undefined,
+      longitudeI: hasFix ? p.longitudeI / 1e7 : undefined,
       altitude: p.altitude,
       altitudeHae: orDash(fmtInt(p.altitudeHae, 'm')),
       altitudeGeoidalSeparation: orDash(fmtInt(p.altitudeGeoidalSeparation, 'm')),
