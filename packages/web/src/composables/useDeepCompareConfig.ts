@@ -29,16 +29,18 @@ export const useDeepCompareConfig = (
     return true;
   }
 
+  // Must run before the typeof-object check below: typeof undefined is "undefined", not "object",
+  // so this branch would otherwise be unreachable.
+  if (allowUndefined && (a === undefined || b === undefined)) {
+    return true;
+  }
+
   if (typeof a !== "object" || typeof b !== "object") {
     return a === b;
   }
 
   if (isUint8Array(a) || isUint8Array(b)) {
     return isUint8Array(a) && isUint8Array(b) && bytesEqual(a, b);
-  }
-
-  if (allowUndefined && (a === undefined || b === undefined)) {
-    return true;
   }
 
   if (a === null || b === null) {

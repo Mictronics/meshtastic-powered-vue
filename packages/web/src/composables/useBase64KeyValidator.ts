@@ -4,7 +4,12 @@ import type { Ref } from 'vue';
 
 type KeySize = 0 | 1 | 16 | 32;
 
+// base64-js's toByteArray only checks length/padding, not the character alphabet - reject anything
+// containing characters outside the base64 set before decoding.
+const BASE64_CHARSET = /^[A-Za-z0-9+/]*={0,2}$/;
+
 export const tryDecodeBase64 = (value: string): Uint8Array | null => {
+    if (!BASE64_CHARSET.test(value)) return null;
     try {
         return toByteArray(value);
     } catch {

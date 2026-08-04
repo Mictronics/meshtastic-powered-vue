@@ -34,8 +34,8 @@ export const useUrlValidator = (value: string) => {
         "[a-z0-9\\u00a1-\\uffff_-]{0,62}" +
         ")?" +
         "[a-z0-9\\u00a1-\\uffff]\\." +
-        ")+" +
-        // TLD identifier name, may end with dot
+        ")*" +
+        // TLD identifier name, may end with dot - single-label hosts (e.g. "localhost") have no leading label+dot
         "(?:[a-z\\u00a1-\\uffff]{2,}\\.?)" +
         ")" +
         // port number (optional)

@@ -18,30 +18,6 @@ export const subscribeAll = (
     device.addMetadata(metadataPacket.data);
   });
 
-  connection.events.onRoutingPacket.subscribe((routingPacket) => {
-    switch (routingPacket.data.variant.case) {
-      case "errorReason": {
-        if (
-          routingPacket.data.variant.value === Protobuf.Mesh.Routing_Error.NONE
-        ) {
-          return;
-        }
-        console.info(`Routing Error: ${routingPacket.data.variant.value}`);
-        break;
-      }
-      case "routeReply": {
-        console.info(`Route Reply: ${routingPacket.data.variant.value}`);
-        break;
-      }
-      case "routeRequest": {
-        console.info(`Route Request: ${routingPacket.data.variant.value}`);
-        break;
-      }
-      default:
-        break;
-    }
-  });
-
   connection.events.onTelemetryPacket.subscribe((telemetryPacket) => {
     nodeDB.setMetrics(telemetryPacket);
   });
@@ -143,39 +119,41 @@ export const subscribeAll = (
   });
 
   connection.events.onRoutingPacket.subscribe((routingPacket) => {
-    if (routingPacket.data.variant.case === "errorReason") {
-      switch (routingPacket.data.variant.value) {
-        case Protobuf.Mesh.Routing_Error.MAX_RETRANSMIT:
-          break;
-        case Protobuf.Mesh.Routing_Error.NO_CHANNEL:
-          nodeDB.setNodeError(
-            routingPacket.from,
-            routingPacket?.data?.variant?.value,
-          );
-          break;
-        case Protobuf.Mesh.Routing_Error.PKI_UNKNOWN_PUBKEY:
-          nodeDB.setNodeError(
-            routingPacket.from,
-            routingPacket?.data?.variant?.value,
-          );
-          break;
-        default: {
-          break;
+    switch (routingPacket.data.variant.case) {
+      case "errorReason": {
+        switch (routingPacket.data.variant.value) {
+          case Protobuf.Mesh.Routing_Error.NO_CHANNEL:
+          case Protobuf.Mesh.Routing_Error.PKI_UNKNOWN_PUBKEY:
+            nodeDB.setNodeError(
+              routingPacket.from,
+              routingPacket.data.variant.value,
+            );
+            break;
+          default:
+            break;
         }
-      }
 
-      const errorValue = routingPacket.data.variant.value;
-      const errorName = (Protobuf.Mesh.Routing_Error[errorValue] || 'Unknown error').replaceAll('_', ' ');
-
-      if (errorValue !== Protobuf.Mesh.Routing_Error.NONE) {
-        console.error(`Routing Error: ${errorName}`);
-        toast.add({
-          severity: 'error',
-          summary: 'Routing Error',
-          detail: `Routing Error: ${errorName}`,
-          life: 6000,
-        });
+        const errorValue = routingPacket.data.variant.value;
+        if (errorValue !== Protobuf.Mesh.Routing_Error.NONE) {
+          const errorName = (Protobuf.Mesh.Routing_Error[errorValue] || 'Unknown error').replaceAll('_', ' ');
+          console.error(`Routing Error: ${errorName}`);
+          toast.add({
+            severity: 'error',
+            summary: 'Routing Error',
+            detail: `Routing Error: ${errorName}`,
+            life: 6000,
+          });
+        }
+        break;
       }
+      case "routeReply":
+        console.info(`Route Reply: ${routingPacket.data.variant.value}`);
+        break;
+      case "routeRequest":
+        console.info(`Route Request: ${routingPacket.data.variant.value}`);
+        break;
+      default:
+        break;
     }
   });
 };

@@ -151,7 +151,7 @@ export const useConnection = createGlobalState(() => {
             const device = await useDeviceStore().getDevice(conn.meshDeviceId);
             if (device?.connection) {
                 try {
-                    device.connection.disconnect();
+                    await device.connection.disconnect();
                 } catch { }
             }
 
