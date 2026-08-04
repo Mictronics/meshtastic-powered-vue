@@ -102,6 +102,10 @@ const router = createRouter({
       component: Dashboard,
       children: [
         {
+          path: '',
+          redirect: { name: 'settings.radio' },
+        },
+        {
           path: 'radio',
           name: 'settings.radio',
           component: RadioView,
@@ -120,7 +124,11 @@ const router = createRouter({
           meta: { viewSettings: true }
         }
       ]
-    }
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      redirect: { name: 'connections' },
+    },
   ],
 })
 

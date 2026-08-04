@@ -390,16 +390,19 @@ const settingsPanelItems = computed(() => [
     label: 'Radio',
     myIcon: RadioTower,
     to: '/settings/radio',
+    active: route.path === '/settings/radio',
   },
   {
     label: 'Device',
     myIcon: Router,
     to: '/settings/device',
+    active: route.path === '/settings/device',
   },
   {
     label: 'Modules',
     myIcon: Component,
     to: '/settings/modules',
+    active: route.path === '/settings/modules',
   },
 ]);
 </script>

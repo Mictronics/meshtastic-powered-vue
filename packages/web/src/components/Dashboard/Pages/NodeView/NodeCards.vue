@@ -268,7 +268,13 @@ const nodeDatabase = useFormattedNodeDatabase().nodeDatabase;
 const searchQuery = ref('');
 const debouncedQuery = refDebounced(searchQuery, 150);
 const showDrawer = ref(false);
-const selectedNode = ref<FormattedNode>();
+// Store just the node number and look up the node live, so the drawer reflects updates instead of
+// freezing on the object reference captured when it was opened (nodeDatabase entries are replaced
+// wholesale, not mutated in place, on every incoming mesh packet).
+const selectedNodeNumber = ref<number>();
+const selectedNode = computed<FormattedNode | undefined>(() =>
+  selectedNodeNumber.value != null ? nodeDatabase.value[selectedNodeNumber.value] : undefined
+);
 const windowWidth = ref(window.innerWidth);
 const showScrollButton = ref(false);
 const scroller = ref();
@@ -493,7 +499,7 @@ const chunkedNodes = computed(() => {
 });
 
 const openQuickView = (node: FormattedNode) => {
-  selectedNode.value = node;
+  selectedNodeNumber.value = node.nodeNumber;
   showDrawer.value = true;
 };
 

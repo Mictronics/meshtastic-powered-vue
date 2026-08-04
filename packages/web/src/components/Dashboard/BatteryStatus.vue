@@ -6,7 +6,7 @@
       :is="batteryStatus.icon"
       :key="batteryLevel"
       v-tooltip.bottom="{
-        value: `${batteryLevel} %`,
+        value: batteryLevel != null ? `${batteryLevel} %` : 'Unknown',
         showDelay: 50,
         hideDelay: 300,
         pt: {
@@ -19,6 +19,7 @@
 
 <script setup lang="ts">
 import {
+  Battery,
   BatteryCharging,
   BatteryFull,
   BatteryMedium,
@@ -36,14 +37,17 @@ interface StatusConfig {
 }
 
 enum BatteryStatus {
+  Unknown = -1,
   Warning = 0,
   Low,
   Medium,
   Full,
   PluggedIn,
 }
-const getBatteryStatus = (level: number): BatteryStatus => {
-  if (level > 100) {
+const getBatteryStatus = (level?: number): BatteryStatus => {
+  if (level == null) {
+    return BatteryStatus.Unknown;
+  } else if (level > 100) {
     return BatteryStatus.PluggedIn;
   } else if (level > 75) {
     return BatteryStatus.Full;
@@ -56,6 +60,10 @@ const getBatteryStatus = (level: number): BatteryStatus => {
 };
 
 const statusConfigMap: Record<BatteryStatus, StatusConfig> = {
+  [BatteryStatus.Unknown]: {
+    icon: Battery,
+    class: 'text-slate-400/50',
+  },
   [BatteryStatus.PluggedIn]: {
     icon: BatteryCharging,
     class: 'text-sky-500/50',
@@ -78,8 +86,7 @@ const statusConfigMap: Record<BatteryStatus, StatusConfig> = {
   },
 };
 
-const level = computed(() => props.batteryLevel ?? 0);
-const batteryStatus = computed(() => statusConfigMap[getBatteryStatus(level.value)]);
+const batteryStatus = computed(() => statusConfigMap[getBatteryStatus(props.batteryLevel)]);
 </script>
 
 <style lang="css" scoped>

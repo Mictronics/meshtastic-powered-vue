@@ -1,5 +1,5 @@
 <template>
-  <div v-if="filteredItems.length > 0" class="grid gap-2 grid-cols-3" :class="gridClass">
+  <div v-if="filteredItems.length > 0" class="grid gap-2" :style="gridStyle">
     <NodeDetailsItem v-for="item in filteredItems" :key="item.label" v-bind="item" />
   </div>
 </template>
@@ -24,7 +24,9 @@ const props = withDefaults(
   }
 );
 
-const gridClass = computed(() => `grid-cols-${props.columns}!`);
+// Tailwind's build-time scanner can't see a runtime-interpolated class name, so the column count
+// is set via an inline style instead of a dynamic `grid-cols-${n}` class.
+const gridStyle = computed(() => ({ gridTemplateColumns: `repeat(${props.columns}, minmax(0, 1fr))` }));
 
 const filteredItems = computed(() => {
   return props.items.filter(
