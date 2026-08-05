@@ -568,7 +568,7 @@ watch(
     // reference, so clone it to avoid mutating the persisted device state before Save.
     if (remoteHardwareConfig.value.availablePins) {
       remoteHardwareConfig.value.availablePins = structuredClone(
-        remoteHardwareConfig.value.availablePins
+        toRaw(remoteHardwareConfig.value.availablePins)
       );
     }
     assignIfExists('tak', atakConfig);
