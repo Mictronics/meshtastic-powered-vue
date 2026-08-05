@@ -116,6 +116,11 @@ enum PortNum {
   KEY_VERIFICATION_APP = 12;
 
   /*
+   * Module/port for handling primitive remote shell access.
+   */
+  REMOTE_SHELL_APP = 13;
+
+  /*
    * Provides a 'ping' service that replies to any packet it receives.
    * Also serves as a small example module.
    * ENCODING: ASCII Plaintext
@@ -149,6 +154,14 @@ enum PortNum {
    * Broadcasts on change and on a timer, possibly once a day.
    */
   NODE_STATUS_APP = 36;
+
+  /*
+   * Beacon module broadcast packets.
+   * ENCODING: protobuf
+   * Periodically broadcast by nodes in beacon mode; received by nodes with MeshBeaconConfig.FLAG_LISTEN_ENABLED.
+   * Carries a text message plus optional channel/preset offers for client apps.
+   */
+  MESH_BEACON_APP = 37;
 
   /*
    * Provides a hardware serial interface to send and receive from the Meshtastic network.
@@ -245,6 +258,19 @@ enum PortNum {
    * ENCODING: CayenneLLP
    */
   CAYENNE_APP = 77;
+
+  /*
+   * ATAK Plugin V2
+   * Portnum for payloads from the official Meshtastic ATAK plugin using
+   * TAKPacketV2 with zstd dictionary compression.
+   */
+  ATAK_PLUGIN_V2 = 78;
+
+  /* signed firmware updates over lora.
+   *
+   * ENCODING: binary (ota-common transport frames)
+   */
+  LORA_OTA_APP = 79;
 
   /*
    * GroupAlarm integration
