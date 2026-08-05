@@ -105,7 +105,26 @@
         <AccordionHeader>
           <DirtyHeader title="Telemetry" :dirty="isTelemetryDirty" />
         </AccordionHeader>
-        <AccordionContent></AccordionContent>
+        <AccordionContent>
+          <TelemetryModule
+            v-model:deviceTelemetryEnabled="telemetryConfig.deviceTelemetryEnabled"
+            v-model:deviceUpdateInterval="telemetryConfig.deviceUpdateInterval"
+            v-model:environmentMeasurementEnabled="telemetryConfig.environmentMeasurementEnabled"
+            v-model:environmentUpdateInterval="telemetryConfig.environmentUpdateInterval"
+            v-model:environmentScreenEnabled="telemetryConfig.environmentScreenEnabled"
+            v-model:environmentDisplayFahrenheit="telemetryConfig.environmentDisplayFahrenheit"
+            v-model:airQualityEnabled="telemetryConfig.airQualityEnabled"
+            v-model:airQualityInterval="telemetryConfig.airQualityInterval"
+            v-model:airQualityScreenEnabled="telemetryConfig.airQualityScreenEnabled"
+            v-model:powerMeasurementEnabled="telemetryConfig.powerMeasurementEnabled"
+            v-model:powerUpdateInterval="telemetryConfig.powerUpdateInterval"
+            v-model:powerScreenEnabled="telemetryConfig.powerScreenEnabled"
+            v-model:healthMeasurementEnabled="telemetryConfig.healthMeasurementEnabled"
+            v-model:healthUpdateInterval="telemetryConfig.healthUpdateInterval"
+            v-model:healthScreenEnabled="telemetryConfig.healthScreenEnabled"
+            :v$="telemetryV$"
+          />
+        </AccordionContent>
       </AccordionPanel>
       <AccordionPanel value="cannedMessages">
         <AccordionHeader>
@@ -266,6 +285,7 @@ import {
   RangeTestRules,
   NeighborInfoRules,
   PaxCounterRules,
+  TelemetryRules,
   ExternalNotificationRules,
   CannedMessagesRules,
   StoreForwardRules,
@@ -284,6 +304,7 @@ import AudioModule from './subforms/AudioModule.vue';
 import RangeTestModule from './subforms/RangeTestModule.vue';
 import NeighborInfoModule from './subforms/NeighborInfoModule.vue';
 import PaxCounterModule from './subforms/PaxCounterModule.vue';
+import TelemetryModule from './subforms/TelemetryModule.vue';
 import ExtNotificationModule from './subforms/ExtNotificationModule.vue';
 import CannedMessageModule from './subforms/CannedMessageModule.vue';
 import StoreForwardModule from './subforms/StoreForwardModule.vue';
@@ -299,10 +320,6 @@ import type { ValidModuleConfigType } from '@/composables/stores/device/changeRe
 
 const device = useDeviceStore().device;
 const saveConfigHandler = useConfigSave();
-
-const isTelemetryDirty = computed(() => {
-  return false;
-});
 
 const serialConfig = ref<Protobuf.ModuleConfig.ModuleConfig_SerialConfig>(
   create(Protobuf.ModuleConfig.ModuleConfig_SerialConfigSchema)
@@ -426,6 +443,15 @@ const isAtakDirty = computed(() => {
 });
 const atakV$ = useVuelidate(AtakRules, atakConfig);
 
+const telemetryConfig = ref<Protobuf.ModuleConfig.ModuleConfig_TelemetryConfig>(
+  create(Protobuf.ModuleConfig.ModuleConfig_TelemetryConfigSchema)
+);
+const isTelemetryDirty = computed(() => {
+  if (!device.value?.moduleConfig.telemetry) return false;
+  return !useDeepCompareConfig(telemetryConfig.value, device.value?.moduleConfig.telemetry, true);
+});
+const telemetryV$ = useVuelidate(TelemetryRules, telemetryConfig);
+
 const meshBeaconConfig = ref<Protobuf.ModuleConfig.ModuleConfig_MeshBeaconConfig>(
   create(Protobuf.ModuleConfig.ModuleConfig_MeshBeaconConfigSchema)
 );
@@ -496,6 +522,7 @@ watch(
     assignIfExists('statusmessage', statusMessageConfig);
     assignIfExists('ambientLighting', ambientLightConfig);
     assignIfExists('tak', atakConfig);
+    assignIfExists('telemetry', telemetryConfig);
     assignIfExists('meshBeacon', meshBeaconConfig);
     assignIfExists('audio', audioConfig);
     assignIfExists('rangeTest', rangeTestConfig);
@@ -532,6 +559,7 @@ const isAnyDirty = computed(
     isTrafficManagementDirty.value ||
     isStatusMessageDirty.value ||
     isAtakDirty.value ||
+    isTelemetryDirty.value ||
     isMeshBeaconDirty.value
 );
 
@@ -551,6 +579,7 @@ const isAnyInvalid = computed(
     trafficManagementV$.value.$invalid ||
     statusMessageV$.value.$invalid ||
     atakV$.value.$invalid ||
+    telemetryV$.value.$invalid ||
     meshBeaconV$.value.$invalid
 );
 
@@ -639,6 +668,12 @@ const onSaveSettings = () => {
     const conf = structuredClone(toRaw(atakConfig.value));
     purgeUncloneableProperties(conf);
     device.value?.setChange({ type: 'moduleConfig', variant: 'tak' }, conf);
+  }
+
+  if (isTelemetryDirty.value) {
+    const conf = structuredClone(toRaw(telemetryConfig.value));
+    purgeUncloneableProperties(conf);
+    device.value?.setChange({ type: 'moduleConfig', variant: 'telemetry' }, conf);
   }
 
   if (isMeshBeaconDirty.value) {

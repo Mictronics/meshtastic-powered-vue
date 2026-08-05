@@ -1,4 +1,13 @@
 import { required, numeric, between, integer, helpers, minValue, maxValue, minLength, maxLength, ipAddress } from '@vuelidate/validators';
+import { Protobuf } from '@meshtastic/core';
+
+// A disabled/never-configured module legitimately reports 0 for its interval field on the wire;
+// only enforce the firmware-documented minimum once the module is actually enabled.
+const minIntervalWhenEnabled = (min: number, isEnabled: (vm: any) => boolean = (vm) => vm.enabled) =>
+    helpers.withMessage(
+        `Must be at least ${min} when enabled`,
+        (value: unknown, vm: any) => !isEnabled(vm) || Number(value) >= min
+    );
 
 export const LoraRules = {
     region: { required, integer, minValue: 0 },
@@ -176,7 +185,14 @@ export const MeshBeaconRules = {
             }
         ),
     },
-    broadcastIntervalSecs: { required, integer, minValue: minValue(3600), maxValue: maxValue(4294967295) },
+    broadcastIntervalSecs: {
+        required,
+        integer,
+        minIntervalWhenEnabled: minIntervalWhenEnabled(3600, (vm) =>
+            ((vm.flags ?? 0) & Protobuf.ModuleConfig.ModuleConfig_MeshBeaconConfig_Flags.FLAG_BROADCAST_ENABLED) !== 0
+        ),
+        maxValue: maxValue(4294967295),
+    },
 }
 
 export const AudioRules = {
@@ -214,17 +230,25 @@ export const AudioRules = {
 }
 
 export const RangeTestRules = {
-    sender: { required, integer, minValue: minValue(30), maxValue: maxValue(28800) },
+    sender: { required, integer, minIntervalWhenEnabled: minIntervalWhenEnabled(30), maxValue: maxValue(28800) },
 }
 
 export const NeighborInfoRules = {
-    updateInterval: { required, integer, minValue: minValue(14400), maxValue: maxValue(4294967295) },
+    updateInterval: { required, integer, minIntervalWhenEnabled: minIntervalWhenEnabled(14400), maxValue: maxValue(4294967295) },
 }
 
 export const PaxCounterRules = {
-    paxcounterUpdateInterval: { required, integer, minValue: minValue(3600), maxValue: maxValue(4294967295) },
+    paxcounterUpdateInterval: { required, integer, minIntervalWhenEnabled: minIntervalWhenEnabled(3600), maxValue: maxValue(4294967295) },
     wifiThreshold: { required, integer, minValue: minValue(-120), maxValue: maxValue(0) },
     bleThreshold: { required, integer, minValue: minValue(-120), maxValue: maxValue(0) },
+}
+
+export const TelemetryRules = {
+    deviceUpdateInterval: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
+    environmentUpdateInterval: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
+    airQualityInterval: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
+    powerUpdateInterval: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
+    healthUpdateInterval: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
 }
 
 export const ExternalNotificationRules = {
