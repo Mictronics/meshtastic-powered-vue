@@ -194,7 +194,19 @@
         <AccordionHeader>
           <DirtyHeader title="Detection Sensor" :dirty="isDetectionSensorDirty" />
         </AccordionHeader>
-        <AccordionContent></AccordionContent>
+        <AccordionContent>
+          <DetectionModule
+            v-model:detectionTriggerType="detectionSensorConfig.detectionTriggerType"
+            v-model:enabled="detectionSensorConfig.enabled"
+            v-model:minimumBroadcastSecs="detectionSensorConfig.minimumBroadcastSecs"
+            v-model:monitorPin="detectionSensorConfig.monitorPin"
+            v-model:name="detectionSensorConfig.name"
+            v-model:sendBell="detectionSensorConfig.sendBell"
+            v-model:stateBroadcastSecs="detectionSensorConfig.stateBroadcastSecs"
+            v-model:usePullup="detectionSensorConfig.usePullup"
+            :v$="detectionSensorV$"
+          />
+        </AccordionContent>
       </AccordionPanel>
       <AccordionPanel value="remoteHardware">
         <AccordionHeader>
@@ -279,6 +291,7 @@ import {
   TrafficManagementRules,
   StatusMessageRules,
   AmbientLightRules,
+  DetectionRules,
   AtakRules,
   MeshBeaconRules,
   AudioRules,
@@ -298,6 +311,7 @@ import DirtyHeader from './components/DirtyHeader.vue';
 import TrafficModule from './subforms/TrafficModule.vue';
 import NodeStatusModule from './subforms/NodeStatusModule.vue';
 import AmbientLightModule from './subforms/AmbientLightModule.vue';
+import DetectionModule from './subforms/DetectionModule.vue';
 import AtakModule from './subforms/AtakModule.vue';
 import MeshBeaconModule from './subforms/MeshBeaconModule.vue';
 import AudioModule from './subforms/AudioModule.vue';
@@ -400,9 +414,18 @@ const isAmbientLightDirty = computed(() => {
 });
 const ambientLightV$ = useVuelidate(AmbientLightRules, ambientLightConfig);
 
+const detectionSensorConfig = ref<Protobuf.ModuleConfig.ModuleConfig_DetectionSensorConfig>(
+  create(Protobuf.ModuleConfig.ModuleConfig_DetectionSensorConfigSchema)
+);
 const isDetectionSensorDirty = computed(() => {
-  return false;
+  if (!device.value?.moduleConfig.detectionSensor) return false;
+  return !useDeepCompareConfig(
+    detectionSensorConfig.value,
+    device.value?.moduleConfig.detectionSensor,
+    true
+  );
 });
+const detectionSensorV$ = useVuelidate(DetectionRules, detectionSensorConfig);
 
 const trafficManagementConfig = ref<Protobuf.ModuleConfig.ModuleConfig_TrafficManagementConfig>(
   create(Protobuf.ModuleConfig.ModuleConfig_TrafficManagementConfigSchema)
@@ -521,6 +544,7 @@ watch(
     assignIfExists('trafficManagement', trafficManagementConfig);
     assignIfExists('statusmessage', statusMessageConfig);
     assignIfExists('ambientLighting', ambientLightConfig);
+    assignIfExists('detectionSensor', detectionSensorConfig);
     assignIfExists('tak', atakConfig);
     assignIfExists('telemetry', telemetryConfig);
     assignIfExists('meshBeacon', meshBeaconConfig);
@@ -555,6 +579,7 @@ const isAnyDirty = computed(
     isAudioDirty.value ||
     isNeighborInfoDirty.value ||
     isAmbientLightDirty.value ||
+    isDetectionSensorDirty.value ||
     isPaxCounterDirty.value ||
     isTrafficManagementDirty.value ||
     isStatusMessageDirty.value ||
@@ -575,6 +600,7 @@ const isAnyInvalid = computed(
     audioV$.value.$invalid ||
     neighborInfoV$.value.$invalid ||
     ambientLightV$.value.$invalid ||
+    detectionSensorV$.value.$invalid ||
     paxCounterV$.value.$invalid ||
     trafficManagementV$.value.$invalid ||
     statusMessageV$.value.$invalid ||
@@ -644,6 +670,12 @@ const onSaveSettings = () => {
     const conf = structuredClone(toRaw(ambientLightConfig.value));
     purgeUncloneableProperties(conf);
     device.value?.setChange({ type: 'moduleConfig', variant: 'ambientLighting' }, conf);
+  }
+
+  if (isDetectionSensorDirty.value) {
+    const conf = structuredClone(toRaw(detectionSensorConfig.value));
+    purgeUncloneableProperties(conf);
+    device.value?.setChange({ type: 'moduleConfig', variant: 'detectionSensor' }, conf);
   }
 
   if (isPaxCounterDirty.value) {

@@ -229,6 +229,14 @@ export const AudioRules = {
     bitrate: { required, integer, minValue: minValue(0), maxValue: maxValue(8) },
 }
 
+export const DetectionRules = {
+    name: { maxLength: maxLength(20) },
+    monitorPin: { required, integer, minValue: minValue(0), maxValue: maxValue(65535) },
+    detectionTriggerType: { required, integer, minValue: minValue(0), maxValue: maxValue(5) },
+    minimumBroadcastSecs: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
+    stateBroadcastSecs: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
+}
+
 export const RangeTestRules = {
     sender: { required, integer, minIntervalWhenEnabled: minIntervalWhenEnabled(30), maxValue: maxValue(28800) },
 }
