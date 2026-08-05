@@ -335,6 +335,10 @@ class Device implements IDevice {
                 this.moduleConfig.tak = config.payloadVariant.value;
                 break;
             }
+            case "meshBeacon": {
+                this.moduleConfig.meshBeacon = config.payloadVariant.value;
+                break;
+            }
             default:
                 console.warn(`[useDeviceStore] Unknown module configuration: ${config.payloadVariant.case}`);
                 break;

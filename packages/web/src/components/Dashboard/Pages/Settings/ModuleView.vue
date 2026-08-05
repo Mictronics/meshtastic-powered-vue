@@ -203,21 +203,12 @@
         </AccordionHeader>
         <AccordionContent>
           <TrafficModule
-            v-model:dropUnknownEnabled="trafficManagementConfig.dropUnknownEnabled"
-            v-model:enabled="trafficManagementConfig.enabled"
-            v-model:exhaustHopPosition="trafficManagementConfig.exhaustHopPosition"
-            v-model:exhaustHopTelemetry="trafficManagementConfig.exhaustHopTelemetry"
-            v-model:nodeinfoDirectResponse="trafficManagementConfig.nodeinfoDirectResponse"
             v-model:nodeinfoDirectResponseMaxHops="
               trafficManagementConfig.nodeinfoDirectResponseMaxHops
             "
-            v-model:positionDedupEnabled="trafficManagementConfig.positionDedupEnabled"
             v-model:positionMinIntervalSecs="trafficManagementConfig.positionMinIntervalSecs"
-            v-model:positionPrecisionBits="trafficManagementConfig.positionPrecisionBits"
-            v-model:rateLimitEnabled="trafficManagementConfig.rateLimitEnabled"
             v-model:rateLimitMaxPackets="trafficManagementConfig.rateLimitMaxPackets"
             v-model:rateLimitWindowSecs="trafficManagementConfig.rateLimitWindowSecs"
-            v-model:routerPreserveHops="trafficManagementConfig.routerPreserveHops"
             v-model:unknownPacketThreshold="trafficManagementConfig.unknownPacketThreshold"
             :v$="trafficManagementV$"
           />
@@ -242,6 +233,20 @@
           <AtakModule v-model:role="atakConfig.role" v-model:team="atakConfig.team" :v$="atakV$" />
         </AccordionContent>
       </AccordionPanel>
+      <AccordionPanel value="meshBeacon">
+        <AccordionHeader>
+          <DirtyHeader title="Mesh Beacon" :dirty="isMeshBeaconDirty" />
+        </AccordionHeader>
+        <AccordionContent>
+          <MeshBeaconModule
+            v-model:flags="meshBeaconConfig.flags"
+            v-model:broadcastMessage="meshBeaconConfig.broadcastMessage"
+            v-model:broadcastIntervalSecs="meshBeaconConfig.broadcastIntervalSecs"
+            v-model:broadcastSendAsNode="meshBeaconConfig.broadcastSendAsNode"
+            :v$="meshBeaconV$"
+          />
+        </AccordionContent>
+      </AccordionPanel>
     </Accordion>
   </SettingsLayout>
 </template>
@@ -256,6 +261,7 @@ import {
   StatusMessageRules,
   AmbientLightRules,
   AtakRules,
+  MeshBeaconRules,
   AudioRules,
   RangeTestRules,
   NeighborInfoRules,
@@ -273,6 +279,7 @@ import TrafficModule from './subforms/TrafficModule.vue';
 import NodeStatusModule from './subforms/NodeStatusModule.vue';
 import AmbientLightModule from './subforms/AmbientLightModule.vue';
 import AtakModule from './subforms/AtakModule.vue';
+import MeshBeaconModule from './subforms/MeshBeaconModule.vue';
 import AudioModule from './subforms/AudioModule.vue';
 import RangeTestModule from './subforms/RangeTestModule.vue';
 import NeighborInfoModule from './subforms/NeighborInfoModule.vue';
@@ -419,6 +426,15 @@ const isAtakDirty = computed(() => {
 });
 const atakV$ = useVuelidate(AtakRules, atakConfig);
 
+const meshBeaconConfig = ref<Protobuf.ModuleConfig.ModuleConfig_MeshBeaconConfig>(
+  create(Protobuf.ModuleConfig.ModuleConfig_MeshBeaconConfigSchema)
+);
+const isMeshBeaconDirty = computed(() => {
+  if (!device.value?.moduleConfig.meshBeacon) return false;
+  return !useDeepCompareConfig(meshBeaconConfig.value, device.value?.moduleConfig.meshBeacon, true);
+});
+const meshBeaconV$ = useVuelidate(MeshBeaconRules, meshBeaconConfig);
+
 const rangeTestConfig = ref<Protobuf.ModuleConfig.ModuleConfig_RangeTestConfig>(
   create(Protobuf.ModuleConfig.ModuleConfig_RangeTestConfigSchema)
 );
@@ -480,6 +496,7 @@ watch(
     assignIfExists('statusmessage', statusMessageConfig);
     assignIfExists('ambientLighting', ambientLightConfig);
     assignIfExists('tak', atakConfig);
+    assignIfExists('meshBeacon', meshBeaconConfig);
     assignIfExists('audio', audioConfig);
     assignIfExists('rangeTest', rangeTestConfig);
     assignIfExists('neighborInfo', neighborInfoConfig);
@@ -514,7 +531,8 @@ const isAnyDirty = computed(
     isPaxCounterDirty.value ||
     isTrafficManagementDirty.value ||
     isStatusMessageDirty.value ||
-    isAtakDirty.value
+    isAtakDirty.value ||
+    isMeshBeaconDirty.value
 );
 
 const isAnyInvalid = computed(
@@ -532,7 +550,8 @@ const isAnyInvalid = computed(
     paxCounterV$.value.$invalid ||
     trafficManagementV$.value.$invalid ||
     statusMessageV$.value.$invalid ||
-    atakV$.value.$invalid
+    atakV$.value.$invalid ||
+    meshBeaconV$.value.$invalid
 );
 
 const saveButtonDisable = computed(() => !isAnyDirty.value || isAnyInvalid.value);
@@ -620,6 +639,12 @@ const onSaveSettings = () => {
     const conf = structuredClone(toRaw(atakConfig.value));
     purgeUncloneableProperties(conf);
     device.value?.setChange({ type: 'moduleConfig', variant: 'tak' }, conf);
+  }
+
+  if (isMeshBeaconDirty.value) {
+    const conf = structuredClone(toRaw(meshBeaconConfig.value));
+    purgeUncloneableProperties(conf);
+    device.value?.setChange({ type: 'moduleConfig', variant: 'meshBeacon' }, conf);
   }
 
   saveConfigHandler.save();

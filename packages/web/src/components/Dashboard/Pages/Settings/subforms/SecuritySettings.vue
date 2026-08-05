@@ -80,6 +80,24 @@
       >
         <ToggleSwitch input-id="legacyAdmin" v-model="adminChannelEnabled" />
       </FormRow>
+
+      <FormRow
+        label="Packet Signature Policy"
+        for-id="packetSignaturePolicy"
+        description="Controls how this device authenticates remotely received mesh packets."
+      >
+        <Select
+          aria-labelledby="packetSignaturePolicy"
+          class="dark:bg-slate-800 dark:text-slate-400 w-full"
+          label-class="dark:bg-slate-800 dark:text-slate-400"
+          size="small"
+          v-model="packetSignaturePolicy"
+          :options="packetSignaturePolicyOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Select packet signature policy"
+        />
+      </FormRow>
     </FormGrid>
     <div class="pt-2">
       <h4 class="scroll-m-20 text-xl tracking-tight font-medium">Logging</h4>
@@ -106,6 +124,7 @@
 </template>
 <script setup lang="ts">
 import { ref, watch } from 'vue';
+import { Protobuf } from '@meshtastic/core';
 import FormGrid from '../components/FormGrid.vue';
 import FormRow from '../components/FormRow.vue';
 import useVuelidate from '@vuelidate/core';
@@ -114,6 +133,7 @@ import FormKeyInput from '../components/FormKeyInput.vue';
 import FormKeyGenerator from '../components/FormKeyGenerator.vue';
 import { useBase64KeyRules } from '@/composables/useBase64KeyValidator';
 import { useBase64KeyField } from '@/composables/useBase64KeyField';
+import { useEnumOptions } from '@/composables/useEnumOptions';
 
 const privateKey = defineModel<Uint8Array>('privateKey');
 const publicKey = defineModel<Uint8Array>('publicKey');
@@ -124,6 +144,13 @@ const isManaged = defineModel<boolean>('isManaged');
 const adminChannelEnabled = defineModel<boolean>('adminChannelEnabled');
 const debugLogApiEnabled = defineModel<boolean>('debugLogApiEnabled');
 const serialEnabled = defineModel<boolean>('serialEnabled');
+const packetSignaturePolicy = defineModel<Protobuf.Config.Config_SecurityConfig_PacketSignaturePolicy>(
+  'packetSignaturePolicy'
+);
+
+const packetSignaturePolicyOptions = useEnumOptions(
+  Protobuf.Config.Config_SecurityConfig_PacketSignaturePolicy
+);
 
 const privateKeyInput = useBase64KeyField(privateKey);
 const publicKeyInput = useBase64KeyField(publicKey);

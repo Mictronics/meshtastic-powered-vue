@@ -7,13 +7,20 @@
     <template #title>Device</template>
     <Accordion>
       <AccordionPanel value="user">
-        <AccordionHeader><DirtyHeader title="User" :dirty="isUserDirty" /></AccordionHeader>
+        <AccordionHeader>
+          <DirtyHeader title="User" :dirty="isUserDirty || isHamModeDirty" />
+        </AccordionHeader>
         <AccordionContent>
           <UserSettings
             v-model:isLicensed="userConfig.isLicensed"
             v-model:isUnmessagable="userConfig.isUnmessagable"
             v-model:longName="userConfig.longName"
             v-model:shortName="userConfig.shortName"
+            v-model:hamCallSign="hamCallSign"
+            v-model:hamTxPower="hamTxPower"
+            v-model:hamFrequency="hamFrequency"
+            v-model:hamShortName="hamShortName"
+            v-model:hamLongName="hamLongName"
             :id="userConfig.id"
             :hwModel="userConfig.hwModel"
             :v$="userV$"
@@ -189,6 +196,13 @@ const saveConfigHandler = useConfigSave();
 const userConfig = ref<Protobuf.Mesh.User>(create(Protobuf.Mesh.UserSchema));
 const userV$ = useVuelidate(UserRules, userConfig);
 
+const hamCallSign = ref<string>('');
+const hamTxPower = ref<number>(0);
+const hamFrequency = ref<number>(0);
+const hamShortName = ref<string>('');
+const hamLongName = ref<string>('');
+const isHamModeDirty = computed(() => hamCallSign.value.trim().length > 0);
+
 const bluetoothConfig = ref<Protobuf.Config.Config_BluetoothConfig>(
   create(Protobuf.Config.Config_BluetoothConfigSchema)
 );
@@ -359,6 +373,7 @@ watch(
 const isAnyDirty = computed(
   () =>
     isUserDirty.value ||
+    isHamModeDirty.value ||
     isDeviceDirty.value ||
     isPositionDirty.value ||
     isFixedCoordinatesDirty.value ||
@@ -400,6 +415,22 @@ const onSaveSettings = () => {
       },
     });
     device.value?.queueAdminMessage(owner);
+  }
+
+  if (isHamModeDirty.value) {
+    const hamMode = create(Protobuf.Admin.AdminMessageSchema, {
+      payloadVariant: {
+        case: 'setHamMode',
+        value: create(Protobuf.Admin.HamParametersSchema, {
+          callSign: hamCallSign.value,
+          txPower: hamTxPower.value,
+          frequency: hamFrequency.value,
+          shortName: hamShortName.value,
+          longName: hamLongName.value,
+        }),
+      },
+    });
+    device.value?.queueAdminMessage(hamMode);
   }
 
   if (isDeviceDirty.value) {

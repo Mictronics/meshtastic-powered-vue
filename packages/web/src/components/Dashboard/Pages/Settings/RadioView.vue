@@ -63,6 +63,7 @@
             v-model:admin-key0="securityConfig.adminKey[0]"
             v-model:admin-key1="securityConfig.adminKey[1]"
             v-model:admin-key2="securityConfig.adminKey[2]"
+            v-model:packet-signature-policy="securityConfig.packetSignaturePolicy"
           />
         </AccordionContent>
       </AccordionPanel>

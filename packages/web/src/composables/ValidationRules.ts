@@ -143,7 +143,6 @@ export const DisplayRules = {
 }
 
 export const TrafficManagementRules = {
-    positionPrecisionBits: { required, integer, minValue: minValue(10), maxValue: maxValue(32) },
     positionMinIntervalSecs: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
     nodeinfoDirectResponseMaxHops: { required, integer, minValue: minValue(0), maxValue: maxValue(7) },
     rateLimitWindowSecs: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
@@ -165,6 +164,19 @@ export const AmbientLightRules = {
 export const AtakRules = {
     role: { required, integer, minValue: minValue(0), maxValue: maxValue(8) },
     team: { required, integer, minValue: minValue(0), maxValue: maxValue(14) },
+}
+
+export const MeshBeaconRules = {
+    broadcastMessage: {
+        byteLength: helpers.withMessage(
+            'Message must be at most 100 bytes.',
+            (value: string) => {
+                if (!value) return true
+                return byteLength(value) <= 100
+            }
+        ),
+    },
+    broadcastIntervalSecs: { required, integer, minValue: minValue(3600), maxValue: maxValue(4294967295) },
 }
 
 export const AudioRules = {

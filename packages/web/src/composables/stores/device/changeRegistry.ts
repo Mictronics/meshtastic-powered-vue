@@ -27,7 +27,8 @@ export type ValidModuleConfigType =
     | "remoteHardware"
     | "statusmessage"
     | "trafficManagement"
-    | "tak";
+    | "tak"
+    | "meshBeacon";
 
 // Admin message types that can be queued
 export type ValidAdminMessageType = "setFixedPosition" | "other";
