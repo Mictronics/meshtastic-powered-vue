@@ -65,11 +65,13 @@ export interface IDevice {
     clientNotifications: Protobuf.Mesh.ClientNotification[];
     sessionKey: Protobuf.Config.Config_SessionkeyConfig;
     deviceUIConfig: DeviceUIConfig;
+    lockdownStatus: Protobuf.Mesh.LockdownStatus;
 
     set: (obj: Partial<IDevice>) => void;
     get: () => any;
     setStatus: (status: Types.DeviceStatusEnum) => void;
     setConnectionPhase: (phase: ConnectionPhase) => void;
+    setLockdownStatus: (status: Protobuf.Mesh.LockdownStatus) => void;
     setConnectionId: (id: ConnectionId | null) => void;
     setConfig: (config: Protobuf.Config.Config) => void;
     setModuleConfig: (config: Protobuf.ModuleConfig.ModuleConfig) => void;
@@ -161,6 +163,7 @@ class Device implements IDevice {
     clientNotifications: Protobuf.Mesh.ClientNotification[];
     sessionKey: Protobuf.Config.Config_SessionkeyConfig;
     deviceUIConfig: DeviceUIConfig;
+    lockdownStatus: Protobuf.Mesh.LockdownStatus;
 
     constructor(id: number, data?: Partial<IDevice>) {
         this.id = id;
@@ -193,6 +196,7 @@ class Device implements IDevice {
         this.clientNotifications = [];
         this.sessionKey = create(Protobuf.Config.Config_SessionkeyConfigSchema);
         this.deviceUIConfig = create(DeviceUIConfigSchema);
+        this.lockdownStatus = create(Protobuf.Mesh.LockdownStatusSchema);
     }
 
     // Set class properties from [IndexedDB] object
@@ -212,6 +216,10 @@ class Device implements IDevice {
 
     setConnectionPhase(phase: ConnectionPhase) {
         this.connectionPhase = phase;
+    };
+
+    setLockdownStatus(status: Protobuf.Mesh.LockdownStatus) {
+        this.lockdownStatus = status;
     };
 
     setConnectionId(connectionId: ConnectionId | null) {

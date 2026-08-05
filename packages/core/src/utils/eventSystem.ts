@@ -340,6 +340,15 @@ export class EventSystem {
     new SimpleEventDispatcher<Protobuf.Mesh.ClientNotification>();
 
   /**
+   * Fires when a new FromRadio message containing a LockdownStatus packet has
+   * been received from device
+   *
+   * @event onLockdownStatusPacket
+   */
+  public readonly onLockdownStatusPacket: SimpleEventDispatcher<Protobuf.Mesh.LockdownStatus> =
+    new SimpleEventDispatcher<Protobuf.Mesh.LockdownStatus>();
+
+  /**
    * Fires when the devices connection or configuration status changes
    *
    * @event onDeviceStatus

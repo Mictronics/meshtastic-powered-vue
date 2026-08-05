@@ -111,6 +111,7 @@ export enum Emitter {
   SetCannedMessages = 33,
   Disconnect = 34,
   ConnectionStatus = 35,
+  SetLockdownAuth = 36,
 }
 
 export interface LogEvent {

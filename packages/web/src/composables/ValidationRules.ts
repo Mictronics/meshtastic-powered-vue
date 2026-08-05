@@ -270,3 +270,17 @@ export const SerialRules = {
     txd: { required, integer, minValue: minValue(0), maxValue: maxValue(65535) },
     timeout: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
 }
+
+export const LockdownAuthRules = {
+    passphrase: {
+        required,
+        byteLength: helpers.withMessage(
+            'Passphrase must be 1-32 bytes.',
+            (value: string) => {
+                if (!value) return false
+                const len = byteLength(value)
+                return len >= 1 && len <= 32
+            }
+        ),
+    },
+}

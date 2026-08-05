@@ -54,6 +54,17 @@
                 Set default
               </Button>
               <Button
+                v-if="isActiveDevice && lockdownState === LockdownState.UNLOCKED"
+                class="popover-button"
+                variant="text"
+                severity="danger"
+                size="small"
+                @click="onDisableLockdown()"
+              >
+                <ShieldOff :size="15" />
+                Disable Lockdown
+              </Button>
+              <Button
                 class="popover-button"
                 variant="text"
                 severity="danger"
@@ -95,6 +106,28 @@
       </div>
     </template>
     <template #content>
+      <div v-if="isActiveDevice && lockdownState !== undefined && lockdownState !== LockdownState.STATE_UNSPECIFIED" class="mb-2">
+        <Chip v-if="lockdownState === LockdownState.NEEDS_PROVISION" class="connection-item-chip bg-amber-500 dark:bg-amber-700 dark:text-slate-400">
+          <ShieldAlert :size="15" />
+          Needs lockdown passphrase
+        </Chip>
+        <Chip v-else-if="lockdownState === LockdownState.LOCKED" class="connection-item-chip bg-amber-500 dark:bg-amber-700 dark:text-slate-400">
+          <Lock :size="15" />
+          Locked
+        </Chip>
+        <Chip v-else-if="lockdownState === LockdownState.UNLOCK_FAILED" class="connection-item-chip bg-red-500 dark:bg-red-700 dark:text-slate-400">
+          <Lock :size="15" />
+          Unlock failed
+        </Chip>
+        <Chip v-else-if="lockdownState === LockdownState.UNLOCKED" class="connection-item-chip bg-lime-500 dark:bg-lime-700 dark:text-slate-400">
+          <LockOpen :size="15" />
+          Unlocked{{ unlockedSuffix }}
+        </Chip>
+        <Chip v-else-if="lockdownState === LockdownState.DISABLED" class="connection-item-chip dark:text-slate-400">
+          <ShieldOff :size="15" />
+          Lockdown disabled
+        </Chip>
+      </div>
       <div class="flex justify-between gap-2 items-center">
         <p class="m-0 text-sm last-connected">
           {{
@@ -145,6 +178,33 @@
         >
           <ProgressSpinner style="width: 15px; height: 15px" strokeWidth="5" fill="transparent" />
         </Button>
+        <Button
+          v-if="isActiveDevice && (lockdownState === LockdownState.NEEDS_PROVISION || lockdownState === LockdownState.DISABLED)"
+          severity="warn"
+          size="small"
+          @click="goToLockdown()"
+        >
+          <KeyRound :size="15" />
+          {{ lockdownState === LockdownState.DISABLED ? 'Enable Lockdown' : 'Set Lockdown Passphrase' }}
+        </Button>
+        <Button
+          v-else-if="isActiveDevice && (lockdownState === LockdownState.LOCKED || lockdownState === LockdownState.UNLOCK_FAILED)"
+          severity="warn"
+          size="small"
+          @click="goToLockdown()"
+        >
+          <Lock :size="15" />
+          Unlock
+        </Button>
+        <Button
+          v-else-if="isActiveDevice && lockdownState === LockdownState.UNLOCKED"
+          severity="warn"
+          size="small"
+          @click="onLockNow()"
+        >
+          <Lock :size="15" />
+          Lock Now
+        </Button>
       </div>
     </template>
   </Card>
@@ -163,14 +223,26 @@ import {
   Cable,
   Bluetooth,
   RotateCcw,
+  Lock,
+  LockOpen,
+  KeyRound,
+  ShieldAlert,
+  ShieldOff,
 } from 'lucide-vue-next';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+import { useRouter } from 'vue-router';
+import { Protobuf } from '@meshtastic/core';
 import {
   ConnectionStatus,
   ConnectionType,
   type IConnection,
 } from '@/composables/stores/connection/types';
-import { formatTimeAgoIntl } from '@vueuse/core';
+import { formatTimeAgoIntl, useIntervalFn } from '@vueuse/core';
+import { useDeviceStore } from '@/composables/stores/device/useDeviceStore';
+import { useConfirm } from '@/composables/useConfirmDialog';
+import { useLockdownSession } from '@/composables/useLockdownSession';
+
+const LockdownState = Protobuf.Mesh.LockdownStatus_State;
 
 const props = defineProps<{ connection: IConnection }>();
 
@@ -199,6 +271,63 @@ const getEnumKey = (enumObj: any, value: number): string | undefined => {
 const isConnected = (): boolean => {
   const status = props.connection.status;
   return status === ConnectionStatus.Connected || status === ConnectionStatus.Configured;
+};
+
+const router = useRouter();
+const deviceStore = useDeviceStore();
+
+// The device store only ever holds one loaded device (the app's single
+// active-connection model), so lockdown UI must only render on the card
+// whose connection matches it — other cards have no live data to show.
+const isActiveDevice = computed(
+  () =>
+    props.connection.meshDeviceId !== undefined &&
+    deviceStore.device.value?.id === props.connection.meshDeviceId,
+);
+
+const lockdownState = computed(() =>
+  isActiveDevice.value ? deviceStore.device.value?.lockdownStatus.state : undefined,
+);
+
+const now = ref(Date.now());
+useIntervalFn(() => {
+  now.value = Date.now();
+}, 1000, { immediate: true });
+
+const unlockedSuffix = computed(() => {
+  if (!isActiveDevice.value) return '';
+  const status = deviceStore.device.value?.lockdownStatus;
+  if (!status) return '';
+  const bits: string[] = [];
+  if (status.bootsRemaining > 0) bits.push(`${status.bootsRemaining} boots left`);
+  if (status.validUntilEpoch > 0) {
+    void now.value; // re-read each tick so the relative time below stays live
+    bits.push(`expires ${formatTimeAgoIntl(new Date(status.validUntilEpoch * 1000))}`);
+  }
+  return bits.length ? ` — ${bits.join(', ')}` : '';
+});
+
+const goToLockdown = () => {
+  router.push({ name: 'lockdown' });
+};
+
+const onLockNow = async () => {
+  const confirmed = await useConfirm().open({
+    header: 'Lock device now?',
+    message: 'The device will immediately require the lockdown passphrase again and reboot.',
+    acceptLabel: 'Lock now',
+    cancelLabel: 'Cancel',
+  });
+  if (!confirmed) return;
+  const dev = deviceStore.device.value;
+  if (!dev?.connection) return;
+  await dev.connection.lockNow();
+  useLockdownSession().clearPassphrase();
+};
+
+const onDisableLockdown = () => {
+  op.value?.hide();
+  router.push({ name: 'lockdown', query: { action: 'disable' } });
 };
 
 const setPopoverPosition = () => {

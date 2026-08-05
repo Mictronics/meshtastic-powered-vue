@@ -350,6 +350,91 @@ export class MeshDevice {
   }
 
   /**
+   * Provisions, unlocks, or re-verifies a lockdown passphrase on hardened
+   * firmware builds (see MESHTASTIC_LOCKDOWN). Firmware infers
+   * provision-vs-unlock from its own on-flash state; callers do not need to
+   * track which case applies. Resolves once the packet is queue-acked, NOT
+   * once the device reports the outcome — listen on
+   * `events.onLockdownStatusPacket` for the actual accept/reject/backoff
+   * result.
+   */
+  public async setLockdownAuth(
+    passphrase: string | Uint8Array,
+    options: {
+      bootsRemaining?: number;
+      validUntilEpoch?: number;
+      maxSessionSeconds?: number;
+      disable?: boolean;
+    } = {},
+  ): Promise<number> {
+    this.log.debug(Emitter[Emitter.SetLockdownAuth], "🔒 Sending lockdown auth");
+
+    const passphraseBytes =
+      typeof passphrase === "string"
+        ? new TextEncoder().encode(passphrase)
+        : passphrase;
+
+    const lockdownAuthMessage = create(Protobuf.Admin.AdminMessageSchema, {
+      payloadVariant: {
+        case: "lockdownAuth",
+        value: create(Protobuf.Admin.LockdownAuthSchema, {
+          passphrase: passphraseBytes,
+          bootsRemaining: options.bootsRemaining ?? 0,
+          validUntilEpoch: options.validUntilEpoch ?? 0,
+          lockNow: false,
+          maxSessionSeconds: options.maxSessionSeconds ?? 0,
+          disable: options.disable ?? false,
+        }),
+      },
+    });
+
+    return await this.sendPacket(
+      toBinary(Protobuf.Admin.AdminMessageSchema, lockdownAuthMessage),
+      Protobuf.Portnums.PortNum.ADMIN_APP,
+      "self",
+    );
+  }
+
+  /**
+   * Immediately revokes lockdown auth for all connections and reboots the
+   * device into the locked state. Always honoured regardless of current
+   * lock state.
+   */
+  public async lockNow(): Promise<number> {
+    this.log.debug(
+      Emitter[Emitter.SetLockdownAuth],
+      "🔒 Sending lock-now command",
+    );
+
+    const lockNowMessage = create(Protobuf.Admin.AdminMessageSchema, {
+      payloadVariant: {
+        case: "lockdownAuth",
+        value: create(Protobuf.Admin.LockdownAuthSchema, {
+          passphrase: new Uint8Array(0),
+          lockNow: true,
+        }),
+      },
+    });
+
+    return await this.sendPacket(
+      toBinary(Protobuf.Admin.AdminMessageSchema, lockNowMessage),
+      Protobuf.Portnums.PortNum.ADMIN_APP,
+      "self",
+    );
+  }
+
+  /**
+   * Permanently disables lockdown mode (irreversible w.r.t. the on-chip
+   * debug lock; lockdown itself can be re-enabled later). Requires a valid
+   * passphrase to prove operator ownership.
+   */
+  public async disableLockdown(
+    passphrase: string | Uint8Array,
+  ): Promise<number> {
+    return this.setLockdownAuth(passphrase, { disable: true });
+  }
+
+  /**
    * Triggers Device to enter DFU mode
    */
   public async enterDfuMode(): Promise<number> {

@@ -1,13 +1,13 @@
-import { fromBinary } from "@bufbuild/protobuf";
-import type { MeshDevice } from "../../../mod.ts";
-import { Constants, Protobuf, Types } from "../../../mod.ts";
-import type { DeviceOutput } from "../../types.ts";
+import { fromBinary } from '@bufbuild/protobuf';
+import type { MeshDevice } from '../../../mod.ts';
+import { Constants, Protobuf, Types } from '../../../mod.ts';
+import type { DeviceOutput } from '../../types.ts';
 
 export const decodePacket = (device: MeshDevice) =>
   new WritableStream<DeviceOutput>({
     write(chunk) {
       switch (chunk.type) {
-        case "status": {
+        case 'status': {
           const { status, reason } = chunk.data as {
             status: Types.DeviceStatusEnum;
             reason?: string;
@@ -16,25 +16,22 @@ export const decodePacket = (device: MeshDevice) =>
           device.updateDeviceStatus(status);
           device.log.info(
             Types.Emitter[Types.Emitter.ConnectionStatus],
-            `🔗 ${Types.DeviceStatusEnum[status]} ${reason ? `(${reason})` : ""}`,
+            `🔗 ${Types.DeviceStatusEnum[status]} ${reason ? `(${reason})` : ''}`
           );
           break;
         }
-        case "debug": {
+        case 'debug': {
           break;
         }
-        case "packet": {
+        case 'packet': {
           let decodedMessage: Protobuf.Mesh.FromRadio;
           try {
-            decodedMessage = fromBinary(
-              Protobuf.Mesh.FromRadioSchema,
-              chunk.data,
-            );
+            decodedMessage = fromBinary(Protobuf.Mesh.FromRadioSchema, chunk.data);
           } catch (e) {
             device.log.error(
               Types.Emitter[Types.Emitter.HandleFromRadio],
-              "⚠️  Received undecodable packet",
-              e,
+              '⚠️  Received undecodable packet',
+              e
             );
             break;
           }
@@ -42,39 +39,35 @@ export const decodePacket = (device: MeshDevice) =>
 
           /** @todo Add map here when `all=true` gets fixed. */
           switch (decodedMessage.payloadVariant.case) {
-            case "packet": {
+            case 'packet': {
               try {
                 device.handleMeshPacket(decodedMessage.payloadVariant.value);
               } catch (e) {
                 device.log.error(
                   Types.Emitter[Types.Emitter.HandleFromRadio],
-                  "⚠️  Unable to handle mesh packet",
-                  e,
+                  '⚠️  Unable to handle mesh packet',
+                  e
                 );
               }
               break;
             }
 
-            case "myInfo": {
-              device.events.onMyNodeInfo.dispatch(
-                decodedMessage.payloadVariant.value,
-              );
+            case 'myInfo': {
+              device.events.onMyNodeInfo.dispatch(decodedMessage.payloadVariant.value);
               device.log.info(
                 Types.Emitter[Types.Emitter.HandleFromRadio],
-                "📱 Received Node info for this device",
+                '📱 Received Node info for this device'
               );
               break;
             }
 
-            case "nodeInfo": {
+            case 'nodeInfo': {
               device.log.info(
                 Types.Emitter[Types.Emitter.HandleFromRadio],
-                `📱 Received Node Info packet for node: ${decodedMessage.payloadVariant.value.num}`,
+                `📱 Received Node Info packet for node: ${decodedMessage.payloadVariant.value.num}`
               );
 
-              device.events.onNodeInfoPacket.dispatch(
-                decodedMessage.payloadVariant.value,
-              );
+              device.events.onNodeInfoPacket.dispatch(decodedMessage.payloadVariant.value);
 
               //TODO: HERE
               if (decodedMessage.payloadVariant.value.position) {
@@ -83,7 +76,7 @@ export const decodePacket = (device: MeshDevice) =>
                   rxTime: new Date(),
                   from: decodedMessage.payloadVariant.value.num,
                   to: decodedMessage.payloadVariant.value.num,
-                  type: "direct",
+                  type: 'direct',
                   channel: Types.ChannelNumber.Primary,
                   data: decodedMessage.payloadVariant.value.position,
                 });
@@ -96,7 +89,7 @@ export const decodePacket = (device: MeshDevice) =>
                   rxTime: new Date(),
                   from: decodedMessage.payloadVariant.value.num,
                   to: decodedMessage.payloadVariant.value.num,
-                  type: "direct",
+                  type: 'direct',
                   channel: Types.ChannelNumber.Primary,
                   data: decodedMessage.payloadVariant.value.user,
                 });
@@ -104,129 +97,113 @@ export const decodePacket = (device: MeshDevice) =>
               break;
             }
 
-            case "config": {
+            case 'config': {
               if (decodedMessage.payloadVariant.value.payloadVariant.case) {
                 device.log.trace(
                   Types.Emitter[Types.Emitter.HandleFromRadio],
-                  `💾 Received Config packet of variant: ${decodedMessage.payloadVariant.value.payloadVariant.case}`,
+                  `💾 Received Config packet of variant: ${decodedMessage.payloadVariant.value.payloadVariant.case}`
                 );
               } else {
                 device.log.warn(
                   Types.Emitter[Types.Emitter.HandleFromRadio],
-                  `⚠️ Received Config packet of variant: ${"UNK"}`,
+                  `⚠️ Received Config packet of variant: ${'UNK'}`
                 );
               }
-              device.events.onConfigPacket.dispatch(
-                decodedMessage.payloadVariant.value,
-              );
+              device.events.onConfigPacket.dispatch(decodedMessage.payloadVariant.value);
               break;
             }
 
-            case "logRecord": {
+            case 'logRecord': {
               device.log.trace(
                 Types.Emitter[Types.Emitter.HandleFromRadio],
-                "Received onLogRecord",
+                'Received onLogRecord'
               );
-              device.events.onLogRecord.dispatch(
-                decodedMessage.payloadVariant.value,
-              );
+              device.events.onLogRecord.dispatch(decodedMessage.payloadVariant.value);
               break;
             }
 
-            case "configCompleteId": {
+            case 'configCompleteId': {
               device.log.info(
                 Types.Emitter[Types.Emitter.HandleFromRadio],
-                `⚙️ Received config complete id: ${decodedMessage.payloadVariant.value}`,
+                `⚙️ Received config complete id: ${decodedMessage.payloadVariant.value}`
               );
 
               // Emit the configCompleteId event for MeshService to handle two-stage flow
-              device.events.onConfigComplete.dispatch(
-                decodedMessage.payloadVariant.value,
-              );
+              device.events.onConfigComplete.dispatch(decodedMessage.payloadVariant.value);
 
               // For backward compatibility: if configId matches, update device status
               // MeshService will override this behavior for two-stage flow
               if (decodedMessage.payloadVariant.value === device.configId) {
                 device.log.info(
                   Types.Emitter[Types.Emitter.HandleFromRadio],
-                  `⚙️ Config id matches device.configId: ${device.configId}`,
+                  `⚙️ Config id matches device.configId: ${device.configId}`
                 );
-                device.updateDeviceStatus(
-                  Types.DeviceStatusEnum.DeviceConfigured,
-                );
+                device.updateDeviceStatus(Types.DeviceStatusEnum.DeviceConfigured);
               }
               break;
             }
 
-            case "rebooted": {
+            case 'rebooted': {
               device.configure().catch(() => {
                 // TODO: FIX, workaround for `wantConfigId` not getting acks.
               });
               break;
             }
 
-            case "moduleConfig": {
+            case 'moduleConfig': {
               if (decodedMessage.payloadVariant.value.payloadVariant.case) {
                 device.log.trace(
                   Types.Emitter[Types.Emitter.HandleFromRadio],
-                  `💾 Received Module Config packet of variant: ${decodedMessage.payloadVariant.value.payloadVariant.case}`,
+                  `💾 Received Module Config packet of variant: ${decodedMessage.payloadVariant.value.payloadVariant.case}`
                 );
               } else {
                 device.log.warn(
                   Types.Emitter[Types.Emitter.HandleFromRadio],
-                  "⚠️ Received Module Config packet of variant: UNK",
+                  '⚠️ Received Module Config packet of variant: UNK'
                 );
               }
-
-              device.events.onModuleConfigPacket.dispatch(
-                decodedMessage.payloadVariant.value,
-              );
+              device.events.onModuleConfigPacket.dispatch(decodedMessage.payloadVariant.value);
               break;
             }
 
-            case "channel": {
+            case 'channel': {
               device.log.trace(
                 Types.Emitter[Types.Emitter.HandleFromRadio],
-                `🔐 Received Channel: ${decodedMessage.payloadVariant.value.index}`,
+                `🔐 Received Channel: ${decodedMessage.payloadVariant.value.index}`
               );
 
-              device.events.onChannelPacket.dispatch(
-                decodedMessage.payloadVariant.value,
-              );
+              device.events.onChannelPacket.dispatch(decodedMessage.payloadVariant.value);
               break;
             }
 
-            case "queueStatus": {
+            case 'queueStatus': {
               device.log.trace(
                 Types.Emitter[Types.Emitter.HandleFromRadio],
-                `🚧 Received Queue Status: ${decodedMessage.payloadVariant.value}`,
+                `🚧 Received Queue Status: ${decodedMessage.payloadVariant.value}`
               );
 
-              device.events.onQueueStatus.dispatch(
-                decodedMessage.payloadVariant.value,
-              );
+              device.events.onQueueStatus.dispatch(decodedMessage.payloadVariant.value);
               break;
             }
 
-            case "xmodemPacket": {
+            case 'xmodemPacket': {
               device.xModem.handlePacket(decodedMessage.payloadVariant.value);
               break;
             }
 
-            case "metadata": {
+            case 'metadata': {
               if (
-                Number.parseFloat(
-                  decodedMessage.payloadVariant.value.firmwareVersion,
-                ) < Constants.minFwVer
+                Number.parseFloat(decodedMessage.payloadVariant.value.firmwareVersion) <
+                Constants.minFwVer
               ) {
                 device.log.fatal(
                   Types.Emitter[Types.Emitter.HandleFromRadio],
-                  `Device firmware outdated. Min supported: ${Constants.minFwVer} got : ${decodedMessage.payloadVariant.value.firmwareVersion}`,
+                  `Device firmware outdated. Min supported: ${Constants.minFwVer} got : ${decodedMessage.payloadVariant.value.firmwareVersion}`
                 );
               }
               device.log.debug(
                 Types.Emitter[Types.Emitter.GetMetadata],
-                "🏷️ Received metadata packet",
+                '🏷️ Received metadata packet'
               );
 
               device.events.onDeviceMetadataPacket.dispatch({
@@ -234,33 +211,43 @@ export const decodePacket = (device: MeshDevice) =>
                 rxTime: new Date(),
                 from: 0,
                 to: 0,
-                type: "direct",
+                type: 'direct',
                 channel: Types.ChannelNumber.Primary,
                 data: decodedMessage.payloadVariant.value,
               });
               break;
             }
 
-            case "mqttClientProxyMessage": {
+            case 'mqttClientProxyMessage': {
               break;
             }
 
-            case "clientNotification": {
+            case 'clientNotification': {
               device.log.trace(
                 Types.Emitter[Types.Emitter.HandleFromRadio],
-                `📣 Received ClientNotification: ${decodedMessage.payloadVariant.value.message}`,
+                `📣 Received ClientNotification: ${decodedMessage.payloadVariant.value.message}`
               );
 
               device.events.onClientNotificationPacket.dispatch(
-                decodedMessage.payloadVariant.value,
+                decodedMessage.payloadVariant.value
               );
+              break;
+            }
+
+            case 'lockdownStatus': {
+              device.log.trace(
+                Types.Emitter[Types.Emitter.HandleFromRadio],
+                `🔒 Received LockdownStatus: ${Protobuf.Mesh.LockdownStatus_State[decodedMessage.payloadVariant.value.state]}`
+              );
+
+              device.events.onLockdownStatusPacket.dispatch(decodedMessage.payloadVariant.value);
               break;
             }
 
             default: {
               device.log.warn(
                 Types.Emitter[Types.Emitter.HandleFromRadio],
-                `⚠️ Unhandled payload variant: ${decodedMessage.payloadVariant.case}`,
+                `⚠️ Unhandled payload variant: ${decodedMessage.payloadVariant.case}`
               );
             }
           }

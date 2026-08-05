@@ -1,15 +1,16 @@
-import PacketToMessageDTO from "@/composables/PacketToMessageDTO";
-import { useNewNodeNum } from "@/composables/useNewNodeNum";
-import { type IDevice } from '@/composables/stores/device/useDeviceStore'
-import { type IMessageStore, MessageType } from '@/composables/stores/message/useMessageStore'
-import { type INodeDB } from '@/composables/stores/nodeDB/useNodeDBStore'
-import { type MeshDevice, Protobuf } from "@meshtastic/core";
+import PacketToMessageDTO from '@/composables/PacketToMessageDTO';
+import { useNewNodeNum } from '@/composables/useNewNodeNum';
+import { type IDevice } from '@/composables/stores/device/useDeviceStore';
+import { type IMessageStore, MessageType } from '@/composables/stores/message/useMessageStore';
+import { type INodeDB } from '@/composables/stores/nodeDB/useNodeDBStore';
+import { type MeshDevice, Protobuf } from '@meshtastic/core';
 import { useGlobalToast } from '@/composables/useGlobalToast';
+import { useLockdownSession } from '@/composables/useLockdownSession';
 export const subscribeAll = (
   device: IDevice,
   connection: MeshDevice,
   messageStore: IMessageStore,
-  nodeDB: INodeDB,
+  nodeDB: INodeDB
 ) => {
   let myNodeNum = 0;
   const toast = useGlobalToast();
@@ -27,13 +28,13 @@ export const subscribeAll = (
   });
 
   connection.events.onWaypointPacket.subscribe((waypoint) => {
-    console.log("onWaypointPacket");
+    console.log('onWaypointPacket');
     const { data, channel, from, rxTime } = waypoint;
     device.addWaypoint(data, channel, from, rxTime);
   });
 
   connection.events.onMyNodeInfo.subscribe((nodeInfo) => {
-    console.log("onMyNodeInfo");
+    console.log('onMyNodeInfo');
     useNewNodeNum(device.id, nodeInfo);
     myNodeNum = nodeInfo.myNodeNum;
   });
@@ -43,7 +44,7 @@ export const subscribeAll = (
   });
 
   connection.events.onPositionPacket.subscribe((position) => {
-    console.log("onPositionPacket");
+    console.log('onPositionPacket');
     nodeDB.addPosition(position);
   });
 
@@ -55,20 +56,19 @@ export const subscribeAll = (
   });
 
   connection.events.onChannelPacket.subscribe((channel) => {
-    console.log("onChannelPacket");
+    console.log('onChannelPacket');
     device.addChannel(channel);
   });
   connection.events.onConfigPacket.subscribe((config) => {
-    console.log("onConfigPacket");
+    console.log('onConfigPacket');
     device.setConfig(config);
   });
   connection.events.onModuleConfigPacket.subscribe((moduleConfig) => {
-    console.log("onModuleConfigPacket");
     device.setModuleConfig(moduleConfig);
   });
 
   connection.events.onMessagePacket.subscribe((messagePacket) => {
-    console.log("onMessagePacket");
+    console.log('onMessagePacket');
     // incoming and outgoing messages are handled by this event listener
     const dto = new PacketToMessageDTO(messagePacket, myNodeNum);
     const message = dto.toMessage();
@@ -86,19 +86,19 @@ export const subscribeAll = (
   });
 
   connection.events.onTraceRoutePacket.subscribe((traceRoutePacket) => {
-    console.log("onTraceroutePacket");
+    console.log('onTraceroutePacket');
     device.addTraceRoute({
       ...traceRoutePacket,
     });
   });
 
   connection.events.onPendingSettingsChange.subscribe((state) => {
-    console.log("onPendingSettingsChange");
+    console.log('onPendingSettingsChange');
     device.setPendingSettingsChanges(state);
   });
 
   connection.events.onMeshPacket.subscribe((meshPacket) => {
-    console.log("onMeshPacket");
+    console.log('onMeshPacket');
     nodeDB.processPacket({
       from: meshPacket.from,
       snr: meshPacket.rxSnr,
@@ -106,28 +106,39 @@ export const subscribeAll = (
     });
   });
 
-  connection.events.onClientNotificationPacket.subscribe(
-    (clientNotificationPacket) => {
-      console.log("onClientNotificationPacket");
-      device.addClientNotification(clientNotificationPacket);
-    },
-  );
+  connection.events.onClientNotificationPacket.subscribe((clientNotificationPacket) => {
+    console.log('onClientNotificationPacket');
+    device.addClientNotification(clientNotificationPacket);
+  });
+
+  connection.events.onLockdownStatusPacket.subscribe((lockdownStatus) => {
+    console.log('onLockdownStatusPacket');
+    device.setLockdownStatus(lockdownStatus);
+
+    // Silently replay a passphrase that already unlocked this device once
+    // this session, so a reconnect within the same tab doesn't re-prompt.
+    if (lockdownStatus.state === Protobuf.Mesh.LockdownStatus_State.LOCKED) {
+      const stored = useLockdownSession().getPassphraseFor(device.id);
+      if (stored) {
+        connection.setLockdownAuth(stored).catch((err) => {
+          console.warn('[subscriptions] Auto-replay of stored lockdown passphrase failed:', err);
+        });
+      }
+    }
+  });
 
   connection.events.onNeighborInfoPacket.subscribe((neighborInfo) => {
-    console.log("onNeighborInfoPacket");
+    console.log('onNeighborInfoPacket');
     device.addNeighborInfo(neighborInfo.from, neighborInfo.data);
   });
 
   connection.events.onRoutingPacket.subscribe((routingPacket) => {
     switch (routingPacket.data.variant.case) {
-      case "errorReason": {
+      case 'errorReason': {
         switch (routingPacket.data.variant.value) {
           case Protobuf.Mesh.Routing_Error.NO_CHANNEL:
           case Protobuf.Mesh.Routing_Error.PKI_UNKNOWN_PUBKEY:
-            nodeDB.setNodeError(
-              routingPacket.from,
-              routingPacket.data.variant.value,
-            );
+            nodeDB.setNodeError(routingPacket.from, routingPacket.data.variant.value);
             break;
           default:
             break;
@@ -135,7 +146,10 @@ export const subscribeAll = (
 
         const errorValue = routingPacket.data.variant.value;
         if (errorValue !== Protobuf.Mesh.Routing_Error.NONE) {
-          const errorName = (Protobuf.Mesh.Routing_Error[errorValue] || 'Unknown error').replaceAll('_', ' ');
+          const errorName = (Protobuf.Mesh.Routing_Error[errorValue] || 'Unknown error').replaceAll(
+            '_',
+            ' '
+          );
           console.error(`Routing Error: ${errorName}`);
           toast.add({
             severity: 'error',
@@ -146,10 +160,10 @@ export const subscribeAll = (
         }
         break;
       }
-      case "routeReply":
+      case 'routeReply':
         console.info(`Route Reply: ${routingPacket.data.variant.value}`);
         break;
-      case "routeRequest":
+      case 'routeRequest':
         console.info(`Route Request: ${routingPacket.data.variant.value}`);
         break;
       default:

@@ -2,7 +2,8 @@ import { ConnectionPhase, ConnectionStatus, ConnectionType, type IConnection, ty
 import { useBluetooth } from '@vueuse/core';
 import { useSerial } from "@/composables/useSerial";
 import { useRandomId } from "@/composables/useRandomId";
-import { MeshDevice } from "@meshtastic/core";
+import { create } from "@bufbuild/protobuf";
+import { MeshDevice, Protobuf } from "@meshtastic/core";
 import { TransportHTTP } from "@meshtastic/transport-http";
 import { TransportWebBluetooth } from "@meshtastic/transport-web-bluetooth";
 import { TransportWebSerial } from "@meshtastic/transport-web-serial";
@@ -354,6 +355,9 @@ export const useConnection = createGlobalState(() => {
         const deviceId = conn?.meshDeviceId ?? useRandomId();
 
         const device = await useDeviceStore().addDevice(deviceId);
+        // Never trust a lockdown state persisted from a previous session; the
+        // device reports its actual state fresh after every config_complete_id.
+        if (device) device.setLockdownStatus(create(Protobuf.Mesh.LockdownStatusSchema));
         const nodeDB = await useNodeDBStore().addNodeDB(deviceId);
         const messageStore = await useMessageStore().addMessageStore(deviceId);
         const meshDevice = new MeshDevice(transport, deviceId);

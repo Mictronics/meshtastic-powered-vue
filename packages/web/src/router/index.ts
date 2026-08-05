@@ -7,12 +7,17 @@ import {
 } from 'vue-router'
 import ConnectionsView from '@/views/ConnectionsView.vue'
 import Dashboard from '@/views/Dashboard.vue'
+import LockdownView from '@/views/LockdownView.vue'
 import NodeCards from '@/components/Dashboard/Pages/NodeView/NodeCards.vue'
 import MessageView from '@/components/Dashboard/Pages/MessageView/MessageView.vue'
 import MapView from '@/components/Dashboard/Pages/MapView/MapView.vue'
 import RadioView from '@/components/Dashboard/Pages/Settings/RadioView.vue'
 import DeviceView from '@/components/Dashboard/Pages/Settings/DeviceView.vue'
 import ModuleView from '@/components/Dashboard/Pages/Settings/ModuleView.vue'
+import { useDeviceStore } from '@/composables/stores/device/useDeviceStore'
+import { useConnectionStore } from '@/composables/stores/connection/useConnectionStore'
+import { ConnectionStatus } from '@/composables/stores/connection/types'
+import { Protobuf } from '@meshtastic/core'
 
 const chatProps = (route: RouteLocationNormalizedLoaded) => {
   return { type: String(route.params.type), id: String(route.params.id) }
@@ -84,6 +89,11 @@ const router = createRouter({
       meta: { viewConnections: true }
     },
     {
+      path: '/lockdown',
+      name: 'lockdown',
+      component: LockdownView,
+    },
+    {
       path: '/map',
       name: 'map',
       component: Dashboard,
@@ -130,6 +140,30 @@ const router = createRouter({
       redirect: { name: 'connections' },
     },
   ],
+})
+
+// Gate app routes while the active device reports itself locked, so a
+// hardened-firmware device's encrypted config/channels/nodedb are never
+// exposed through the normal UI before the operator authenticates.
+router.beforeEach((to) => {
+  if (to.name === 'lockdown' || to.name === 'connections') return true
+
+  const activeId = useConnectionStore().activeConnectionId.value
+  if (!activeId) return true // no active connection: nothing to gate
+
+  const conn = useConnectionStore().connections.value.get(activeId)
+  const isConfiguredOrConnected =
+    conn?.status === ConnectionStatus.Configured || conn?.status === ConnectionStatus.Connected
+  if (!isConfiguredOrConnected) return true // still connecting/configuring: no report could have arrived yet
+
+  const state = useDeviceStore().device.value?.lockdownStatus.state
+  const gated =
+    state === Protobuf.Mesh.LockdownStatus_State.LOCKED ||
+    state === Protobuf.Mesh.LockdownStatus_State.NEEDS_PROVISION
+  if (gated) {
+    return { name: 'lockdown', query: { redirect: to.fullPath } }
+  }
+  return true
 })
 
 export default router
