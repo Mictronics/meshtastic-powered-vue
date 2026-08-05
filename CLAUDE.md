@@ -12,7 +12,7 @@ pnpm workspace, package manager is pnpm only (`preinstall` scripts enforce this 
 
 - `packages/web` — the Vue 3 application (the actual product). Everything under "Web app architecture" below applies here.
 - `packages/core` — `@meshtastic/core`: transport-agnostic protocol implementation (`MeshDevice` class, event system, packet queue, protocol constants). Published standalone to npm/JSR.
-- `packages/protobufs` — `@meshtastic/protobufs`: generated TS stubs from the upstream Meshtastic `.proto` definitions via Buf (git submodule). Not hand-edited; regenerate with `pnpm run gen` inside that package. Requires the [Buf CLI](https://buf.build/docs/cli/installation/#install-the-buf-cli) installed locally.
+- `packages/protobufs` — `@meshtastic/protobufs`: generated TS stubs from the upstream Meshtastic `.proto` definitions via Buf (git submodule). Not hand-edited; regenerate with `pnpm run gen` inside that package. Requires the [Buf CLI](https://buf.build/docs/cli/installation/#install-the-buf-cli) installed locally. After regenerating, `vue-tsc --noEmit` does **not** reliably catch Vue template/`v-model` references to fields removed from the schema — diff the generated `*_pb.ts` types against existing usage by hand.
 - `packages/transport-http`, `packages/transport-web-bluetooth`, `packages/transport-web-serial` — transport implementations consumed by `core`/`web`, each publishable independently.
 
 Workspace packages depend on each other via `link:../<package>` in `package.json` (not npm registry versions) — changes in `core` or the transport packages are picked up live by `web` without a publish step.
@@ -88,7 +88,7 @@ Vue Router with nested routes under a shared `Dashboard.vue` shell. Top-level ro
 
 ### UI structure (`src/components/Dashboard/`)
 
-`Pages/{MapView,MessageView,NodeView,Settings}` hold the main per-route screens; `Settings/subforms` and `Settings/components` break the radio/device/module config screens into per-config-section forms that read/write the device store's change-tracking API (`setChange`/`hasChange`/`getEffectiveConfig`) rather than mutating protobuf objects directly.
+`Pages/{MapView,MessageView,NodeView,Settings}` hold the main per-route screens; `Settings/subforms` and `Settings/components` break the radio/device/module config screens into per-config-section forms that read/write the device store's change-tracking API (`setChange`/`hasChange`/`getEffectiveConfig`) rather than mutating protobuf objects directly. Adding a new config/module-config section is a ~6-touchpoint pattern best copied from an existing one (e.g. `tak` in `ModuleView.vue`): a `ref`+`create(...Schema)`, an `isXDirty` computed via `useDeepCompareConfig`, a `useVuelidate` instance, an `assignIfExists` call in the init watcher, inclusion in `isAnyDirty`/`isAnyInvalid`, and an `AccordionPanel` + `setChange` block in `onSaveSettings`. Enum dropdowns go through `useEnumOptions()` (`src/composables/useEnumOptions.ts`), which iterates the protobuf enum directly, so new/removed enum values need no UI changes. One-shot device commands that aren't a persisted config (e.g. `setFixedPosition`, `setHamMode`) go through `device.value.queueAdminMessage(AdminMessage)` instead of `setChange`.
 
 ### UI stack
 
