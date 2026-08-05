@@ -229,6 +229,9 @@ export const AudioRules = {
     bitrate: { required, integer, minValue: minValue(0), maxValue: maxValue(8) },
 }
 
+// Pins are validated inline in RemoteHardwareModule.vue (clamped on input); no scalar fields need rules here.
+export const RemoteHardwareRules = {}
+
 export const DetectionRules = {
     name: { maxLength: maxLength(20) },
     monitorPin: { required, integer, minValue: minValue(0), maxValue: maxValue(65535) },

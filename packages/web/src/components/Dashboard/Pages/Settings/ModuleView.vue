@@ -212,7 +212,14 @@
         <AccordionHeader>
           <DirtyHeader title="Remote Hardware" :dirty="isRemoteHardwareDirty" />
         </AccordionHeader>
-        <AccordionContent></AccordionContent>
+        <AccordionContent>
+          <RemoteHardwareModule
+            v-model:allowUndefinedPinAccess="remoteHardwareConfig.allowUndefinedPinAccess"
+            v-model:availablePins="remoteHardwareConfig.availablePins"
+            v-model:enabled="remoteHardwareConfig.enabled"
+            :v$="remoteHardwareV$"
+          />
+        </AccordionContent>
       </AccordionPanel>
       <AccordionPanel value="paxCounter">
         <AccordionHeader>
@@ -292,6 +299,7 @@ import {
   StatusMessageRules,
   AmbientLightRules,
   DetectionRules,
+  RemoteHardwareRules,
   AtakRules,
   MeshBeaconRules,
   AudioRules,
@@ -312,6 +320,7 @@ import TrafficModule from './subforms/TrafficModule.vue';
 import NodeStatusModule from './subforms/NodeStatusModule.vue';
 import AmbientLightModule from './subforms/AmbientLightModule.vue';
 import DetectionModule from './subforms/DetectionModule.vue';
+import RemoteHardwareModule from './subforms/RemoteHardwareModule.vue';
 import AtakModule from './subforms/AtakModule.vue';
 import MeshBeaconModule from './subforms/MeshBeaconModule.vue';
 import AudioModule from './subforms/AudioModule.vue';
@@ -453,9 +462,18 @@ const isStatusMessageDirty = computed(() => {
 });
 const statusMessageV$ = useVuelidate(StatusMessageRules, statusMessageConfig);
 
+const remoteHardwareConfig = ref<Protobuf.ModuleConfig.ModuleConfig_RemoteHardwareConfig>(
+  create(Protobuf.ModuleConfig.ModuleConfig_RemoteHardwareConfigSchema)
+);
 const isRemoteHardwareDirty = computed(() => {
-  return false;
+  if (!device.value?.moduleConfig.remoteHardware) return false;
+  return !useDeepCompareConfig(
+    remoteHardwareConfig.value,
+    device.value?.moduleConfig.remoteHardware,
+    true
+  );
 });
+const remoteHardwareV$ = useVuelidate(RemoteHardwareRules, remoteHardwareConfig);
 
 const atakConfig = ref<Protobuf.ModuleConfig.ModuleConfig_TAKConfig>(
   create(Protobuf.ModuleConfig.ModuleConfig_TAKConfigSchema)
@@ -545,6 +563,14 @@ watch(
     assignIfExists('statusmessage', statusMessageConfig);
     assignIfExists('ambientLighting', ambientLightConfig);
     assignIfExists('detectionSensor', detectionSensorConfig);
+    assignIfExists('remoteHardware', remoteHardwareConfig);
+    // availablePins is an array of sub-messages; Object.assign above only shallow-copies the
+    // reference, so clone it to avoid mutating the persisted device state before Save.
+    if (remoteHardwareConfig.value.availablePins) {
+      remoteHardwareConfig.value.availablePins = structuredClone(
+        remoteHardwareConfig.value.availablePins
+      );
+    }
     assignIfExists('tak', atakConfig);
     assignIfExists('telemetry', telemetryConfig);
     assignIfExists('meshBeacon', meshBeaconConfig);
@@ -580,6 +606,7 @@ const isAnyDirty = computed(
     isNeighborInfoDirty.value ||
     isAmbientLightDirty.value ||
     isDetectionSensorDirty.value ||
+    isRemoteHardwareDirty.value ||
     isPaxCounterDirty.value ||
     isTrafficManagementDirty.value ||
     isStatusMessageDirty.value ||
@@ -601,6 +628,7 @@ const isAnyInvalid = computed(
     neighborInfoV$.value.$invalid ||
     ambientLightV$.value.$invalid ||
     detectionSensorV$.value.$invalid ||
+    remoteHardwareV$.value.$invalid ||
     paxCounterV$.value.$invalid ||
     trafficManagementV$.value.$invalid ||
     statusMessageV$.value.$invalid ||
@@ -676,6 +704,12 @@ const onSaveSettings = () => {
     const conf = structuredClone(toRaw(detectionSensorConfig.value));
     purgeUncloneableProperties(conf);
     device.value?.setChange({ type: 'moduleConfig', variant: 'detectionSensor' }, conf);
+  }
+
+  if (isRemoteHardwareDirty.value) {
+    const conf = structuredClone(toRaw(remoteHardwareConfig.value));
+    purgeUncloneableProperties(conf);
+    device.value?.setChange({ type: 'moduleConfig', variant: 'remoteHardware' }, conf);
   }
 
   if (isPaxCounterDirty.value) {
