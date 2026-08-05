@@ -132,12 +132,12 @@
           </Message>
           <Message v-else size="small" severity="error">Web Bluetooth not supported</Message>
           <div class="flex gap-2 items-center mt-4">
-            <Button severity="secondary" size="small">
+            <Button severity="secondary" size="small" @click="requestBluetoothDevice">
               <SquareMousePointer :size="15" />
               Select device
             </Button>
             <div class="text-sm text-slate-500 dark:text-slate-400 truncate">
-              No device selected
+              {{ bluetoothDevice }}
             </div>
           </div>
           <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
@@ -247,6 +247,10 @@ let usbVendorId = 0;
 let usbProductId = 0;
 const serialPort = ref('No port selected');
 
+let btDeviceId = '';
+let btDeviceName = '';
+const bluetoothDevice = ref('No device selected');
+
 const connectionUrl = computed(() => httpType.value + domainOrIp.value);
 
 const rules = computed(() => ({
@@ -275,6 +279,9 @@ const resetForm = () => {
   connectionType.value = ConnectionType.Http;
   connectionStatus.value = ConnectionStatus.Disconnected;
   serialPort.value = 'No port selected';
+  btDeviceId = '';
+  btDeviceName = '';
+  bluetoothDevice.value = 'No device selected';
   v$.value.$reset();
 };
 
@@ -297,8 +304,8 @@ const addConnection = () => {
     connection = {
       type: ConnectionType.Bluetooth,
       name: connectionName.value,
-      deviceId: '',
-      deviceName: '',
+      deviceId: btDeviceId,
+      deviceName: btDeviceName,
       gattServiceUUID: '',
     };
   } else {
@@ -339,6 +346,18 @@ const requestSerialPort = () => {
       const p = info.usbProductId ? info.usbProductId.toString(16) : '?';
       serialPort.value = `USB ${v}:${p}`;
     }
+  });
+};
+
+const requestBluetoothDevice = () => {
+  connectionApi.requestBluetoothDeviceInfo().then((info) => {
+    if (info) {
+      btDeviceId = info.id;
+      btDeviceName = info.name ?? '';
+      bluetoothDevice.value = info.name || info.id;
+    }
+  }).catch((err) => {
+    console.warn('Bluetooth device selection cancelled or failed:', err);
   });
 };
 

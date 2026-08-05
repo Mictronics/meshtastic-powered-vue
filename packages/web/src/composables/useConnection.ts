@@ -73,6 +73,18 @@ export const useConnection = createGlobalState(() => {
         return undefined;
     }
 
+    async function requestBluetoothDeviceInfo(
+        gattServiceUUID?: string,
+    ): Promise<{ id: string; name?: string } | undefined> {
+        if (!("bluetooth" in navigator)) return undefined;
+        const device = await navigator.bluetooth.requestDevice({
+            acceptAllDevices: !gattServiceUUID,
+            optionalServices: gattServiceUUID ? [gattServiceUUID] : undefined,
+            filters: gattServiceUUID ? [{ services: [gattServiceUUID] }] : undefined,
+        });
+        return { id: device.id, name: device.name };
+    }
+
     function setStatus(
         connectionId: ConnectionId,
         status: ConnectionStatus,
@@ -469,6 +481,7 @@ export const useConnection = createGlobalState(() => {
         isBluetoothSupported,
         isSerialSupported,
         requestSerialPortInfo,
+        requestBluetoothDeviceInfo,
         connect,
         disconnect,
         deleteConnection,
