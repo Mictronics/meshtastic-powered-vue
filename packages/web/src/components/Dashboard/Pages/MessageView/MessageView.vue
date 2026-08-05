@@ -6,13 +6,13 @@
         <VirtualScroller
           ref="scroller"
           :items="groupedMessages"
-          :itemSize="52"
+          :itemSize="72"
           showSpacer
           :scrollHeight="vsHeight"
           @scroll="onScroll"
         >
           <template v-slot:item="{ item }">
-            <MessageItem :message="item" />
+            <MessageItem :message="item" @reply="onReply" @react="onReact" />
           </template>
         </VirtualScroller>
 
@@ -81,7 +81,9 @@
     <MessageInput
       :max-bytes="200"
       :to="chatType === MessageType.Direct ? numericChatId : MessageType.Broadcast"
-      @event-send-message="sendMessage"
+      :replying-to="replyingTo"
+      @event-send-message="onSendFromInput"
+      @cancel-reply="replyingTo = undefined"
     />
   </div>
 </template>
@@ -110,7 +112,7 @@ type DividerMessage = {
   variant?: 'date' | 'unread';
 };
 
-type ChatMessage = Message & {
+export type ChatMessage = Message & {
   groupedType: 'message';
   shortName?: string;
   longName?: string;
@@ -442,11 +444,34 @@ const sendMessage = async (message: string, replyTo?: number, emoji?: number) =>
     }
   } catch (e: unknown) {
     console.error('Failed to send message:', e);
-    const failedId = messageId ?? useRandomId();
+    // The packet queue rejects with { id, error } using the real packet id (the same id the echoed,
+    // already-saved message has) - fall back to a random id only when that's unavailable.
+    const rejectedId =
+      typeof e === 'object' && e !== null && 'id' in e && typeof (e as { id: unknown }).id === 'number'
+        ? (e as { id: number }).id
+        : undefined;
+    const failedId = messageId ?? rejectedId ?? useRandomId();
     setMessageStateSafe(failedId, MessageState.Failed, channelValue);
   }
   sticky.value = true;
   scrollToBottom('smooth');
+};
+
+const replyingTo = ref<ChatMessage>();
+
+const onReply = (message: MessageWithDivider) => {
+  if (message.groupedType !== 'message') return;
+  replyingTo.value = message;
+};
+
+const onReact = ({ messageId, emoji }: { messageId: number; emoji: string }) => {
+  sendMessage(emoji, messageId, 1);
+};
+
+const onSendFromInput = (message: string) => {
+  const replyId = replyingTo.value?.messageId;
+  replyingTo.value = undefined;
+  sendMessage(message, replyId);
 };
 </script>
 

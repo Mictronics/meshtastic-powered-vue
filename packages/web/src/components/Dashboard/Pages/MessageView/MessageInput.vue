@@ -2,6 +2,22 @@
   <div
     class="p-2 bg-slate-50/50 dark:bg-slate-900 border-t border-slate-200! dark:border-slate-600!"
   >
+    <div
+      v-if="replyingTo"
+      class="flex items-center gap-2 mb-1 px-3 py-1 rounded-lg text-xs bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
+    >
+      <span class="truncate flex-1">
+        Replying to <strong>{{ replyingTo.shortName }}</strong>: {{ replyingTo.message }}
+      </span>
+      <button
+        type="button"
+        class="shrink-0 hover:text-slate-700 dark:hover:text-slate-200"
+        aria-label="Cancel reply"
+        @click="emit('cancelReply')"
+      >
+        <X :size="14" />
+      </button>
+    </div>
     <div class="flex gap-2">
       <div
         class="flex items-center w-full relative"
@@ -71,20 +87,23 @@
 <script setup lang="ts">
 import { ref, nextTick, onBeforeUnmount, type ComponentPublicInstance, computed } from 'vue';
 import { createGlobalState, refAutoReset, useDebounceFn } from '@vueuse/core';
-import { Smile, Send } from 'lucide-vue-next';
+import { Smile, Send, X } from 'lucide-vue-next';
 import { Types } from '@meshtastic/core';
 import { Picker, EmojiIndex } from 'emoji-mart-vue-fast/src';
 import 'emoji-mart-vue-fast/css/emoji-mart.css';
 import data from 'emoji-mart-vue-fast/data/all.json';
 import { useMessageStore } from '@/composables/stores/message/useMessageStore';
+import type { ChatMessage } from './MessageView.vue';
 
 const props = defineProps<{
   maxBytes: number;
   to: Types.Destination;
+  replyingTo?: ChatMessage;
 }>();
 
 const emit = defineEmits<{
   (e: 'eventSendMessage', message: string): void;
+  (e: 'cancelReply'): void;
 }>();
 
 const messageStore = useMessageStore().messageStore.value;
