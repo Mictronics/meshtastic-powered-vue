@@ -75,12 +75,13 @@ export interface IDevice {
     setConnectionId: (id: ConnectionId | null) => void;
     setConfig: (config: Protobuf.Config.Config) => void;
     setModuleConfig: (config: Protobuf.ModuleConfig.ModuleConfig) => void;
-    getEffectiveConfig<K extends ValidConfigType>(
+    getEffectiveConfig<K extends Exclude<ValidConfigType, "deviceUi">>(
         payloadVariant: K,
     ): Protobuf.LocalOnly.LocalConfig[K] | undefined;
     getEffectiveModuleConfig<K extends ValidModuleConfigType>(
         payloadVariant: K,
     ): Protobuf.LocalOnly.LocalModuleConfig[K] | undefined;
+    getEffectiveDeviceUIConfig(): DeviceUIConfig;
     setHardware: (hardware: Protobuf.Mesh.MyNodeInfo) => void;
     setPendingSettingsChanges: (state: boolean) => void;
     addChannel: (channel: Protobuf.Channel.Channel) => void;
@@ -353,7 +354,7 @@ class Device implements IDevice {
         }
     };
 
-    getEffectiveConfig<K extends ValidConfigType>(payloadVariant: K): Protobuf.LocalOnly.LocalConfig[K] | undefined {
+    getEffectiveConfig<K extends Exclude<ValidConfigType, "deviceUi">>(payloadVariant: K): Protobuf.LocalOnly.LocalConfig[K] | undefined {
         if (!payloadVariant) {
             return;
         }
@@ -363,6 +364,17 @@ class Device implements IDevice {
 
         return {
             ...this.config[payloadVariant],
+            ...workingValue,
+        };
+    };
+
+    getEffectiveDeviceUIConfig(): DeviceUIConfig {
+        const workingValue = this.changeRegistry.changes[
+            serializeKey({ type: "config", variant: "deviceUi" })
+        ]?.value as Partial<DeviceUIConfig> | undefined;
+
+        return {
+            ...this.deviceUIConfig,
             ...workingValue,
         };
     };

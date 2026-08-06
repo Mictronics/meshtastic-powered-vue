@@ -150,7 +150,25 @@
         <AccordionHeader>
           <DirtyHeader title="Device User Interface" :dirty="isDeviceUIDirty" />
         </AccordionHeader>
-        <AccordionContent></AccordionContent>
+        <AccordionContent>
+          <DeviceUISettings
+            v-model:screenBrightness="deviceUIConfig.screenBrightness"
+            v-model:screenTimeout="deviceUIConfig.screenTimeout"
+            v-model:screenLock="deviceUIConfig.screenLock"
+            v-model:settingsLock="deviceUIConfig.settingsLock"
+            v-model:pinCode="deviceUIConfig.pinCode"
+            v-model:theme="deviceUIConfig.theme"
+            v-model:alertEnabled="deviceUIConfig.alertEnabled"
+            v-model:bannerEnabled="deviceUIConfig.bannerEnabled"
+            v-model:ringToneId="deviceUIConfig.ringToneId"
+            v-model:language="deviceUIConfig.language"
+            v-model:compassMode="deviceUIConfig.compassMode"
+            v-model:screenRgbColor="deviceUIConfig.screenRgbColor"
+            v-model:isClockfaceAnalog="deviceUIConfig.isClockfaceAnalog"
+            v-model:gpsFormat="deviceUIConfig.gpsFormat"
+            :v$="deviceUIV$"
+          />
+        </AccordionContent>
       </AccordionPanel>
     </Accordion>
   </SettingsLayout>
@@ -170,9 +188,11 @@ import BluetoothSettings from './subforms/BluetoothSettings.vue';
 import PowerSettings from './subforms/PowerSettings.vue';
 import NetworkSettings from './subforms/NetworkSettings.vue';
 import DisplaySettings from './subforms/DisplaySettings.vue';
+import DeviceUISettings from './subforms/DeviceUISettings.vue';
 import { useConfigSave } from '@/composables/useConfigSave';
 import { useDeviceStore } from '@/composables/stores/device/useDeviceStore';
 import { useNodeDBStore } from '@/composables/stores/nodeDB/useNodeDBStore';
+import { DeviceUIConfigSchema } from '@meshtastic/protobufs/device_ui_pb.ts';
 import {
   UserRules,
   BluetoothRules,
@@ -182,6 +202,7 @@ import {
   NetworkRules,
   Ipv4Rules,
   DisplayRules,
+  DeviceUIRules,
 } from '@/composables/ValidationRules';
 import { convertIntToIpAddress, convertIpAddressToInt } from '@/composables/useIpConvert';
 import { useDeepCompareConfig } from '@/composables/useDeepCompareConfig';
@@ -255,6 +276,9 @@ const displayConfig = ref<Protobuf.Config.Config_DisplayConfig>(
   create(Protobuf.Config.Config_DisplayConfigSchema)
 );
 const displayV$ = useVuelidate(DisplayRules, displayConfig);
+
+const deviceUIConfig = ref(create(DeviceUIConfigSchema));
+const deviceUIV$ = useVuelidate(DeviceUIRules, deviceUIConfig);
 
 type ConfigType = NonNullable<typeof device.value>['config'];
 const createDirtyComputed = <K extends keyof ConfigType>(
@@ -334,7 +358,13 @@ watch(isBluetoothDirty, (dirty) => {
 });
 
 const isDeviceUIDirty = computed(() => {
-  return false;
+  if (!device.value?.deviceUIConfig) return false;
+  return !useDeepCompareConfig(deviceUIConfig.value, device.value.deviceUIConfig, true);
+});
+watch(isDeviceUIDirty, (dirty) => {
+  if (!dirty) {
+    device.value?.removeChange({ type: 'config', variant: 'deviceUi' });
+  }
 });
 
 watch(
@@ -370,6 +400,15 @@ watch(
   { immediate: true, once: true }
 );
 
+watch(
+  () => device.value?.deviceUIConfig,
+  (config) => {
+    if (!config) return;
+    Object.assign(deviceUIConfig.value, config);
+  },
+  { immediate: true, once: true }
+);
+
 const isAnyDirty = computed(
   () =>
     isUserDirty.value ||
@@ -381,7 +420,8 @@ const isAnyDirty = computed(
     isNetworkDirty.value ||
     isIpDirty.value ||
     isDisplayDirty.value ||
-    isBluetoothDirty.value
+    isBluetoothDirty.value ||
+    isDeviceUIDirty.value
 );
 
 const isAnyInvalid = computed(
@@ -393,7 +433,8 @@ const isAnyInvalid = computed(
     networkV$.value.$invalid ||
     ipV$.value.$invalid ||
     displayV$.value.$invalid ||
-    bluetoothV$.value.$invalid
+    bluetoothV$.value.$invalid ||
+    deviceUIV$.value.$invalid
 );
 
 const saveButtonDisable = computed(() => !isAnyDirty.value || isAnyInvalid.value);
@@ -489,6 +530,12 @@ const onSaveSettings = () => {
     const conf = structuredClone(toRaw(bluetoothConfig.value));
     purgeUncloneableProperties(conf);
     device.value?.setChange({ type: 'config', variant: 'bluetooth' }, conf);
+  }
+
+  if (isDeviceUIDirty.value) {
+    const conf = structuredClone(toRaw(deviceUIConfig.value));
+    purgeUncloneableProperties(conf);
+    device.value?.setChange({ type: 'config', variant: 'deviceUi' }, conf);
   }
   saveConfigHandler.save();
 };

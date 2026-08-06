@@ -151,6 +151,11 @@ export const DisplayRules = {
     units: { required, integer, minValue: minValue(0), maxValue: maxValue(1) },
 }
 
+export const DeviceUIRules = {
+    screenBrightness: { required, integer, minValue: minValue(0), maxValue: maxValue(255) },
+    screenTimeout: { required, integer, minValue: minValue(0), maxValue: maxValue(900) },
+}
+
 export const TrafficManagementRules = {
     positionMinIntervalSecs: { required, integer, minValue: minValue(0), maxValue: maxValue(4294967295) },
     nodeinfoDirectResponseMaxHops: { required, integer, minValue: minValue(0), maxValue: maxValue(7) },

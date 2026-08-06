@@ -9,7 +9,8 @@ export type ValidConfigType =
     | "display"
     | "lora"
     | "bluetooth"
-    | "security";
+    | "security"
+    | "deviceUi";
 
 export type ValidModuleConfigType =
     | "mqtt"
