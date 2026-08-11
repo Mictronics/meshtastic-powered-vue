@@ -101,6 +101,11 @@ class NodeDB implements INodeDB {
             return;
         }
 
+        // Firmware doesn't track last_heard for its own node (it never "hears" itself),
+        // so a live connection to it counts as heard-now.
+        const isSelf = node.num === this.myNodeNum;
+        const incomingLastHeard = next.lastHeard || (isSelf ? Math.floor(Date.now() / 1000) : 0);
+
         // Merge with existing node data if it exists
         let merged;
         if (existing) {
@@ -109,6 +114,8 @@ class NodeDB implements INodeDB {
             // apply the nullish-coalescing fallbacks explicitly
             merged.user = next.user ?? existing.user;
             merged.position = next.position ?? existing.position;
+            // never regress a known lastHeard with an empty/0 value from a later packet
+            merged.lastHeard = incomingLastHeard || existing.lastHeard;
             let ndm = next.deviceMetrics;
             let edm = existing.deviceMetrics;
             if (isProxy(ndm)) {
@@ -119,7 +126,7 @@ class NodeDB implements INodeDB {
             }
             merged.deviceMetrics = ndm ?? edm;
         } else {
-            merged = next;
+            merged = Object.assign({}, next, { lastHeard: incomingLastHeard });
         }
         // Use the validated node's num to ensure consistency
         this.nodeMap[String(merged.num)] = merged;
@@ -252,6 +259,13 @@ class NodeDB implements INodeDB {
 
     setNodeNum(nodeNum: number) {
         this.myNodeNum = nodeNum;
+        // Self's NodeInfo may have already arrived (with lastHeard unset) before myNodeNum was known.
+        const self = toRaw(this.nodeMap[nodeNum]);
+        if (self && !self.lastHeard) {
+            this.nodeMap[String(nodeNum)] = Object.assign({}, self, {
+                lastHeard: Math.floor(Date.now() / 1000),
+            });
+        }
         useNodeDBStore().cleanNodeDBStore(this.id, this.myNodeNum);
     }
 
