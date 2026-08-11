@@ -282,10 +282,21 @@ const groupedMessages = computedWithControl(
   { deep: true }
 );
 
+const hasDirectMessages = (nodeNumber: number) =>
+  (messageStore.value?.getMessages({
+    type: MessageType.Direct,
+    nodeA: device.value?.myNodeNum || 0,
+    nodeB: nodeNumber,
+  })?.length ?? 0) > 0;
+
 const filteredNodes = computedWithControl(
-  [deviceStore.device, debouncedQuery, numericChatId],
+  [deviceStore.device, debouncedQuery, numericChatId, messageStore],
   () => {
-    let nodes = Object.values(nodeDatabase.value).filter((node) => !node.isUnmessagable);
+    // Unmessagable nodes can't be messaged, but can still send to us - keep them
+    // visible if a conversation already exists so incoming messages stay reachable.
+    let nodes = Object.values(nodeDatabase.value).filter(
+      (node) => !node.isUnmessagable || hasDirectMessages(node.nodeNumber)
+    );
     const q = debouncedQuery.value.trim().toLowerCase();
     if (q) {
       nodes = nodes.filter((node) =>
