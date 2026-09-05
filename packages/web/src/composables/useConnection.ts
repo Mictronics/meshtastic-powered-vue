@@ -1,7 +1,6 @@
 import { ConnectionPhase, ConnectionStatus, ConnectionType, type IConnection, type ConnectionId } from "@/composables/stores/connection/types"
 import { useBluetooth } from '@vueuse/core';
 import { useSerial } from "@/composables/useSerial";
-import { useRandomId } from "@/composables/useRandomId";
 import { create } from "@bufbuild/protobuf";
 import { MeshDevice, Protobuf } from "@meshtastic/core";
 import { TransportHTTP } from "@meshtastic/transport-http";
@@ -352,7 +351,7 @@ export const useConnection = createGlobalState(() => {
         // Reuse existing meshDeviceId if available to prevent duplicate nodeDBs,
         // but only if the corresponding nodeDB still exists. Otherwise, generate a new ID.
         const conn = connections.value.get(connectionId);
-        const deviceId = conn?.meshDeviceId ?? useRandomId();
+        const deviceId = conn?.meshDeviceId ?? Math.floor(Math.random() * 1e9);
 
         const device = await useDeviceStore().addDevice(deviceId);
         // Never trust a lockdown state persisted from a previous session; the

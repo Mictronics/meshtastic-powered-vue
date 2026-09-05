@@ -98,12 +98,10 @@ import { useMessageStore } from '@/composables/stores/message/useMessageStore';
 import { useAppStore } from '@/composables/stores/app/useAppStore';
 import NodeAvatar from '@/components/Dashboard/NodeAvatar.vue';
 import { Types } from '@meshtastic/core';
-import { orderBy } from 'lodash-es';
 import { MessageType, MessageState } from '@/composables/stores/message/useMessageStore';
 import type { Message } from '@/composables/stores/message/types';
 import MessageItem from './MessageItem.vue';
 import MessageInput from './MessageInput.vue';
-import { useRandomId } from '@/composables/useRandomId';
 
 type DividerMessage = {
   groupedType: 'divider';
@@ -307,7 +305,7 @@ const filteredNodes = computedWithControl(
       ...node,
       unreadCount: device.value?.getUnreadCount(node.nodeNumber) ?? 0,
     }));
-    nodes = orderBy(nodes, ['unreadCount', 'isFavorite'], ['desc', 'desc']);
+    nodes.sort((a, b) => b.unreadCount - a.unreadCount || Number(b.isFavorite) - Number(a.isFavorite));
     const id = numericChatId.value;
     nodes.sort((a, b) => (a.nodeNumber === id ? -1 : b.nodeNumber === id ? 1 : 0));
     return nodes;
@@ -461,7 +459,7 @@ const sendMessage = async (message: string, replyTo?: number, emoji?: number) =>
       typeof e === 'object' && e !== null && 'id' in e && typeof (e as { id: unknown }).id === 'number'
         ? (e as { id: number }).id
         : undefined;
-    const failedId = messageId ?? rejectedId ?? useRandomId();
+    const failedId = messageId ?? rejectedId ?? Math.floor(Math.random() * 1e9);
     setMessageStateSafe(failedId, MessageState.Failed, channelValue);
   }
   sticky.value = true;

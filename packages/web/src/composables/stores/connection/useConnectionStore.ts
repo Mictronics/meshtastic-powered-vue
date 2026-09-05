@@ -11,7 +11,6 @@ import {
 } from "@/composables/stores/indexedDB";
 import { createSharedComposable } from '@vueuse/core'
 import { ref } from "vue";
-import { useRandomId } from "@/composables/useRandomId";
 import { useGlobalToast, type ToastSeverity } from '@/composables/useGlobalToast';
 import { useDeviceStore } from "@/composables/stores/device/useDeviceStore";
 import { useMessageStore } from "@/composables/stores/message/useMessageStore";
@@ -63,7 +62,7 @@ class Connection implements IConnection {
     }
 
     createConnectionFromInput(input: INewConnection) {
-        this.id = useRandomId();
+        this.id = Math.floor(Math.random() * 1e9);
         this.name = input.name;
         this.createdAt = Math.ceil(Date.now() / 1000);
         this.status = ConnectionStatus.Disconnected;

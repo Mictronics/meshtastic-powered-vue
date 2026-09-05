@@ -258,7 +258,6 @@ import RequestButtonGroup from './RequestButtonGroup.vue';
 import { useFavoriteNode } from '@/composables/useFavoriteNode';
 import { useIgnoreNode } from '@/composables/useIgnoreNode';
 import { type SortDir } from '@/components/Dashboard/Pages/NodeView/types';
-import { orderBy, filter, some } from 'lodash-es';
 import { useDeleteNode } from '@/composables/useDeleteNode';
 import { useConfirm } from '@/composables/useConfirmDialog';
 import { useGlobalToast } from '@/composables/useGlobalToast';
@@ -468,18 +467,30 @@ const filteredNodes = computed(() => {
   let nodes = Object.values(nodeDatabase.value);
   // Apply deep search with Fuse-like behavior (fuzzy searching over multiple fields)
   if (debouncedQuery.value.trim()) {
-    nodes = filter(nodes, (node: any) => {
-      return some(node, (value) => {
-        return value && value.toString().toLowerCase().includes(debouncedQuery.value.toLowerCase());
-      });
-    });
+    const q = debouncedQuery.value.toLowerCase();
+    nodes = nodes.filter((node) =>
+      Object.values(node).some((value) => value && value.toString().toLowerCase().includes(q))
+    );
   }
   return nodes;
 });
 
 const sortedFilteredNodes = computed(() => {
   const nodes = filteredNodes.value;
-  const sorted = orderBy(nodes, sortKey.value, sortDir.value);
+  // Multi-key sort driven by SortButtonGroup; nullish values always sort last, like lodash's orderBy.
+  const sorted = [...nodes].sort((a, b) => {
+    for (let i = 0; i < sortKey.value.length; i++) {
+      const key = sortKey.value[i] as keyof FormattedNode;
+      const av = a[key];
+      const bv = b[key];
+      if (av === bv) continue;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+      const cmp = av > bv ? 1 : -1;
+      return sortDir.value[i] === 'desc' ? -cmp : cmp;
+    }
+    return 0;
+  });
   return sorted.filter((n: FormattedNode) => {
     if (sortKey.value.includes('distance') && n.distance === undefined) return false;
     if (sortKey.value.includes('isOnline') && n.isOnline === false) {

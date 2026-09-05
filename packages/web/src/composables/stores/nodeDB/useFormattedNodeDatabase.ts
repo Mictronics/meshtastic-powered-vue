@@ -1,7 +1,6 @@
 import { createSharedComposable } from '@vueuse/core';
 import { ref } from 'vue';
 import { watchImmediate } from '@vueuse/core';
-import { base16 } from 'rfc4648';
 import humanizeDuration from 'humanize-duration';
 import { fromByteArray } from 'base64-js';
 import { Protobuf } from '@meshtastic/core';
@@ -102,12 +101,7 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
   function formatMacAddr(mac?: Uint8Array | ArrayBuffer): string {
     if (!mac) return 'Unknown';
     const u8 = mac instanceof Uint8Array ? mac : new Uint8Array(mac);
-    return (
-      base16
-        .stringify(u8)
-        .match(/.{1,2}/g)
-        ?.join(':') ?? 'Unknown'
-    );
+    return Array.from(u8, (b) => b.toString(16).padStart(2, '0')).join(':') || 'Unknown';
   }
 
   function formatHops(hops?: number, viaMqtt?: boolean) {
