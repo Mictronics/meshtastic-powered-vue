@@ -28,13 +28,11 @@ export const subscribeAll = (
   });
 
   connection.events.onWaypointPacket.subscribe((waypoint) => {
-    console.log('onWaypointPacket');
     const { data, channel, from, rxTime } = waypoint;
     device.addWaypoint(data, channel, from, rxTime);
   });
 
   connection.events.onMyNodeInfo.subscribe((nodeInfo) => {
-    console.log('onMyNodeInfo');
     useNewNodeNum(device.id, nodeInfo);
     myNodeNum = nodeInfo.myNodeNum;
   });
@@ -44,7 +42,6 @@ export const subscribeAll = (
   });
 
   connection.events.onPositionPacket.subscribe((position) => {
-    console.log('onPositionPacket');
     nodeDB.addPosition(position);
   });
 
@@ -56,11 +53,9 @@ export const subscribeAll = (
   });
 
   connection.events.onChannelPacket.subscribe((channel) => {
-    console.log('onChannelPacket');
     device.addChannel(channel);
   });
   connection.events.onConfigPacket.subscribe((config) => {
-    console.log('onConfigPacket');
     device.setConfig(config);
   });
   connection.events.onModuleConfigPacket.subscribe((moduleConfig) => {
@@ -68,7 +63,6 @@ export const subscribeAll = (
   });
 
   connection.events.onMessagePacket.subscribe((messagePacket) => {
-    console.log('onMessagePacket');
     // incoming and outgoing messages are handled by this event listener
     const dto = new PacketToMessageDTO(messagePacket, myNodeNum);
     const message = dto.toMessage();
@@ -86,19 +80,16 @@ export const subscribeAll = (
   });
 
   connection.events.onTraceRoutePacket.subscribe((traceRoutePacket) => {
-    console.log('onTraceroutePacket');
     device.addTraceRoute({
       ...traceRoutePacket,
     });
   });
 
   connection.events.onPendingSettingsChange.subscribe((state) => {
-    console.log('onPendingSettingsChange');
     device.setPendingSettingsChanges(state);
   });
 
   connection.events.onMeshPacket.subscribe((meshPacket) => {
-    console.log('onMeshPacket');
     nodeDB.processPacket({
       from: meshPacket.from,
       snr: meshPacket.rxSnr,
@@ -107,12 +98,10 @@ export const subscribeAll = (
   });
 
   connection.events.onClientNotificationPacket.subscribe((clientNotificationPacket) => {
-    console.log('onClientNotificationPacket');
     device.addClientNotification(clientNotificationPacket);
   });
 
   connection.events.onLockdownStatusPacket.subscribe((lockdownStatus) => {
-    console.log('onLockdownStatusPacket');
     device.setLockdownStatus(lockdownStatus);
 
     // Silently replay a passphrase that already unlocked this device once
@@ -128,7 +117,6 @@ export const subscribeAll = (
   });
 
   connection.events.onNeighborInfoPacket.subscribe((neighborInfo) => {
-    console.log('onNeighborInfoPacket');
     device.addNeighborInfo(neighborInfo.from, neighborInfo.data);
   });
 
