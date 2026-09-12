@@ -379,6 +379,12 @@ export const useConnection = createGlobalState(() => {
                 if (device) device.setConnectionPhase(ConnectionPhase.Configured);
                 setStatus(connectionId, ConnectionStatus.Configured);
 
+                // want_config_id doesn't push DeviceMetadata (firmware version, HW flags) on its
+                // own - it must be requested explicitly once the local node number is known.
+                if (device?.myNodeNum !== undefined) {
+                    meshDevice.getMetadata(device.myNodeNum);
+                }
+
                 nodeDB?.pruneStaleNodes();
 
                 // Switch from fast config heartbeat to slow maintenance heartbeat

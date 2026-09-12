@@ -60,21 +60,6 @@
           <InputGroupAddon>Seconds</InputGroupAddon>
         </InputGroup>
       </FormRow>
-
-      <FormRow
-        label="Send As Node"
-        for-id="beaconSendAsNode"
-        description="Optional node ID to send beacon messages as. Leave at 0 to send as the local node."
-      >
-        <InputText
-          id="beaconSendAsNode"
-          class="dark:bg-slate-800 dark:text-slate-400 w-full"
-          size="small"
-          type="number"
-          min="0"
-          v-model="broadcastSendAsNodeInput"
-        />
-      </FormRow>
     </FormGrid>
   </div>
 </template>
@@ -90,7 +75,6 @@ import { useGetError } from '@/composables/useGetError';
 const flags = defineModel<number>('flags');
 const broadcastMessage = defineModel<string>('broadcastMessage');
 const broadcastIntervalSecs = defineModel<number>('broadcastIntervalSecs');
-const broadcastSendAsNode = defineModel<number>('broadcastSendAsNode');
 
 const props = defineProps<{
   v$: Validation;
@@ -143,16 +127,6 @@ const broadcastIntervalSecsInput = computed<string>({
   set(value) {
     const n = Number(value);
     broadcastIntervalSecs.value = Number.isNaN(n) ? 3600 : n;
-  },
-});
-
-const broadcastSendAsNodeInput = computed<string>({
-  get() {
-    return broadcastSendAsNode.value?.toString() ?? '';
-  },
-  set(value) {
-    const n = Number(value);
-    broadcastSendAsNode.value = Number.isNaN(n) ? 0 : n;
   },
 });
 </script>

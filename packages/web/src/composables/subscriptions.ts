@@ -114,6 +114,13 @@ export const subscribeAll = (
         });
       }
     }
+
+    // Firmware zeroes DeviceMetadata in the config stream while locked
+    // (it's a fingerprint vector for an unauth client) - re-fetch now
+    // that this connection is authorized.
+    if (lockdownStatus.state === Protobuf.Mesh.LockdownStatus_State.UNLOCKED && myNodeNum) {
+      connection.getMetadata(myNodeNum);
+    }
   });
 
   connection.events.onNeighborInfoPacket.subscribe((neighborInfo) => {
