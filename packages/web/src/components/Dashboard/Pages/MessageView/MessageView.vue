@@ -93,6 +93,7 @@ import { CircleArrowDown, Search } from 'lucide-vue-next';
 import { ref, nextTick, onMounted, computed, onBeforeUnmount, watch } from 'vue';
 import { computedWithControl, refDebounced, useDebounceFn } from '@vueuse/core';
 import { useFormattedNodeDatabase } from '@/composables/stores/nodeDB/useFormattedNodeDatabase';
+import { matchesNodeSearch } from '@/composables/nodeSearch';
 import { useDeviceStore } from '@/composables/stores/device/useDeviceStore';
 import { useMessageStore } from '@/composables/stores/message/useMessageStore';
 import { useAppStore } from '@/composables/stores/app/useAppStore';
@@ -297,9 +298,7 @@ const filteredNodes = computedWithControl(
     );
     const q = debouncedQuery.value.trim().toLowerCase();
     if (q) {
-      nodes = nodes.filter((node) =>
-        Object.values(node).some((v) => v?.toString().toLowerCase().includes(q))
-      );
+      nodes = nodes.filter((node) => matchesNodeSearch(node, q));
     }
     nodes = nodes.map((node) => ({
       ...node,

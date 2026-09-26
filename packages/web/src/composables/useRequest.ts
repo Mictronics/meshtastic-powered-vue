@@ -131,6 +131,30 @@ export const useRequest = () => {
         }
     }
 
+    const requestTraceroute = async (nodeNumber: number) => {
+        if (!device) return;
+
+        try {
+            await device.connection?.traceRoute(nodeNumber);
+
+            useGlobalToast().add({
+                severity: 'info',
+                summary: 'Traceroute request',
+                detail: `Traceroute requested for ${nodeNumber}.`,
+                life: 3000
+            });
+        } catch (error) {
+            const errStr = packetErrorToString((error as PacketError).error);
+            useGlobalToast().add({
+                severity: 'error',
+                summary: `Error: ${errStr}`,
+                detail: `Failed to request traceroute for ${nodeNumber}.`,
+                life: 6000
+            });
+            console.error(error);
+        }
+    }
+
     const requestDeviceTelemetry = (nodeNumber: number) =>
         requestTelemetry(nodeNumber, TelemetryType.DEVICE);
 
@@ -157,6 +181,7 @@ export const useRequest = () => {
 
     return {
         requestNodeInfo,
+        requestTraceroute,
         requestTelemetry,
         requestDeviceTelemetry,
         requestEnvironmentTelemetry,

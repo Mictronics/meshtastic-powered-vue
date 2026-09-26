@@ -1,6 +1,5 @@
-import { createSharedComposable } from '@vueuse/core';
+import { createSharedComposable, useIntervalFn, watchImmediate } from '@vueuse/core';
 import { ref } from 'vue';
-import { watchImmediate } from '@vueuse/core';
 import humanizeDuration from 'humanize-duration';
 import { fromByteArray } from 'base64-js';
 import { Protobuf } from '@meshtastic/core';
@@ -25,9 +24,24 @@ export enum EncryptionStatus {
   KeyMismatch,
 }
 
+const ONLINE_THRESHOLD_SEC = 2 * 60 * 60;
+const ONLINE_REFRESH_MS = 60_000;
+
+const isOnline = (lastHeard: number | undefined, nowSec: number) =>
+  !!lastHeard && nowSec - lastHeard <= ONLINE_THRESHOLD_SEC;
+
 export const useFormattedNodeDatabase = createSharedComposable(() => {
   const nodeDatabase = ref<FormattedNodeMap>({});
   const { calculateGreatCircleDistance } = useDistanceToNode();
+
+  // Entries are only rebuilt on node-DB changes, so age out the online flag on a timer.
+  useIntervalFn(() => {
+    const nowSec = Math.floor(Date.now() / 1000);
+    for (const node of Object.values(nodeDatabase.value)) {
+      const online = isOnline(node.lastHeard, nowSec);
+      if (node.isOnline !== online) node.isOnline = online;
+    }
+  }, ONLINE_REFRESH_MS);
 
   watchImmediate(
     useNodeDBStore().nodeDatabase,
@@ -46,7 +60,7 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
           hopsAway: formatHops(node.hopsAway, node.viaMqtt),
           numHops: node.hopsAway,
           lastHeard: node.lastHeard,
-          isOnline: !!node.lastHeard && nowSec - node.lastHeard <= 2 * 60 * 60,
+          isOnline: isOnline(node.lastHeard, nowSec),
           encryptionStatus: formatEncryption(node.user?.publicKey),
           isFavorite: node.isFavorite,
           isIgnored: node.isIgnored,
@@ -62,7 +76,6 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
           ),
           publicKey: formatPublicKey(node.user?.publicKey),
           isPublicKeyVerified: node.isKeyManuallyVerified,
-          unreadCount: 0,
           distance: calculateGreatCircleDistance(node.num),
           deviceMetrics: formatDeviceMetrics(node.deviceMetrics),
           environmentMetrics: formatEnvironmentMetrics(node.environmentMetrics),

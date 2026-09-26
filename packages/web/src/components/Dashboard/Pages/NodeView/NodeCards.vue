@@ -54,11 +54,19 @@
                 }"
               >
                 <div class="flex justify-between items-start mb-2">
-                  <NodeAvatar
-                    :isFavorite="node.isFavorite"
-                    :nodeNumber="node.nodeNumber"
-                    :shortName="node.shortName"
-                  />
+                  <div class="flex items-center gap-2">
+                    <NodeAvatar
+                      :isFavorite="node.isFavorite"
+                      :nodeNumber="node.nodeNumber"
+                      :shortName="node.shortName"
+                    />
+                    <Badge
+                      v-if="device?.getUnreadCount(node.nodeNumber)"
+                      severity="info"
+                      size="small"
+                      :value="device.getUnreadCount(node.nodeNumber)"
+                    />
+                  </div>
                   <NodeFeatures :node="node" />
                 </div>
                 <h3 class="text-lg font-bold text-slate-800 dark:text-slate-400 mb-1 truncate">
@@ -221,6 +229,11 @@
           :node-number="selectedNode.nodeNumber"
           v-model:show-drawer="showDrawer"
         />
+        <SectionDivider title="Traceroute" />
+        <TracerouteSection :node-number="selectedNode.nodeNumber" />
+        <!-- Neighbors -->
+        <SectionDivider v-if="neighborItems.length" title="Neighbors" />
+        <MetricsGrid :items="neighborItems" :columns="2" />
       </div>
     </Drawer>
   </div>
@@ -239,7 +252,7 @@ import {
   MessageSquare,
 } from 'lucide-vue-next';
 import { ref, computed, onMounted, onUnmounted, onBeforeUnmount } from 'vue';
-import { formatTimeAgoIntl, refDebounced, watchOnce } from '@vueuse/core';
+import { formatTimeAgoIntl, refDebounced, useNow, watchOnce } from '@vueuse/core';
 import { numberToHexUnpadded } from '@noble/curves/utils.js';
 import type { FormattedNode } from '@/composables/types';
 import {
@@ -255,6 +268,9 @@ import NodeFeatures from '@/components/Dashboard/Pages/NodeView/NodeFeatures.vue
 import SectionDivider from '@/components/Dashboard/Pages/SectionDivider.vue';
 import MetricsGrid from '@/components/Dashboard/Pages/NodeView/MetricsGrid.vue';
 import RequestButtonGroup from './RequestButtonGroup.vue';
+import TracerouteSection from './TracerouteSection.vue';
+import { useDeviceStore } from '@/composables/stores/device/useDeviceStore';
+import { matchesNodeSearch } from '@/composables/nodeSearch';
 import { useFavoriteNode } from '@/composables/useFavoriteNode';
 import { useIgnoreNode } from '@/composables/useIgnoreNode';
 import { type SortDir } from '@/components/Dashboard/Pages/NodeView/types';
@@ -264,6 +280,9 @@ import { useGlobalToast } from '@/composables/useGlobalToast';
 
 const toast = useGlobalToast();
 const nodeDatabase = useFormattedNodeDatabase().nodeDatabase;
+const device = useDeviceStore().device;
+// Re-renders relative "last heard" text once a minute.
+const tick = useNow({ interval: 60_000 });
 const searchQuery = ref('');
 const debouncedQuery = refDebounced(searchQuery, 150);
 const showDrawer = ref(false);
@@ -431,6 +450,15 @@ const airQualityItems = computed(() => {
   ];
 });
 
+const neighborItems = computed(() => {
+  const n = selectedNode.value;
+  const neighbors = n && device.value?.getNeighborInfo(n.nodeNumber)?.neighbors;
+  return (neighbors ?? []).map((nb) => ({
+    label: `${nodeDatabase.value[nb.nodeId]?.shortName ?? ''} !${numberToHexUnpadded(nb.nodeId)}`.trim(),
+    value: `${nb.snr.toFixed(1)} dB` + (nb.lastRxTime ? ` · ${formatLastHeard(nb.lastRxTime)}` : ''),
+  }));
+});
+
 const isFavorite = computed(() => {
   if (selectedNode.value?.nodeNumber) {
     return nodeDatabase.value[selectedNode.value.nodeNumber]?.isFavorite;
@@ -465,12 +493,9 @@ const onSortToggle = (keys: string[], dir: SortDir[]) => {
 
 const filteredNodes = computed(() => {
   let nodes = Object.values(nodeDatabase.value);
-  // Apply deep search with Fuse-like behavior (fuzzy searching over multiple fields)
-  if (debouncedQuery.value.trim()) {
-    const q = debouncedQuery.value.toLowerCase();
-    nodes = nodes.filter((node) =>
-      Object.values(node).some((value) => value && value.toString().toLowerCase().includes(q))
-    );
+  const q = debouncedQuery.value.trim().toLowerCase();
+  if (q) {
+    nodes = nodes.filter((n) => matchesNodeSearch(n, q));
   }
   return nodes;
 });
@@ -530,7 +555,7 @@ const formatLastHeard = (epoch?: number) => {
   if (date > now) {
     hasFutureTime.value = true;
   }
-  return formatTimeAgoIntl(date);
+  return formatTimeAgoIntl(date, undefined, tick.value);
 };
 
 watchOnce(hasFutureTime, (val) => {
