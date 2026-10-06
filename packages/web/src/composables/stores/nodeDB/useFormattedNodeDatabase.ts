@@ -1,4 +1,4 @@
-import { createSharedComposable, useIntervalFn, watchImmediate } from '@vueuse/core';
+import { createSharedComposable, useIntervalFn, watchDebounced } from '@vueuse/core';
 import { ref } from 'vue';
 import humanizeDuration from 'humanize-duration';
 import { fromByteArray } from 'base64-js';
@@ -43,7 +43,8 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
     }
   }, ONLINE_REFRESH_MS);
 
-  watchImmediate(
+  // Debounced: a post-reconnect packet flood would otherwise rebuild every node per packet.
+  watchDebounced(
     useNodeDBStore().nodeDatabase,
     (ndb) => {
       if (!ndb?.nodeMap) return;
@@ -99,7 +100,7 @@ export const useFormattedNodeDatabase = createSharedComposable(() => {
         nodeDatabase.value[node.num] = formatted;
       }
     },
-    { deep: true }
+    { deep: true, immediate: true, debounce: 500, maxWait: 3000 }
   );
 
   function formatName(num: number, shortName?: string, longName?: string) {
