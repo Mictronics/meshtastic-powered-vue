@@ -555,7 +555,9 @@ const formatLastHeard = (epoch?: number) => {
   if (date > now) {
     hasFutureTime.value = true;
   }
-  return formatTimeAgoIntl(date, undefined, tick.value);
+  // tick.value only triggers the per-minute re-render; using it as "now" makes fresh packets read as future.
+  void tick.value;
+  return formatTimeAgoIntl(date, undefined, now);
 };
 
 watchOnce(hasFutureTime, (val) => {
