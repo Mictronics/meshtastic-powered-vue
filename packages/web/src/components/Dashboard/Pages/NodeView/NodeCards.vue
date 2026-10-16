@@ -86,10 +86,13 @@
                       <span v-if="node.distance">{{ node.distance.toFixed(0) }} km&nbsp;</span>
                       {{ node.hopsAway }} {{ formatLastHeard(node.lastHeard) }}
                     </span>
-                    <BatteryStatus
-                      v-if="!!node.deviceMetrics"
-                      :batteryLevel="node.deviceMetrics.batteryLevel"
-                    />
+                    <span class="flex items-center gap-1 text-slate-500/50">
+                      <BatteryStatus
+                        v-if="!!node.deviceMetrics"
+                        :batteryLevel="node.deviceMetrics.batteryLevel"
+                      />
+                      <RoleIcon :role="node.role" />
+                    </span>
                   </div>
                 </div>
               </div>
@@ -261,6 +264,7 @@ import {
 } from '@/composables/stores/nodeDB/useFormattedNodeDatabase';
 import NodeAvatar from '@/components/Dashboard/NodeAvatar.vue';
 import BatteryStatus from '@/components/Dashboard/BatteryStatus.vue';
+import RoleIcon from '@/components/Dashboard/RoleIcon.vue';
 import NodeDetailsItem from '@/components/Dashboard/Pages/NodeView/NodeDetailsItem.vue';
 import CoordinateDisplay from '@/components/Dashboard/Pages/NodeView/CoordinateDisplay.vue';
 import SortButtonGroup from '@/components/Dashboard/Pages/NodeView/SortButtonGroup.vue';
@@ -454,8 +458,10 @@ const neighborItems = computed(() => {
   const n = selectedNode.value;
   const neighbors = n && device.value?.getNeighborInfo(n.nodeNumber)?.neighbors;
   return (neighbors ?? []).map((nb) => ({
-    label: `${nodeDatabase.value[nb.nodeId]?.shortName ?? ''} !${numberToHexUnpadded(nb.nodeId)}`.trim(),
-    value: `${nb.snr.toFixed(1)} dB` + (nb.lastRxTime ? ` · ${formatLastHeard(nb.lastRxTime)}` : ''),
+    label:
+      `${nodeDatabase.value[nb.nodeId]?.shortName ?? ''} !${numberToHexUnpadded(nb.nodeId)}`.trim(),
+    value:
+      `${nb.snr.toFixed(1)} dB` + (nb.lastRxTime ? ` · ${formatLastHeard(nb.lastRxTime)}` : ''),
   }));
 });
 
