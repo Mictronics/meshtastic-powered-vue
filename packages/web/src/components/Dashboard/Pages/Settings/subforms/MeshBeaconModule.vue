@@ -60,6 +60,24 @@
           <InputGroupAddon>Seconds</InputGroupAddon>
         </InputGroup>
       </FormRow>
+
+      <FormRow
+        label="Frequency Slot"
+        for-id="beaconFrequencySlot"
+        description="Advertised frequency slot (1-based). Leave empty to let receivers derive it from region, channel name and preset; set only if this mesh pins a non-default slot."
+        :error="useGetError(v$.broadcastOfferFrequencySlot)"
+      >
+        <InputText
+          id="beaconFrequencySlot"
+          class="dark:bg-slate-800 dark:text-slate-400 w-full"
+          size="small"
+          type="number"
+          min="1"
+          v-model="broadcastOfferFrequencySlotInput"
+          :invalid="v$.broadcastOfferFrequencySlot.$invalid"
+          @blur="v$.broadcastOfferFrequencySlot.$touch()"
+        />
+      </FormRow>
     </FormGrid>
   </div>
 </template>
@@ -75,6 +93,7 @@ import { useGetError } from '@/composables/useGetError';
 const flags = defineModel<number>('flags');
 const broadcastMessage = defineModel<string>('broadcastMessage');
 const broadcastIntervalSecs = defineModel<number>('broadcastIntervalSecs');
+const broadcastOfferFrequencySlot = defineModel<number | undefined>('broadcastOfferFrequencySlot');
 
 const props = defineProps<{
   v$: Validation;
@@ -127,6 +146,16 @@ const broadcastIntervalSecsInput = computed<string>({
   set(value) {
     const n = Number(value);
     broadcastIntervalSecs.value = Number.isNaN(n) ? 3600 : n;
+  },
+});
+
+const broadcastOfferFrequencySlotInput = computed<string>({
+  get() {
+    return broadcastOfferFrequencySlot.value?.toString() ?? '';
+  },
+  set(value) {
+    const n = Number(value);
+    broadcastOfferFrequencySlot.value = value === '' || Number.isNaN(n) ? undefined : n;
   },
 });
 </script>

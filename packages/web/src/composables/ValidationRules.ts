@@ -198,6 +198,8 @@ export const MeshBeaconRules = {
         ),
         maxValue: maxValue(4294967295),
     },
+    // Optional: unset means receivers derive the slot; 0 is not allowed.
+    broadcastOfferFrequencySlot: { integer, minValue: minValue(1), maxValue: maxValue(4294967295) },
 }
 
 export const AudioRules = {

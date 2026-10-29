@@ -280,6 +280,7 @@
             v-model:flags="meshBeaconConfig.flags"
             v-model:broadcastMessage="meshBeaconConfig.broadcastMessage"
             v-model:broadcastIntervalSecs="meshBeaconConfig.broadcastIntervalSecs"
+            v-model:broadcastOfferFrequencySlot="meshBeaconConfig.broadcastOfferFrequencySlot"
             :v$="meshBeaconV$"
           />
         </AccordionContent>
