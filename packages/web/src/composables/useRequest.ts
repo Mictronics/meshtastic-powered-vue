@@ -36,7 +36,7 @@ export const useRequest = () => {
 
         try {
             await device.connection?.sendPacket(
-                toBinary(Protobuf.Mesh.NodeInfoSchema, myNodeInfo),
+                toBinary(Protobuf.Mesh.UserSchema, myNodeInfo.user ?? create(Protobuf.Mesh.UserSchema)),
                 Protobuf.Portnums.PortNum.NODEINFO_APP,
                 nodeNumber,
                 nodeDatabase?.getNode(nodeNumber)?.channel ?? 0,
